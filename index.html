@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CRF Comps · Free Entry Competition</title>
+<title>CRF Comps · Free Coaching Giveaway</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/main.css">
@@ -26,8 +26,8 @@
   <div class="wrap">
     <div class="hero-grid">
       <div>
-        <div class="hero-eyebrow" id="heroEyebrow">Free entry · Real prizes · New competition live now</div>
-        <h1 id="heroHeadline">Enter free.<br><em>Win something real.</em></h1>
+        <div class="hero-eyebrow" id="heroEyebrow">Free entry · Coaching giveaway · New round live now</div>
+        <h1 id="heroHeadline">Enter free.<br><em>Win coaching.</em></h1>
         <p class="hero-sub" id="heroSub">
           Join the current CRF Comps giveaway in seconds. No purchase needed — just your name, email and phone so we can contact the winners.
         </p>
@@ -37,10 +37,10 @@
         </div>
       </div>
       <div class="prize-card">
-        <div class="prize-label">Total Prize Pool</div>
-        <div class="prize-amount" id="prizePool">$0</div>
-        <div class="prize-desc" id="prizeDesc">Winner announced after the competition closes. Enter once per active round.</div>
-        <div class="prize-label mt-3">Competition type</div>
+        <div class="prize-label">Main Giveaway</div>
+        <div class="prize-amount" id="prizeMain" style="font-size:32px;line-height:1.1;">Coaching giveaway</div>
+        <div class="prize-desc" id="prizeDesc">Winner announced after the giveaway closes. Enter once per active round.</div>
+        <div class="prize-label mt-3">Giveaway type</div>
         <div class="prize-desc" id="compType">Random draw</div>
       </div>
     </div>
@@ -71,36 +71,25 @@
       <h2 id="prizeHeadline">Prize pool</h2>
     </div>
     <div class="pricing-grid reveal" id="prizeCards">
-      <div class="price-card">
-        <div class="price-name">1st Place</div>
-        <div class="price-num prize-value" id="prizeFirst">$0</div>
-        <div class="price-total prize-sub" id="prizeFirstSub">Cash prize</div>
-        <ul class="price-list">
-          <li>Top selected winner</li>
-          <li>Contacted by phone &amp; email</li>
-          <li>Paid within 7 days of close</li>
-        </ul>
-      </div>
       <div class="price-card featured">
-        <div class="price-tag">Runner-up</div>
-        <div class="price-name">2nd Place</div>
-        <div class="price-num prize-value" id="prizeSecond">$0</div>
-        <div class="price-total prize-sub" id="prizeSecondSub">Cash prize</div>
+        <div class="price-tag">Main winner</div>
+        <div class="price-name">Giveaway prize</div>
+        <div class="price-num prize-value" id="prizeMainCard" style="font-size:30px;line-height:1.1;">Main prize</div>
         <ul class="price-list">
-          <li>Second selected entry</li>
+          <li>One main winner selected</li>
           <li>Contacted by phone &amp; email</li>
-          <li>Paid within 7 days of close</li>
+          <li>Coaching prize arranged after the close</li>
         </ul>
       </div>
       <div class="price-card">
-        <div class="price-name">3rd Place</div>
-        <div class="price-num prize-value" id="prizeThird">$0</div>
-        <div class="price-total prize-sub" id="prizeThirdSub">Cash prize</div>
-        <ul class="price-list">
-          <li>Third selected entry</li>
-          <li>Contacted by phone &amp; email</li>
-          <li>Paid within 7 days of close</li>
-        </ul>
+        <div class="price-name">Runner-up</div>
+        <div class="price-num prize-value" id="prizeRunnerUp" style="font-size:24px;line-height:1.2;">Optional</div>
+        <div class="price-total prize-sub" id="prizeRunnerUpSub">Set in admin if used</div>
+      </div>
+      <div class="price-card">
+        <div class="price-name">Second runner-up</div>
+        <div class="price-num prize-value" id="prizeRunnerUp2" style="font-size:24px;line-height:1.2;">Optional</div>
+        <div class="price-total prize-sub" id="prizeRunnerUp2Sub">Set in admin if used</div>
       </div>
     </div>
   </div>
@@ -115,10 +104,10 @@
     </div>
 
     <div class="rules-list reveal" id="howList">
-      <li><span class="rmark">01</span><span><b>Enter for free</b> with your name, email and phone. One entry per active competition round.</span></li>
-      <li><span class="rmark">02</span><span><b>We run the competition</b> until the closing date shown on this page.</span></li>
-      <li><span class="rmark">03</span><span><b>Winners are drawn or selected</b> based on the competition type and contacted directly.</span></li>
-      <li><span class="rmark">04</span><span><b>Prizes are paid or delivered</b> within 7 days of the competition closing.</span></li>
+      <li><span class="rmark">01</span><span><b>Enter for free</b> with your name, email and phone. One entry per active giveaway round.</span></li>
+      <li><span class="rmark">02</span><span><b>We run the giveaway</b> until the closing date shown on this page.</span></li>
+      <li><span class="rmark">03</span><span><b>Winners are drawn or selected</b> based on the giveaway type and contacted directly.</span></li>
+      <li><span class="rmark">04</span><span><b>Coaching prizes are arranged</b> with each winner after the giveaway closes.</span></li>
     </div>
   </div>
 </section>
@@ -134,7 +123,7 @@
         </p>
         <div class="prize-card" style="margin-top:32px;max-width:100%;">
           <div class="prize-label">Currently live</div>
-          <div class="prize-amount" id="formPrizePool" style="font-size:42px;">$0</div>
+          <div class="prize-amount" id="formPrizeMain" style="font-size:28px;line-height:1.1;">Giveaway open</div>
           <div class="prize-desc" id="formCloses">Closes soon</div>
         </div>
       </div>
@@ -183,10 +172,10 @@
 
     <ul class="rules-list reveal" id="rulesList">
       <li><span class="rmark">01</span><span><b>Entry is free.</b> No purchase or payment is required to enter or win.</span></li>
-      <li><span class="rmark">02</span><span><b>One entry per person per competition round.</b> Duplicate emails for the same round will be removed.</span></li>
+      <li><span class="rmark">02</span><span><b>One entry per person per giveaway round.</b> Duplicate emails for the same round will be removed.</span></li>
       <li><span class="rmark">03</span><span><b>You must be 18+</b> and a resident where local laws permit giveaways of this kind.</span></li>
       <li><span class="rmark">04</span><span><b>Winners are contacted by email and phone.</b> If we cannot reach a winner within 7 days, another may be drawn.</span></li>
-      <li><span class="rmark">05</span><span><b>Prizes are non-transferable</b> unless otherwise stated by the organiser.</span></li>
+      <li><span class="rmark">05</span><span><b>Coaching prizes are non-transferable</b> unless otherwise stated by the organiser.</span></li>
     </ul>
   </div>
 </section>
@@ -194,14 +183,14 @@
 <section class="final-cta">
   <div class="wrap-narrow">
     <h2 class="reveal">Your entry is waiting.</h2>
-    <p class="reveal">Get in before this round closes. The next competition starts fresh after this one ends.</p>
+    <p class="reveal">Get in before this round closes. The next giveaway starts fresh after this one ends.</p>
     <a href="#enter" class="btn-primary reveal" id="finalCta">Enter Free Now</a>
   </div>
 </section>
 
 <footer>
   <div class="wrap">
-    <p class="foot-text">By entering, you agree to the competition rules and consent to being contacted about this and future giveaways. CRF Comps is a free-entry promotion; no purchase is necessary. Winners are selected according to the competition type shown above and notified directly.</p>
+    <p class="foot-text">By entering, you agree to the giveaway rules and consent to being contacted about this and future giveaways. CRF Comps is a free-entry promotion; no purchase is necessary. Winners are selected according to the giveaway type shown above and notified directly.</p>
   </div>
 </footer>
 
@@ -216,12 +205,12 @@
 
   const fallback = {
     brand_name: 'CRF Comps',
-    headline: 'Enter free.<br><em>Win something real.</em>',
+    headline: 'Enter for free.<br><em>Win coaching.</em>',
     subheadline: 'Join the current CRF Comps giveaway in seconds. No purchase needed — just your name, email and phone so we can contact the winners.',
-    prize_pool: 0,
-    prize_first_cash: 0,
-    prize_second_cash: 0,
-    prize_third_cash: 0,
+    prize_value: 0,
+    prize_main: 'Main coaching giveaway',
+    prize_runner_up: '',
+    prize_runner_up_2: '',
     type: 'other',
     ends_at: null,
     rules_text: ''
@@ -259,7 +248,7 @@
     document.querySelectorAll('.brand').forEach(function (b) {
       b.innerHTML = '<span class="dot"></span>' + brand;
     });
-    document.title = brand + ' · Free Entry Competition';
+    document.title = brand + ' · Free Coaching Giveaway';
   }
 
   function applyCompetition(c) {
@@ -267,28 +256,30 @@
 
     const headline = c ? (c.hero_headline || fallback.headline) : fallback.headline;
     const sub = c ? (c.hero_subheadline || fallback.subheadline) : fallback.subheadline;
-    const pool = c ? (Number(c.prize_pool) || 0) : (siteSettings?.fallback_prize_pool || fallback.prize_pool);
-    const first = c ? (Number(c.prize_first_cash) || 0) : fallback.prize_first_cash;
-    const second = c ? (Number(c.prize_second_cash) || 0) : fallback.prize_second_cash;
-    const third = c ? (Number(c.prize_third_cash) || 0) : fallback.prize_third_cash;
+    const value = c ? (Number(c.prize_value) || 0) : (siteSettings?.fallback_prize_value || fallback.prize_value);
+    const main = c ? (c.prize_main || fallback.prize_main) : fallback.prize_main;
+    const runnerUp = c ? (c.prize_runner_up || '') : '';
+    const runnerUp2 = c ? (c.prize_runner_up_2 || '') : '';
     const type = c ? (c.type || 'other') : 'other';
     const ends = c ? c.ends_at : null;
     const typeLabel = fmtType(type);
 
     setHtml('heroHeadline', headline);
     setHtml('heroSub', sub);
-    setText('heroEyebrow', c ? ('Free entry · ' + typeLabel + ' · Closes ' + fmtDateShort(ends)) : 'Free entry · New competition coming soon');
+    setText('heroEyebrow', c ? ('Free entry · ' + typeLabel + ' · Closes ' + fmtDateShort(ends)) : 'Free entry · New giveaway coming soon');
 
-    setText('prizePool', formatCurrency(pool));
-    setText('prizeDesc', c ? (c.prize_description || 'Winner announced after the competition closes. Enter once per active round.') : 'No active competition right now. Check back soon.');
+    setText('prizeMain', main);
+    setText('prizeDesc', c ? (c.prize_description || 'Winner announced after the giveaway closes. Enter once per active round.') : 'No active giveaway right now. Check back soon.');
     setText('compType', typeLabel);
 
-    setText('prizeHeadline', formatCurrency(pool) + ' prize pool');
-    setText('prizeFirst', formatCurrency(first));
-    setText('prizeSecond', formatCurrency(second));
-    setText('prizeThird', formatCurrency(third));
+    setText('prizeHeadline', 'Giveaway prizes' + (value ? ' · Total value ' + formatCurrency(value) : ''));
+    setText('prizeMainCard', main);
+    setText('prizeRunnerUp', runnerUp || 'Optional');
+    setText('prizeRunnerUpSub', runnerUp ? 'Runner-up prize' : 'Set in admin if used');
+    setText('prizeRunnerUp2', runnerUp2 || 'Optional');
+    setText('prizeRunnerUp2Sub', runnerUp2 ? 'Second runner-up prize' : 'Set in admin if used');
 
-    setText('formPrizePool', formatCurrency(pool));
+    setText('formPrizeMain', main);
     setText('formCloses', c ? ('Closes ' + fmtDateShort(ends)) : 'No active round');
 
     setText('credEnds', c ? fmtDateShort(ends) : 'Soon');
@@ -298,11 +289,11 @@
       document.getElementById('entryForm').style.display = 'none';
       const closedMsg = document.getElementById('confirmBox');
       closedMsg.classList.add('show');
-      document.getElementById('confirmText').textContent = 'No competition is active right now. Come back when the next round opens.';
+      document.getElementById('confirmText').textContent = 'No giveaway is active right now. Come back when the next round opens.';
       const cta = document.getElementById('finalCta');
       if (cta) {
         cta.style.display = 'none';
-        cta.previousElementSibling.textContent = 'A new competition is coming soon. Check back for the next round.';
+        cta.previousElementSibling.textContent = 'A new giveaway is coming soon. Check back for the next round.';
         cta.previousElementSibling.previousElementSibling.textContent = 'Thanks for visiting.';
       }
     }
@@ -365,7 +356,7 @@
     msg.className = 'msg';
 
     if (!activeCompetition) {
-      showMsg(msg, 'No active competition right now. Please check back later.', 'error');
+      showMsg(msg, 'No active giveaway right now. Please check back later.', 'error');
       return;
     }
 

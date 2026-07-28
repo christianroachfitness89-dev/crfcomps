@@ -21,13 +21,13 @@ create table if not exists public.competitions (
   status text not null default 'draft' check (status in ('draft', 'active', 'closed', 'archived')),
   starts_at timestamptz,
   ends_at timestamptz,
-  prize_pool numeric not null default 0,
-  prize_first_cash numeric not null default 0,
-  prize_second_cash numeric not null default 0,
-  prize_third_cash numeric not null default 0,
+  prize_value numeric not null default 0,
+  prize_main text not null default 'Main giveaway prize',
+  prize_runner_up text,
+  prize_runner_up_2 text,
   prize_description text,
-  hero_headline text not null default 'Win big. Enter free.',
-  hero_subheadline text not null default 'Join the competition and be in the running for our next prize pool.',
+  hero_headline text not null default 'Enter for free.<br><em>Win coaching.</em>',
+  hero_subheadline text not null default 'Join the current giveaway for a chance to win coaching prizes. No purchase needed.',
   rules_text text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
@@ -55,7 +55,7 @@ create table if not exists public.site_settings (
   brand_name text not null default 'CRF Comps',
   fallback_headline text not null default 'Win big. Enter free.',
   fallback_subheadline text not null default 'A new competition is coming soon.',
-  fallback_prize_pool numeric not null default 0,
+  fallback_prize_value numeric not null default 0,
   admin_contact_email text
 );
 

@@ -1,6 +1,6 @@
 # CRF Comps — Deployment Setup Guide
 
-This guide walks you through getting the lead-generation competition site live with Supabase (database + auth) and Vercel (hosting).
+This guide walks you through getting the lead-generation giveaway site live with Supabase (database + auth) and Vercel (hosting).
 
 ## What you need
 
@@ -27,11 +27,11 @@ This guide walks you through getting the lead-generation competition site live w
 4. Click **Run**.
 
 This creates:
-- `competitions` table — each competition round with status, dates, prizes and hero copy
-- `leads` table — free entries linked to a competition
+- `competitions` table — each giveaway round with status, dates, coaching prizes and hero copy
+- `leads` table — free entries linked to a giveaway
 - `profiles` table — admin users only
 - `site_settings` table — single-row fallback content and brand name
-- Row Level Security policies (public can submit leads into active competitions; only admins can manage everything)
+- Row Level Security policies (public can submit leads into active giveaways; only admins can manage everything)
 - Triggers that keep the admin profile row in sync with auth.users
 
 ---
@@ -79,17 +79,19 @@ This creates:
 
 ---
 
-## Step 7: Create and activate your first competition
+## Step 7: Create and activate your first giveaway
 
 1. Log in to the admin panel at `admin.html`.
-2. Go to the **Competitions** tab.
+2. Go to the **Giveaways** tab.
 3. Fill in the form:
    - Name, type, start/end dates
-   - 1st / 2nd / 3rd place cash amounts (the prize pool is auto-calculated)
+   - Main giveaway prize (e.g. "8 weeks of 1:1 coaching")
+   - Optional runner-up prize and second runner-up prize
+   - Optional total prize value
    - Optional hero headline, subheadline and rules text
-4. Click **Create Competition**.
-5. In the list, click **Activate**. This closes any other active competition automatically.
-6. Visit the homepage — the active competition details and entry form will appear.
+4. Click **Create Giveaway**.
+5. In the list, click **Activate**. This closes any other active giveaway automatically.
+6. Visit the homepage — the active giveaway details and entry form will appear.
 
 ---
 
@@ -103,14 +105,14 @@ This creates:
 
 ---
 
-## Running competitions
+## Running giveaways
 
 | Action | How |
 |--------|-----|
-| Open a new round | Create a competition and click **Activate**. |
-| Close entries | Click **Close** on the active competition. |
-| Archive | Click **Archive** once a competition is fully finished. |
-| Pick a winner | Filter leads by competition, then click **Pick Winner**. |
+| Open a new round | Create a giveaway and click **Activate**. |
+| Close entries | Click **Close** on the active giveaway. |
+| Archive | Click **Archive** once a giveaway is fully finished. |
+| Pick a winner | Filter leads by giveaway, then click **Pick Winner**. |
 | Export leads | Use **Export CSV** in the Leads tab. |
 | Update brand/copy | Use the **Settings** tab. |
 
@@ -128,11 +130,11 @@ Your profile row has `is_admin = false`. Update it in Supabase.
 
 ### Duplicate entry error
 
-The same email can only enter once per active competition round. This is enforced by the database.
+The same email can only enter once per active giveaway round. This is enforced by the database.
 
-### No active competition on the homepage
+### No active giveaway on the homepage
 
-Create a competition and set its status to **active**. Only one competition can be active at a time.
+Create a giveaway and set its status to **active**. Only one giveaway can be active at a time.
 
 ---
 
