@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CRF Comps · Admin Login</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/main.css">
+</head>
+<body>
+
+<header>
+  <div class="nav">
+    <a href="index.html" class="brand"><span class="dot"></span>CRF Comps</a>
+  </div>
+</header>
+
+<section class="hero" style="padding:100px 0 80px;">
+  <div class="wrap-narrow" style="position:relative;z-index:1;">
+    <div class="sec-head text-center" style="margin:0 auto 40px;">
+      <div class="sec-eyebrow">Organiser Access</div>
+      <h2 style="font-size:clamp(32px,4.5vw,52px);">Admin login</h2>
+      <p>This page is for authorised competition organisers only.</p>
+    </div>
+
+    <form class="form-card" id="loginForm" onsubmit="handleLogin(event)" style="max-width:480px;margin:0 auto;">
+      <div class="form-row">
+        <label for="femail">Email</label>
+        <input type="email" id="femail" required placeholder="admin@example.com">
+      </div>
+
+      <div class="form-row">
+        <label for="fpassword">Password</label>
+        <input type="password" id="fpassword" required minlength="6" placeholder="Your password">
+      </div>
+
+      <button type="submit" class="submit-btn" id="submitBtn">Sign In</button>
+      <div class="msg" id="formMsg"></div>
+    </form>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <p class="foot-text">Admin access only. If you need an account, ask the competition organiser to create one and set your admin flag in Supabase.</p>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="js/supabase-client.js"></script>
+<script src="js/auth.js"></script>
+<script>
+(function () {
+  function getParam(name) {
+    const params = new URLSearchParams(window.location.search);
+    return params.get(name);
+  }
+
+  function showMsg(el, text, type) {
+    el.textContent = text;
+    el.className = 'msg show ' + type;
+  }
+
+  async function handleLogin(e) {
+    e.preventDefault();
+    const btn = document.getElementById('submitBtn');
+    const msg = document.getElementById('formMsg');
+    msg.className = 'msg';
+
+    const email = document.getElementById('femail').value.trim();
+    const password = document.getElementById('fpassword').value;
+
+    btn.disabled = true;
+    btn.textContent = 'Signing in...';
+
+    try {
+      const { user } = await window.auth.signIn(email, password);
+      if (!user) {
+        showMsg(msg, 'Sign in failed. Please check your credentials.', 'error');
+        btn.disabled = false;
+        btn.textContent = 'Sign In';
+        return;
+      }
+
+      const profile = await window.auth.getProfile(user.id);
+      if (!profile || !profile.is_admin) {
+        showMsg(msg, 'This account is not authorised as an admin.', 'error');
+        await window.auth.signOut();
+        btn.disabled = false;
+        btn.textContent = 'Sign In';
+        return;
+      }
+
+      const redirect = getParam('redirect') || 'admin.html';
+      window.location.href = redirect;
+    } catch (err) {
+      console.error(err);
+      showMsg(msg, err.message || 'Could not sign in. Please try again.', 'error');
+      btn.disabled = false;
+      btn.textContent = 'Sign In';
+    }
+  }
+
+  window.handleLogin = handleLogin;
+})();
+</script>
+
+</body>
+</html>

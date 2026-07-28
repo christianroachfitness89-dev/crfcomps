@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CRF Comps · Admin Panel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/main.css">
+<style>
+  .admin-section{padding:36px 0;}
+  .winner-panel{
+    background:rgba(201,151,31,0.08);border:1.5px solid var(--gold);border-radius:var(--radius);
+    padding:20px;margin-bottom:24px;
+  }
+  .winner-name{font-family:'Oswald',sans-serif;font-size:24px;text-transform:uppercase;margin-bottom:6px;}
+  .edit-form{
+    display:none;
+    margin-top:12px;background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);
+    padding:20px;
+  }
+  .edit-form.show{display:block;}
+  .cr-actions{display:flex;gap:8px;flex-wrap:wrap;}
+  .cr-actions button{font-size:11px;padding:6px 12px;}
+  .stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:16px;margin-bottom:24px;}
+  .stat-box{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:16px;}
+  .stat-label{font-size:11px;font-family:'IBM Plex Mono',monospace;text-transform:uppercase;color:var(--ink-soft);}
+  .stat-value{font-family:'Oswald',sans-serif;font-size:28px;font-weight:700;margin-top:4px;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="nav">
+    <a href="index.html" class="brand"><span class="dot"></span>CRF Comps</a>
+    <nav class="nav-links">
+      <a href="index.html">Home</a>
+    </nav>
+    <div class="nav-user">
+      <span id="adminName">Admin</span>
+      <button onclick="handleSignOut()">Sign out</button>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <section class="admin-section">
+    <div class="sec-head">
+      <div class="sec-eyebrow">Organiser Panel</div>
+      <h2>Competition Management</h2>
+    </div>
+
+    <div class="admin-tabs">
+      <button type="button" class="admin-tab active" data-tab="competitions" onclick="switchTab('competitions')">Competitions</button>
+      <button type="button" class="admin-tab" data-tab="leads" onclick="switchTab('leads')">Leads</button>
+      <button type="button" class="admin-tab" data-tab="settings" onclick="switchTab('settings')">Settings</button>
+    </div>
+
+    <!-- COMPETITIONS TAB -->
+    <div class="admin-panel active" id="panel-competitions">
+      <div class="card" style="margin-bottom:28px;">
+        <h3 style="font-size:20px;margin-bottom:16px;">Create New Competition</h3>
+        <div class="two-col">
+          <div class="form-row">
+            <label for="compName">Competition name</label>
+            <input type="text" id="compName" placeholder="e.g. Summer 2026 Giveaway">
+          </div>
+          <div class="form-row">
+            <label for="compType">Type</label>
+            <select id="compType">
+              <option value="random_draw">Random draw</option>
+              <option value="referral">Referral giveaway</option>
+              <option value="other">Other / free-text</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="two-col">
+          <div class="form-row">
+            <label for="compStarts">Start date</label>
+            <input type="datetime-local" id="compStarts">
+          </div>
+          <div class="form-row">
+            <label for="compEnds">End / close date</label>
+            <input type="datetime-local" id="compEnds">
+          </div>
+        </div>
+
+        <div class="three-col">
+          <div class="form-row">
+            <label for="compFirst">1st place ($)</label>
+            <input type="number" id="compFirst" min="0" step="1" value="0" oninput="updateCompPool()">
+          </div>
+          <div class="form-row">
+            <label for="compSecond">2nd place ($)</label>
+            <input type="number" id="compSecond" min="0" step="1" value="0" oninput="updateCompPool()">
+          </div>
+          <div class="form-row">
+            <label for="compThird">3rd place ($)</label>
+            <input type="number" id="compThird" min="0" step="1" value="0" oninput="updateCompPool()">
+          </div>
+        </div>
+
+        <div class="two-col">
+          <div class="form-row">
+            <label for="compPool">Total prize pool ($)</label>
+            <input type="number" id="compPool" min="0" step="1" value="0" readonly style="background:var(--paper-3);color:var(--ink-soft);">
+          </div>
+          <div class="form-row">
+            <label for="compPrizeDesc">Prize description</label>
+            <input type="text" id="compPrizeDesc" placeholder="e.g. Cash prizes paid by bank transfer">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <label for="compHeadline">Hero headline (HTML allowed)</label>
+          <input type="text" id="compHeadline" placeholder="Enter free.<em>Win something real.</em>">
+        </div>
+
+        <div class="form-row">
+          <label for="compSub">Hero subheadline</label>
+          <textarea id="compSub" rows="2" placeholder="Short description shown under the headline"></textarea>
+        </div>
+
+        <div class="form-row">
+          <label for="compRules">Rules text (one rule per line)</label>
+          <textarea id="compRules" rows="4" placeholder="Entry is free.&#10;One entry per person per round.&#10;Winners contacted by email and phone."></textarea>
+        </div>
+
+        <div class="form-row" style="margin-top:12px;">
+          <button type="button" class="submit-btn" id="createCompBtn" onclick="createCompetition()" style="width:auto;padding:14px 24px;">Create Competition</button>
+        </div>
+        <div class="msg" id="compMsg"></div>
+      </div>
+
+      <h3 style="font-size:18px;margin:0 0 16px;">Existing Competitions</h3>
+      <div class="competition-list" id="competitionList">
+        <div class="loading">Loading competitions...</div>
+      </div>
+    </div>
+
+    <!-- LEADS TAB -->
+    <div class="admin-panel" id="panel-leads">
+      <div class="admin-bar">
+        <div class="filter-row">
+          <input type="text" id="searchInput" placeholder="Search name, email or phone..." oninput="renderLeads()">
+          <select id="filterComp" onchange="renderLeads()">
+            <option value="all">All competitions</option>
+          </select>
+          <select id="filterStatus" onchange="renderLeads()">
+            <option value="all">All statuses</option>
+            <option value="entered">Entered</option>
+            <option value="winner">Winner</option>
+            <option value="runner_up">Runner-up</option>
+            <option value="runner_up_2">3rd place</option>
+          </select>
+        </div>
+        <div class="admin-actions">
+          <button class="admin-btn" onclick="loadData()">Refresh</button>
+          <button class="admin-btn" onclick="exportCsv()">Export CSV</button>
+          <button class="admin-btn" onclick="pickRandomWinner()">Pick Winner</button>
+        </div>
+      </div>
+
+      <div id="winnerPanel" class="winner-panel hidden">
+        <div class="sec-eyebrow">Random draw result</div>
+        <div class="winner-name" id="winnerName">-</div>
+        <p id="winnerDetail" style="margin:0;color:var(--ink-soft);">-</p>
+        <button class="admin-btn mt-2" onclick="markWinnerFromPanel()">Mark as winner</button>
+      </div>
+
+      <div id="leadsStats" class="stat-grid"></div>
+
+      <div id="leadsContent">
+        <div class="loading">Loading leads...</div>
+      </div>
+    </div>
+
+    <!-- SETTINGS TAB -->
+    <div class="admin-panel" id="panel-settings">
+      <div class="card" style="max-width:760px;">
+        <h3 style="font-size:20px;margin-bottom:16px;">Site Settings</h3>
+        <div class="msg" id="settingsMsg"></div>
+
+        <div class="form-row">
+          <label for="setBrand">Brand / site name</label>
+          <input type="text" id="setBrand" placeholder="CRF Comps">
+        </div>
+
+        <div class="form-row">
+          <label for="setFallbackHeadline">Fallback headline (no active competition)</label>
+          <input type="text" id="setFallbackHeadline" placeholder="Win big. Enter free.">
+        </div>
+
+        <div class="form-row">
+          <label for="setFallbackSub">Fallback subheadline</label>
+          <textarea id="setFallbackSub" rows="2" placeholder="A new competition is coming soon."></textarea>
+        </div>
+
+        <div class="form-row">
+          <label for="setFallbackPool">Fallback prize pool ($)</label>
+          <input type="number" id="setFallbackPool" min="0" step="1">
+        </div>
+
+        <div class="form-row">
+          <label for="setAdminEmail">Admin contact email</label>
+          <input type="email" id="setAdminEmail" placeholder="admin@example.com">
+        </div>
+
+        <div class="form-row" style="margin-top:12px;">
+          <button type="button" class="submit-btn" id="saveSettingsBtn" onclick="saveSettings()" style="width:auto;padding:14px 24px;">Save Settings</button>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<footer>
+  <div class="wrap">
+    <p class="foot-text">Admin panel. Only authorised organisers should access this page. Lead data is private and must not be shared outside the competition team.</p>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="js/supabase-client.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/site-settings.js"></script>
+<script>
+(function () {
+  const client = window.sb;
+  let allCompetitions = [];
+  let allLeads = [];
+  let currentSettings = null;
+  let drawnWinner = null;
+
+  function showMsg(el, text, type) {
+    el.textContent = text;
+    el.className = 'msg show ' + type;
+  }
+
+  function escapeHtml(str) {
+    const d = document.createElement('div');
+    d.textContent = String(str || '');
+    return d.innerHTML;
+  }
+
+  function fmtType(type) {
+    if (type === 'random_draw') return 'Random draw';
+    if (type === 'referral') return 'Referral giveaway';
+    return 'Other';
+  }
+
+  function fmtStatus(status) {
+    if (status === 'active') return 'Active';
+    if (status === 'closed') return 'Closed';
+    if (status === 'archived') return 'Archived';
+    return 'Draft';
+  }
+
+  function statusClass(status) {
+    if (status === 'active') return 'tag tag-active';
+    if (status === 'closed') return 'tag tag-closed';
+    if (status === 'archived') return 'tag tag-archived';
+    return 'tag tag-draft';
+  }
+
+  function fmtDate(iso) {
+    if (!iso) return '-';
+    return new Date(iso).toLocaleString(undefined, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+  }
+
+  function switchTab(tab) {
+    document.querySelectorAll('.admin-tab').forEach(function (btn) {
+      btn.classList.toggle('active', btn.dataset.tab === tab);
+    });
+    document.querySelectorAll('.admin-panel').forEach(function (p) {
+      p.classList.toggle('active', p.id === 'panel-' + tab);
+    });
+    if (tab === 'leads') renderLeads();
+    if (tab === 'settings') loadSettingsPanel();
+  }
+
+  async function init() {
+    const { user, profile } = await window.auth.requireAdmin();
+    if (!user) return;
+    document.getElementById('adminName').textContent = profile.full_name || 'Admin';
+    await loadData();
+    await loadSettingsPanel();
+  }
+
+  async function loadData() {
+    document.getElementById('competitionList').innerHTML = '<div class="loading">Loading competitions...</div>';
+    document.getElementById('leadsContent').innerHTML = '<div class="loading">Loading leads...</div>';
+
+    try {
+      const [compsRes, leadsRes] = await Promise.all([
+        client.from('competitions').select('*').order('starts_at', { ascending: false }),
+        client.from('leads').select('*').order('created_at', { ascending: false })
+      ]);
+
+      if (compsRes.error) throw compsRes.error;
+      if (leadsRes.error) throw leadsRes.error;
+
+      allCompetitions = compsRes.data || [];
+      allLeads = leadsRes.data || [];
+
+      populateCompFilter();
+      renderCompetitions();
+      renderLeads();
+    } catch (err) {
+      console.error(err);
+      document.getElementById('competitionList').innerHTML = '<div class="empty">Could not load competitions. ' + escapeHtml(err.message) + '</div>';
+      document.getElementById('leadsContent').innerHTML = '<div class="empty">Could not load leads. ' + escapeHtml(err.message) + '</div>';
+    }
+  }
+
+  function populateCompFilter() {
+    const sel = document.getElementById('filterComp');
+    sel.innerHTML = '<option value="all">All competitions</option>';
+    allCompetitions.forEach(function (c) {
+      const opt = document.createElement('option');
+      opt.value = c.id;
+      opt.textContent = (c.name || 'Unnamed') + ' · ' + fmtStatus(c.status);
+      sel.appendChild(opt);
+    });
+  }
+
+  function getCompName(id) {
+    const c = allCompetitions.find(function (x) { return x.id === id; });
+    return c ? (c.name || 'Unnamed') : '-';
+  }
+
+  function updateCompPool() {
+    const first = parseFloat(document.getElementById('compFirst').value) || 0;
+    const second = parseFloat(document.getElementById('compSecond').value) || 0;
+    const third = parseFloat(document.getElementById('compThird').value) || 0;
+    document.getElementById('compPool').value = first + second + third;
+  }
+
+  function gatherCompetitionPayload() {
+    const first = parseFloat(document.getElementById('compFirst').value);
+    const second = parseFloat(document.getElementById('compSecond').value);
+    const third = parseFloat(document.getElementById('compThird').value);
+    const pool = (isNaN(first) ? 0 : first) + (isNaN(second) ? 0 : second) + (isNaN(third) ? 0 : third);
+
+    return {
+      name: document.getElementById('compName').value.trim(),
+      type: document.getElementById('compType').value,
+      starts_at: document.getElementById('compStarts').value ? new Date(document.getElementById('compStarts').value).toISOString() : null,
+      ends_at: document.getElementById('compEnds').value ? new Date(document.getElementById('compEnds').value).toISOString() : null,
+      prize_pool: pool,
+      prize_first_cash: isNaN(first) ? 0 : first,
+      prize_second_cash: isNaN(second) ? 0 : second,
+      prize_third_cash: isNaN(third) ? 0 : third,
+      prize_description: document.getElementById('compPrizeDesc').value.trim() || null,
+      hero_headline: document.getElementById('compHeadline').value.trim() || null,
+      hero_subheadline: document.getElementById('compSub').value.trim() || null,
+      rules_text: document.getElementById('compRules').value.trim() || null,
+      updated_at: new Date().toISOString()
+    };
+  }
+
+  async function createCompetition() {
+    const btn = document.getElementById('createCompBtn');
+    const msg = document.getElementById('compMsg');
+    msg.className = 'msg';
+
+    const payload = gatherCompetitionPayload();
+    if (!payload.name) {
+      showMsg(msg, 'Please enter a competition name.', 'error');
+      return;
+    }
+    if (!payload.starts_at || !payload.ends_at) {
+      showMsg(msg, 'Please set a start and end date.', 'error');
+      return;
+    }
+    if (new Date(payload.ends_at) <= new Date(payload.starts_at)) {
+      showMsg(msg, 'End date must be after start date.', 'error');
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'Creating...';
+
+    try {
+      const { error } = await client.from('competitions').insert(payload);
+      if (error) throw error;
+      showMsg(msg, 'Competition created. Set it to Active when you are ready to open entries.', 'success');
+      clearCompForm();
+      await loadData();
+    } catch (err) {
+      console.error(err);
+      showMsg(msg, err.message || 'Could not create competition.', 'error');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Create Competition';
+    }
+  }
+
+  function clearCompForm() {
+    document.getElementById('compName').value = '';
+    document.getElementById('compType').value = 'random_draw';
+    document.getElementById('compStarts').value = '';
+    document.getElementById('compEnds').value = '';
+    document.getElementById('compFirst').value = 0;
+    document.getElementById('compSecond').value = 0;
+    document.getElementById('compThird').value = 0;
+    document.getElementById('compPool').value = 0;
+    document.getElementById('compPrizeDesc').value = '';
+    document.getElementById('compHeadline').value = '';
+    document.getElementById('compSub').value = '';
+    document.getElementById('compRules').value = '';
+  }
+
+  async function updateCompetitionStatus(id, status) {
+    try {
+      // Only one competition can be active at a time.
+      if (status === 'active') {
+        const active = allCompetitions.find(function (c) { return c.status === 'active' && c.id !== id; });
+        if (active) {
+          if (!confirm('Another competition is already active. Activating this one will close it. Continue?')) return;
+          const { error: closeErr } = await client.from('competitions').update({ status: 'closed' }).eq('id', active.id);
+          if (closeErr) throw closeErr;
+        }
+      }
+
+      const { error } = await client.from('competitions').update({ status: status }).eq('id', id);
+      if (error) throw error;
+      await loadData();
+    } catch (err) {
+      alert('Could not update status: ' + err.message);
+    }
+  }
+
+  async function deleteCompetition(id) {
+    const leadCount = allLeads.filter(function (l) { return l.competition_id === id; }).length;
+    if (!confirm('Delete this competition?' + (leadCount ? ' It has ' + leadCount + ' lead(s) which will also be removed.' : ''))) return;
+    try {
+      const { error } = await client.from('competitions').delete().eq('id', id);
+      if (error) throw error;
+      await loadData();
+    } catch (err) {
+      alert('Could not delete competition: ' + err.message);
+    }
+  }
+
+  function renderCompetitions() {
+    const container = document.getElementById('competitionList');
+    if (!allCompetitions.length) {
+      container.innerHTML = '<p style="color:var(--ink-soft);font-size:14px;">No competitions yet. Create one above.</p>';
+      return;
+    }
+
+    let html = '';
+    allCompetitions.forEach(function (c) {
+      const typeLabel = fmtType(c.type);
+      const status = fmtStatus(c.status);
+      const pool = '$' + Number(c.prize_pool || 0).toLocaleString();
+
+      html += '<div class="competition-row" data-id="' + escapeHtml(c.id) + '" style="align-items:flex-start;">' +
+        '<div style="flex:1;">' +
+          '<div class="cr-name">' + escapeHtml(c.name || 'Unnamed') + ' <span class="' + statusClass(c.status) + '">' + status + '</span></div>' +
+          '<div class="cr-dates">' + typeLabel + ' · ' + fmtDate(c.starts_at) + ' – ' + fmtDate(c.ends_at) + ' · Pool ' + pool + '</div>' +
+        '</div>' +
+        '<div class="cr-actions">' +
+          (c.status === 'active'
+            ? '<button class="admin-btn danger" onclick="updateCompetitionStatus(\'' + c.id + '\', \'closed\')">Close</button>'
+            : '<button class="admin-btn" onclick="updateCompetitionStatus(\'' + c.id + '\', \'active\')">' + (c.status === 'archived' ? 'Reopen' : 'Activate') + '</button>') +
+          (c.status !== 'archived' ? '<button class="admin-btn" onclick="updateCompetitionStatus(\'' + c.id + '\', \'archived\')">Archive</button>' : '') +
+          '<button class="admin-btn" onclick="toggleEditForm(\'' + c.id + '\')">Edit</button>' +
+          '<button class="admin-btn danger" onclick="deleteCompetition(\'' + c.id + '\')">Delete</button>' +
+        '</div>' +
+        '</div>' +
+        '<div class="edit-form" id="edit-' + c.id + '" data-loaded="false"></div>';
+    });
+    container.innerHTML = html;
+  }
+
+  async function toggleEditForm(id) {
+    const panel = document.getElementById('edit-' + id);
+    const isOpen = panel.classList.contains('show');
+    if (!isOpen) {
+      panel.classList.add('show');
+      if (panel.dataset.loaded !== 'true') {
+        await renderEditForm(id, panel);
+        panel.dataset.loaded = 'true';
+      }
+    } else {
+      panel.classList.remove('show');
+    }
+  }
+
+  function toDatetimeLocal(iso) {
+    if (!iso) return '';
+    const d = new Date(iso);
+    d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+    return d.toISOString().slice(0, 16);
+  }
+
+  async function renderEditForm(id, panel) {
+    const c = allCompetitions.find(function (x) { return x.id === id; });
+    if (!c) return;
+
+    panel.innerHTML =
+      '<h4 style="font-size:16px;margin:0 0 14px;">Edit Competition</h4>' +
+      '<div class="two-col">' +
+        '<div class="form-row"><label>Name</label><input type="text" id="edit-name-' + c.id + '" value="' + escapeHtml(c.name) + '"></div>' +
+        '<div class="form-row"><label>Type</label><select id="edit-type-' + c.id + '" value="' + escapeHtml(c.type) + '" onchange="this.setAttribute(\'value\', this.value)">' +
+          '<option value="random_draw"' + (c.type === 'random_draw' ? ' selected' : '') + '>Random draw</option>' +
+          '<option value="referral"' + (c.type === 'referral' ? ' selected' : '') + '>Referral giveaway</option>' +
+          '<option value="other"' + (c.type === 'other' ? ' selected' : '') + '>Other</option>' +
+        '</select></div>' +
+      '</div>' +
+      '<div class="two-col">' +
+        '<div class="form-row"><label>Start</label><input type="datetime-local" id="edit-starts-' + c.id + '" value="' + toDatetimeLocal(c.starts_at) + '"></div>' +
+        '<div class="form-row"><label>End</label><input type="datetime-local" id="edit-ends-' + c.id + '" value="' + toDatetimeLocal(c.ends_at) + '"></div>' +
+      '</div>' +
+      '<div class="three-col">' +
+        '<div class="form-row"><label>1st ($)</label><input type="number" id="edit-first-' + c.id + '" value="' + (c.prize_first_cash || 0) + '"></div>' +
+        '<div class="form-row"><label>2nd ($)</label><input type="number" id="edit-second-' + c.id + '" value="' + (c.prize_second_cash || 0) + '"></div>' +
+        '<div class="form-row"><label>3rd ($)</label><input type="number" id="edit-third-' + c.id + '" value="' + (c.prize_third_cash || 0) + '"></div>' +
+      '</div>' +
+      '<div class="form-row"><label>Prize description</label><input type="text" id="edit-desc-' + c.id + '" value="' + escapeHtml(c.prize_description || '') + '"></div>' +
+      '<div class="form-row"><label>Hero headline (HTML allowed)</label><input type="text" id="edit-headline-' + c.id + '" value="' + escapeHtml(c.hero_headline || '') + '"></div>' +
+      '<div class="form-row"><label>Hero subheadline</label><textarea id="edit-sub-' + c.id + '" rows="2">' + escapeHtml(c.hero_subheadline || '') + '</textarea></div>' +
+      '<div class="form-row"><label>Rules text (one per line)</label><textarea id="edit-rules-' + c.id + '" rows="4">' + escapeHtml(c.rules_text || '') + '</textarea></div>' +
+      '<div class="admin-actions">' +
+        '<button class="admin-btn" onclick="saveCompetitionEdit(\'' + c.id + '\')">Save Changes</button>' +
+        '<button class="admin-btn" onclick="document.getElementById(\'edit-' + c.id + '\').classList.remove(\'show\')">Cancel</button>' +
+      '</div>';
+  }
+
+  async function saveCompetitionEdit(id) {
+    const first = parseFloat(document.getElementById('edit-first-' + id).value);
+    const second = parseFloat(document.getElementById('edit-second-' + id).value);
+    const third = parseFloat(document.getElementById('edit-third-' + id).value);
+    const pool = (isNaN(first) ? 0 : first) + (isNaN(second) ? 0 : second) + (isNaN(third) ? 0 : third);
+
+    const payload = {
+      name: document.getElementById('edit-name-' + id).value.trim(),
+      type: document.getElementById('edit-type-' + id).value,
+      starts_at: document.getElementById('edit-starts-' + id).value ? new Date(document.getElementById('edit-starts-' + id).value).toISOString() : null,
+      ends_at: document.getElementById('edit-ends-' + id).value ? new Date(document.getElementById('edit-ends-' + id).value).toISOString() : null,
+      prize_pool: pool,
+      prize_first_cash: isNaN(first) ? 0 : first,
+      prize_second_cash: isNaN(second) ? 0 : second,
+      prize_third_cash: isNaN(third) ? 0 : third,
+      prize_description: document.getElementById('edit-desc-' + id).value.trim() || null,
+      hero_headline: document.getElementById('edit-headline-' + id).value.trim() || null,
+      hero_subheadline: document.getElementById('edit-sub-' + id).value.trim() || null,
+      rules_text: document.getElementById('edit-rules-' + id).value.trim() || null,
+      updated_at: new Date().toISOString()
+    };
+
+    if (!payload.name) {
+      alert('Competition name is required.');
+      return;
+    }
+    if (payload.ends_at && payload.starts_at && new Date(payload.ends_at) <= new Date(payload.starts_at)) {
+      alert('End date must be after start date.');
+      return;
+    }
+
+    try {
+      const { error } = await client.from('competitions').update(payload).eq('id', id);
+      if (error) throw error;
+      document.getElementById('edit-' + id).classList.remove('show');
+      await loadData();
+    } catch (err) {
+      alert('Could not save changes: ' + err.message);
+    }
+  }
+
+  function renderLeads() {
+    const container = document.getElementById('leadsContent');
+    const search = document.getElementById('searchInput').value.toLowerCase();
+    const compFilter = document.getElementById('filterComp').value;
+    const statusFilter = document.getElementById('filterStatus').value;
+
+    const filtered = allLeads.filter(function (l) {
+      const matchesSearch = !search ||
+        (l.full_name || '').toLowerCase().includes(search) ||
+        (l.email || '').toLowerCase().includes(search) ||
+        (l.phone || '').toLowerCase().includes(search);
+      const matchesComp = compFilter === 'all' || l.competition_id === compFilter;
+      const matchesStatus = statusFilter === 'all' || l.status === statusFilter;
+      return matchesSearch && matchesComp && matchesStatus;
+    });
+
+    // Stats
+    const stats = document.getElementById('leadsStats');
+    const total = filtered.length;
+    const winners = filtered.filter(function (l) { return l.status === 'winner'; }).length;
+    const runnerUps = filtered.filter(function (l) { return l.status === 'runner_up'; }).length;
+    stats.innerHTML =
+      '<div class="stat-box"><div class="stat-label">Leads shown</div><div class="stat-value">' + total + '</div></div>' +
+      '<div class="stat-box"><div class="stat-label">Winners</div><div class="stat-value">' + winners + '</div></div>' +
+      '<div class="stat-box"><div class="stat-label">Runner-ups</div><div class="stat-value">' + runnerUps + '</div></div>';
+
+    if (!filtered.length) {
+      container.innerHTML = '<div class="empty">No leads match your filters.</div>';
+      return;
+    }
+
+    let html = '<table class="data-table">' +
+      '<thead><tr>' +
+        '<th>Name</th>' +
+        '<th>Email</th>' +
+        '<th>Phone</th>' +
+        '<th>Competition</th>' +
+        '<th>Entered</th>' +
+        '<th>Status</th>' +
+        '<th>Actions</th>' +
+      '</tr></thead><tbody>';
+
+    filtered.forEach(function (l) {
+      html += '<tr>' +
+        '<td>' + escapeHtml(l.full_name || '-') + '</td>' +
+        '<td>' + escapeHtml(l.email || '') + '</td>' +
+        '<td>' + escapeHtml(l.phone || '-') + '</td>' +
+        '<td>' + escapeHtml(getCompName(l.competition_id)) + '</td>' +
+        '<td>' + (l.created_at ? new Date(l.created_at).toLocaleDateString() : '-') + '</td>' +
+        '<td><select onchange="updateLeadStatus(\'' + l.id + '\', this.value)" style="font-size:12px;padding:4px 8px;border-radius:var(--radius);border:1.5px solid var(--line);">' +
+          '<option value="entered"' + (l.status === 'entered' ? ' selected' : '') + '>Entered</option>' +
+          '<option value="winner"' + (l.status === 'winner' ? ' selected' : '') + '>Winner</option>' +
+          '<option value="runner_up"' + (l.status === 'runner_up' ? ' selected' : '') + '>Runner-up</option>' +
+          '<option value="runner_up_2"' + (l.status === 'runner_up_2' ? ' selected' : '') + '>3rd place</option>' +
+          '<option value="contact_later"' + (l.status === 'contact_later' ? ' selected' : '') + '>Contact later</option>' +
+        '</select></td>' +
+        '<td><button class="admin-btn danger" onclick="deleteLead(\'' + l.id + '\')" style="padding:6px 12px;font-size:11px;">Delete</button></td>' +
+      '</tr>';
+    });
+
+    html += '</tbody></table>';
+    container.innerHTML = html;
+  }
+
+  async function updateLeadStatus(id, status) {
+    try {
+      const { error } = await client.from('leads').update({ status: status }).eq('id', id);
+      if (error) throw error;
+      const l = allLeads.find(function (x) { return x.id === id; });
+      if (l) l.status = status;
+      renderLeads();
+    } catch (err) {
+      alert('Could not update lead status: ' + err.message);
+      await loadData();
+    }
+  }
+
+  async function deleteLead(id) {
+    if (!confirm('Delete this lead? This cannot be undone.')) return;
+    try {
+      const { error } = await client.from('leads').delete().eq('id', id);
+      if (error) throw error;
+      await loadData();
+    } catch (err) {
+      alert('Could not delete lead: ' + err.message);
+    }
+  }
+
+  function pickRandomWinner() {
+    const compFilter = document.getElementById('filterComp').value;
+    const statusFilter = document.getElementById('filterStatus').value;
+
+    let pool = allLeads.filter(function (l) {
+      const matchesComp = compFilter === 'all' || l.competition_id === compFilter;
+      const matchesStatus = statusFilter === 'all' || l.status === statusFilter;
+      return matchesComp && matchesStatus;
+    });
+
+    if (!pool.length) {
+      alert('No leads match the current filters to draw from.');
+      return;
+    }
+
+    const winner = pool[Math.floor(Math.random() * pool.length)];
+    drawnWinner = winner;
+
+    const panel = document.getElementById('winnerPanel');
+    panel.classList.remove('hidden');
+    document.getElementById('winnerName').textContent = winner.full_name || 'Unknown';
+    document.getElementById('winnerDetail').textContent = (winner.email || '') + ' · ' + getCompName(winner.competition_id);
+  }
+
+  async function markWinnerFromPanel() {
+    if (!drawnWinner) return;
+    try {
+      const { error } = await client.from('leads').update({ status: 'winner' }).eq('id', drawnWinner.id);
+      if (error) throw error;
+      document.getElementById('winnerPanel').classList.add('hidden');
+      drawnWinner = null;
+      await loadData();
+    } catch (err) {
+      alert('Could not mark winner: ' + err.message);
+    }
+  }
+
+  function escapeCsv(val) {
+    const str = String(val == null ? '' : val);
+    if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+      return '"' + str.replace(/"/g, '""') + '"';
+    }
+    return str;
+  }
+
+  function exportCsv() {
+    const search = document.getElementById('searchInput').value.toLowerCase();
+    const compFilter = document.getElementById('filterComp').value;
+    const statusFilter = document.getElementById('filterStatus').value;
+
+    const rows = [];
+    rows.push(['Name', 'Email', 'Phone', 'Competition', 'Status', 'Opt In', 'Entered At']);
+
+    allLeads.forEach(function (l) {
+      const matchesSearch = !search ||
+        (l.full_name || '').toLowerCase().includes(search) ||
+        (l.email || '').toLowerCase().includes(search) ||
+        (l.phone || '').toLowerCase().includes(search);
+      const matchesComp = compFilter === 'all' || l.competition_id === compFilter;
+      const matchesStatus = statusFilter === 'all' || l.status === statusFilter;
+      if (!matchesSearch || !matchesComp || !matchesStatus) return;
+
+      rows.push([
+        l.full_name || '',
+        l.email || '',
+        l.phone || '',
+        getCompName(l.competition_id),
+        l.status || '',
+        l.opt_in ? 'Yes' : 'No',
+        l.created_at || ''
+      ]);
+    });
+
+    const csv = rows.map(function (r) { return r.map(escapeCsv).join(','); }).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'crfcomps-leads-' + new Date().toISOString().slice(0, 10) + '.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  async function loadSettingsPanel() {
+    try {
+      const s = await window.siteSettings.loadSiteSettings();
+      currentSettings = s || {};
+      document.getElementById('setBrand').value = currentSettings.brand_name || '';
+      document.getElementById('setFallbackHeadline').value = currentSettings.fallback_headline || '';
+      document.getElementById('setFallbackSub').value = currentSettings.fallback_subheadline || '';
+      document.getElementById('setFallbackPool').value = currentSettings.fallback_prize_pool || 0;
+      document.getElementById('setAdminEmail').value = currentSettings.admin_contact_email || '';
+    } catch (err) {
+      console.error(err);
+      const msg = document.getElementById('settingsMsg');
+      showMsg(msg, 'Could not load settings: ' + err.message, 'error');
+    }
+  }
+
+  async function saveSettings() {
+    const btn = document.getElementById('saveSettingsBtn');
+    const msg = document.getElementById('settingsMsg');
+    msg.className = 'msg';
+
+    const pool = parseFloat(document.getElementById('setFallbackPool').value);
+
+    const payload = {
+      id: 1,
+      updated_at: new Date().toISOString(),
+      brand_name: document.getElementById('setBrand').value.trim(),
+      fallback_headline: document.getElementById('setFallbackHeadline').value.trim(),
+      fallback_subheadline: document.getElementById('setFallbackSub').value.trim(),
+      fallback_prize_pool: isNaN(pool) ? 0 : pool,
+      admin_contact_email: document.getElementById('setAdminEmail').value.trim() || null
+    };
+
+    btn.disabled = true;
+    btn.textContent = 'Saving...';
+
+    try {
+      const { error } = await client.from('site_settings').upsert(payload, { onConflict: 'id' });
+      if (error) throw error;
+      showMsg(msg, 'Settings saved.', 'success');
+      await loadSettingsPanel();
+    } catch (err) {
+      console.error(err);
+      showMsg(msg, err.message || 'Could not save settings.', 'error');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Save Settings';
+    }
+  }
+
+  async function handleSignOut() {
+    await window.auth.signOut();
+    window.location.href = 'index.html';
+  }
+
+  // Expose functions needed by inline onclick handlers.
+  window.switchTab = switchTab;
+  window.createCompetition = createCompetition;
+  window.updateCompetitionStatus = updateCompetitionStatus;
+  window.deleteCompetition = deleteCompetition;
+  window.toggleEditForm = toggleEditForm;
+  window.saveCompetitionEdit = saveCompetitionEdit;
+  window.updateLeadStatus = updateLeadStatus;
+  window.deleteLead = deleteLead;
+  window.pickRandomWinner = pickRandomWinner;
+  window.markWinnerFromPanel = markWinnerFromPanel;
+  window.exportCsv = exportCsv;
+  window.loadData = loadData;
+  window.saveSettings = saveSettings;
+  window.handleSignOut = handleSignOut;
+  window.updateCompPool = updateCompPool;
+
+  init();
+})();
+</script>
+
+</body>
+</html>
