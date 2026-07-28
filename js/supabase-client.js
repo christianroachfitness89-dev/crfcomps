@@ -5,8 +5,8 @@
  * anon/public key after creating the project (see SETUP.md).
  */
 
-const SUPABASE_URL = 'https://YOUR_PROJECT_ID.supabase.co';
-const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+const SUPABASE_URL = 'https://oinsszijbudtcxnedenv.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9pbnNzemlqYnVkdGN4bmVkZW52Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ4NDc3MDMsImV4cCI6MjEwMDQyMzcwM30.68z0Arx9DTtAXeK-84DZscAejgEa96IDDT4CvfA4hE8';
 
 let _client = null;
 
