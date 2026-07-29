@@ -443,6 +443,7 @@ section:first-of-type{border-top:none;}
 .tag-closed{background:rgba(138,138,138,0.18);color:#5a5a5a;}
 .tag-draft{background:rgba(217,163,26,0.14);color:#8a6a10;}
 .tag-archived{background:rgba(199,62,42,0.1);color:var(--red-dark);}
+.tag-hot{background:rgba(184,134,11,0.16);color:#8a6508;}
 
 /* ---------- footer ---------- */
 footer{padding:40px 0 60px;border-top:1px solid var(--line);}
