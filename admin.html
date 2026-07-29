@@ -977,7 +977,7 @@
         '<td><input type="checkbox" class="lead-check" value="' + escapeHtml(l.id) + '" onchange="updateSelectAllState()"></td>' +
         '<td>' + escapeHtml(l.full_name || '-') + '</td>' +
         '<td>' + escapeHtml(l.email || '') + '</td>' +
-        '<td>' + escapeHtml(l.phone || '-') + '</td>' +
+        '<td>' + renderPhoneLinks(l.phone) + '</td>' +
         '<td>' + escapeHtml(getStrategyName(l.strategy_id)) + '</td>' +
         '<td>' + escapeHtml(getCompName(l.competition_id)) + '</td>' +
         '<td>' + (l.created_at ? new Date(l.created_at).toLocaleDateString() : '-') + '</td>' +
@@ -994,6 +994,15 @@
 
     html += '</tbody></table>';
     container.innerHTML = html;
+  }
+
+  function renderPhoneLinks(phone) {
+    if (!phone) return '-';
+    const clean = String(phone).replace(/\s/g, '');
+    return '<span class="phone-actions">' +
+      '<a href="tel:' + escapeHtml(clean) + '" title="Call" style="margin-right:10px;">' + escapeHtml(phone) + ' · Call</a>' +
+      '<a href="sms:' + escapeHtml(clean) + '" title="SMS">SMS</a>' +
+      '</span>';
   }
 
   function getSelectedLeadIds() {
