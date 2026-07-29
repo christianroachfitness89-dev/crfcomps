@@ -260,6 +260,7 @@
           <button class="admin-btn" onclick="loadData()">Refresh</button>
           <button class="admin-btn" onclick="exportCsv()">Export CSV</button>
           <button class="admin-btn" onclick="pickRandomWinner()">Pick Winner</button>
+          <button class="admin-btn danger" onclick="deleteSelectedLeads()">Delete Selected</button>
         </div>
       </div>
 
@@ -960,6 +961,7 @@
 
     let html = '<table class="data-table">' +
       '<thead><tr>' +
+        '<th><input type="checkbox" id="selectAllLeads" onchange="toggleSelectAllLeads()"></th>' +
         '<th>Name</th>' +
         '<th>Email</th>' +
         '<th>Phone</th>' +
@@ -972,6 +974,7 @@
 
     filtered.forEach(function (l) {
       html += '<tr>' +
+        '<td><input type="checkbox" class="lead-check" value="' + escapeHtml(l.id) + '" onchange="updateSelectAllState()"></td>' +
         '<td>' + escapeHtml(l.full_name || '-') + '</td>' +
         '<td>' + escapeHtml(l.email || '') + '</td>' +
         '<td>' + escapeHtml(l.phone || '-') + '</td>' +
@@ -991,6 +994,49 @@
 
     html += '</tbody></table>';
     container.innerHTML = html;
+  }
+
+  function getSelectedLeadIds() {
+    const ids = [];
+    document.querySelectorAll('.lead-check:checked').forEach(function (cb) {
+      ids.push(cb.value);
+    });
+    return ids;
+  }
+
+  function toggleSelectAllLeads() {
+    const master = document.getElementById('selectAllLeads');
+    const checked = master ? master.checked : false;
+    document.querySelectorAll('.lead-check').forEach(function (cb) {
+      cb.checked = checked;
+    });
+  }
+
+  function updateSelectAllState() {
+    const master = document.getElementById('selectAllLeads');
+    if (!master) return;
+    const boxes = document.querySelectorAll('.lead-check');
+    if (!boxes.length) {
+      master.checked = false;
+      return;
+    }
+    master.checked = Array.from(boxes).every(function (cb) { return cb.checked; });
+  }
+
+  async function deleteSelectedLeads() {
+    const ids = getSelectedLeadIds();
+    if (!ids.length) {
+      alert('No leads selected.');
+      return;
+    }
+    if (!confirm('Delete ' + ids.length + ' selected lead(s)? This cannot be undone.')) return;
+    try {
+      const { error } = await client.from('leads').delete().in('id', ids);
+      if (error) throw error;
+      await loadData();
+    } catch (err) {
+      alert('Could not delete leads: ' + err.message);
+    }
   }
 
   async function updateLeadStatus(id, status) {
@@ -1394,6 +1440,9 @@
   window.handleFileUpload = handleFileUpload;
   window.submitBulkUpload = submitBulkUpload;
   window.toggleStrategyDates = toggleStrategyDates;
+  window.toggleSelectAllLeads = toggleSelectAllLeads;
+  window.updateSelectAllState = updateSelectAllState;
+  window.deleteSelectedLeads = deleteSelectedLeads;
 
   init();
 })();
