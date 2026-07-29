@@ -577,6 +577,54 @@ footer{padding:40px 0 60px;border-top:1px solid var(--line);}
 .admin-nav a svg{flex-shrink:0;opacity:.75;transition:opacity .2s;}
 .admin-nav-divider{height:1px;background:rgba(245,242,232,.15);margin:16px 8px;}
 
+/* sidebar nav groups */
+.admin-nav-group{margin-top:6px;}
+.admin-nav-group-label{
+  font-family:'IBM Plex Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:0.06em;
+  color:var(--paper-2);opacity:0.55;padding:10px 12px 6px;
+}
+
+/* operations dashboard */
+.ops-kpi-grid{
+  display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-bottom:28px;
+}
+.ops-kpi{
+  background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:18px;
+  transition:border-color .2s, transform .15s;position:relative;overflow:hidden;
+}
+.ops-kpi:hover{transform:translateY(-2px);border-color:var(--gold);}
+.ops-kpi::before{
+  content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--gold);opacity:0.7;
+}
+.ops-kpi .stat-label{font-size:11px;}
+.ops-kpi .stat-value{font-size:32px;}
+.ops-kpi .stat-sub{font-size:12px;color:var(--ink-soft);margin-top:6px;}
+
+.ops-section-title{
+  font-family:'IBM Plex Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:0.06em;
+  color:var(--ink-soft);margin:28px 0 14px;
+}
+
+.ops-department-grid{
+  display:grid;grid-template-columns:repeat(1,1fr);gap:16px;margin-bottom:24px;
+}
+.ops-dept-card{
+  background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:18px;
+  text-decoration:none;color:inherit;display:flex;align-items:center;gap:16px;
+  transition:border-color .2s, transform .15s, box-shadow .2s;
+}
+.ops-dept-card:hover{transform:translateY(-2px);border-color:var(--gold);box-shadow:0 8px 18px rgba(20,22,18,.06);}
+.ops-dept-icon{
+  width:44px;height:44px;border-radius:var(--radius);background:var(--paper-2);
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.ops-dept-icon svg{width:22px;height:22px;color:var(--ink);}
+.ops-dept-info{flex:1;min-width:0;}
+.ops-dept-name{font-family:'Oswald',sans-serif;font-size:17px;text-transform:uppercase;margin-bottom:2px;}
+.ops-dept-desc{font-size:13px;color:var(--ink-soft);}
+.ops-dept-arrow{color:var(--ink-soft);transition:color .2s, transform .2s;}
+.ops-dept-card:hover .ops-dept-arrow{color:var(--gold);transform:translateX(3px);}
+
 .nav-overlay{display:none;position:fixed;inset:0;background:rgba(20,22,18,.5);z-index:35;}
 .nav-overlay.show{display:block;}
 
