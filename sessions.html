@@ -8,7 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/main.css">
 </head>
-<body data-page="sessions">
+<body data-page="sessions" class="no-ops-auto-init">
 
 <header>
   <div class="nav">
@@ -80,23 +80,131 @@
   <div class="nav-overlay" onclick="closeMobileNav()"></div>
 
   <main class="admin-main">
-    <section class="admin-page active">
+    <section class="admin-page active" id="page-sessions">
       <div class="page-head">
         <div>
           <div class="sec-eyebrow">Sessions</div>
           <h2>Schedule &amp; Attendance</h2>
         </div>
+        <div class="admin-actions">
+          <button class="submit-btn" onclick="sessions.openSessionModal()">+ Add session</button>
+        </div>
       </div>
-      <div class="card" style="max-width:760px;">
-        <p style="color:var(--ink-soft);">Session scheduling and attendance tracking is coming next. This page will hold your 1-on-1 coaching calendar, capacity and attendance numbers.</p>
+
+      <div class="stat-grid" id="sessionStats">
+        <div class="stat-box"><div class="stat-label">Upcoming</div><div class="stat-value" id="statUpcoming">-</div></div>
+        <div class="stat-box"><div class="stat-label">This week</div><div class="stat-value" id="statThisWeek">-</div></div>
+        <div class="stat-box"><div class="stat-label">Completed</div><div class="stat-value" id="statCompleted">-</div></div>
+        <div class="stat-box"><div class="stat-label">Attendance</div><div class="stat-value" id="statAttendance">-</div></div>
+      </div>
+
+      <div class="card">
+        <div class="filter-row" style="margin-bottom:18px;">
+          <input type="text" id="sessionSearch" placeholder="Search client or session title..." oninput="sessions.renderSessions()">
+          <select id="sessionStatusFilter" onchange="sessions.renderSessions()">
+            <option value="">All statuses</option>
+            <option value="scheduled">Scheduled</option>
+            <option value="completed">Completed</option>
+            <option value="cancelled">Cancelled</option>
+            <option value="no_show">No show</option>
+          </select>
+          <button class="admin-btn" onclick="sessions.refresh()">Refresh</button>
+        </div>
+        <div id="sessionsTableWrap"><div class="loading">Loading sessions...</div></div>
       </div>
     </section>
   </main>
 </div>
 
+<!-- Session modal -->
+<div class="modal-overlay" id="sessionModal" onclick="sessions.closeSessionModal(event)">
+  <div class="modal-card" onclick="event.stopPropagation()">
+    <div class="modal-head">
+      <h3 id="sessionModalTitle">Add session</h3>
+      <button class="modal-close" onclick="sessions.closeSessionModal()" aria-label="Close">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+      </button>
+    </div>
+    <form id="sessionForm" onsubmit="sessions.saveSession(event)">
+      <input type="hidden" id="sessionId">
+      <div class="form-row">
+        <label for="sessionClient">Client *</label>
+        <select id="sessionClient" required></select>
+      </div>
+      <div class="form-row">
+        <label for="sessionTitle">Title</label>
+        <input type="text" id="sessionTitle" value="1-on-1 coaching">
+      </div>
+      <div class="form-row">
+        <label for="sessionScheduledAt">Scheduled at *</label>
+        <input type="datetime-local" id="sessionScheduledAt" required>
+      </div>
+      <div class="form-row">
+        <label for="sessionDuration">Duration (minutes)</label>
+        <input type="number" id="sessionDuration" value="60" min="15" step="5">
+      </div>
+      <div class="form-row">
+        <label for="sessionStatus">Status</label>
+        <select id="sessionStatus">
+          <option value="scheduled">Scheduled</option>
+          <option value="completed">Completed</option>
+          <option value="cancelled">Cancelled</option>
+          <option value="no_show">No show</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label for="sessionNotes">Notes</label>
+        <textarea id="sessionNotes" rows="3"></textarea>
+      </div>
+      <div class="form-row" style="display:flex;justify-content:flex-end;gap:10px;margin-bottom:0;">
+        <button type="button" class="admin-btn" onclick="sessions.closeSessionModal()">Cancel</button>
+        <button type="submit" class="submit-btn" id="sessionSaveBtn">Save session</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Attendance modal -->
+<div class="modal-overlay" id="attendanceModal" onclick="sessions.closeAttendanceModal(event)">
+  <div class="modal-card modal-card-wide" onclick="event.stopPropagation()">
+    <div class="modal-head">
+      <h3 id="attendanceModalTitle">Attendance</h3>
+      <button class="modal-close" onclick="sessions.closeAttendanceModal()" aria-label="Close">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+      </button>
+    </div>
+    <div id="attendanceBody">
+      <input type="hidden" id="attendanceSessionId">
+      <div class="attendance-current" id="attendanceCurrent"></div>
+      <form class="attendance-form" onsubmit="sessions.saveAttendance(event)">
+        <div class="form-row">
+          <label for="attendanceClient">Client *</label>
+          <select id="attendanceClient" required></select>
+        </div>
+        <div class="form-row">
+          <label for="attendanceStatus">Status</label>
+          <select id="attendanceStatus">
+            <option value="attended">Attended</option>
+            <option value="late">Late</option>
+            <option value="excused">Excused</option>
+            <option value="absent">Absent</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label for="attendanceNotes">Notes</label>
+          <textarea id="attendanceNotes" rows="2"></textarea>
+        </div>
+        <div class="form-row" style="display:flex;justify-content:flex-end;gap:10px;margin-bottom:0;">
+          <button type="submit" class="submit-btn">Mark attendance</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
 <footer>
   <div class="wrap">
-    <p class="foot-text">Operations dashboard. Only authorised organisers should access this page.</p>
+    <p class="foot-text">Session and attendance data is private and must not be shared outside the operations team.</p>
   </div>
 </footer>
 
@@ -105,6 +213,12 @@
 <script src="js/auth.js"></script>
 <script src="js/site-settings.js"></script>
 <script src="js/operations.js"></script>
+<script src="js/sessions.js"></script>
+<script>
+  window.operations.init().then(function () {
+    sessions.init();
+  });
+</script>
 
 </body>
 </html>
