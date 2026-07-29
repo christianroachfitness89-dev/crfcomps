@@ -91,6 +91,8 @@ create table if not exists public.leads (
   referral_code text unique,
   referred_by uuid references public.leads on delete set null,
   status text not null default 'entered' check (status in ('entered', 'called', 'no_answer', 'sms_sent', 'email_sent', 'follow_up', 'converted', 'not_interested', 'winner', 'runner_up', 'runner_up_2', 'contact_later', 'disqualified')),
+  pool text not null default 'giveaway' check (pool in ('giveaway', 'new_member', 'non_attendance')),
+  last_contact_at timestamptz,
   created_at timestamptz not null default now()
 );
 
