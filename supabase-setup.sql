@@ -421,6 +421,28 @@ create policy "Admins can manage invoices"
   using (public.is_admin(auth.uid()))
   with check (public.is_admin(auth.uid()));
 
+-- ---------- session policies ----------
+
+drop policy if exists "Admins can manage sessions" on public.sessions;
+
+create policy "Admins can manage sessions"
+  on public.sessions
+  for all
+  to authenticated
+  using (public.is_admin(auth.uid()))
+  with check (public.is_admin(auth.uid()));
+
+-- ---------- attendance policies ----------
+
+drop policy if exists "Admins can manage attendance" on public.attendance;
+
+create policy "Admins can manage attendance"
+  on public.attendance
+  for all
+  to authenticated
+  using (public.is_admin(auth.uid()))
+  with check (public.is_admin(auth.uid()));
+
 -- ---------- trigger: auto-create admin profile on signup ----------
 
 create or replace function public.handle_new_user()
