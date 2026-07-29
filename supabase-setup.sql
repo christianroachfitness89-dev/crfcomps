@@ -314,6 +314,28 @@ create policy "Admins can manage site settings"
   using (public.is_admin(auth.uid()))
   with check (public.is_admin(auth.uid()));
 
+-- ---------- client policies ----------
+
+drop policy if exists "Admins can manage clients" on public.clients;
+
+create policy "Admins can manage clients"
+  on public.clients
+  for all
+  to authenticated
+  using (public.is_admin(auth.uid()))
+  with check (public.is_admin(auth.uid()));
+
+-- ---------- client notes policies ----------
+
+drop policy if exists "Admins can manage client notes" on public.client_notes;
+
+create policy "Admins can manage client notes"
+  on public.client_notes
+  for all
+  to authenticated
+  using (public.is_admin(auth.uid()))
+  with check (public.is_admin(auth.uid()));
+
 -- ---------- trigger: auto-create admin profile on signup ----------
 
 create or replace function public.handle_new_user()
