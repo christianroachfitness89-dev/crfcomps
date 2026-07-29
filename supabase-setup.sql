@@ -167,6 +167,32 @@ create table if not exists public.client_notes (
   created_at timestamptz not null default now()
 );
 
+-- Payments received from clients.
+create table if not exists public.payments (
+  id uuid default gen_random_uuid() primary key,
+  client_id uuid references public.clients on delete set null,
+  amount numeric not null default 0,
+  method text not null default 'other' check (method in ('cash', 'card', 'transfer', 'stripe', 'paypal', 'other')),
+  reference text,
+  paid_at timestamptz not null default now(),
+  notes text,
+  created_at timestamptz not null default now()
+);
+
+-- Invoices / billing records.
+create table if not exists public.invoices (
+  id uuid default gen_random_uuid() primary key,
+  client_id uuid references public.clients on delete set null,
+  amount numeric not null default 0,
+  status text not null default 'draft' check (status in ('draft', 'sent', 'paid', 'overdue', 'cancelled')),
+  issued_at timestamptz,
+  due_at timestamptz,
+  paid_at timestamptz,
+  description text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
 -- ---------- indexes ----------
 
 create index if not exists idx_leads_strategy_id on public.leads(strategy_id);
