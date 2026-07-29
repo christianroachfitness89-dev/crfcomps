@@ -78,7 +78,11 @@
             </select>
           </div>
         </div>
-        <div class="two-col">
+        <div class="check-row" style="margin-bottom:18px;">
+          <input type="checkbox" id="stratOngoing" onchange="toggleStrategyDates()">
+          <label for="stratOngoing">This is an ongoing strategy — no fixed start/end dates</label>
+        </div>
+        <div class="two-col" id="stratDateRow">
           <div class="form-row">
             <label for="stratStarts">Start date</label>
             <input type="datetime-local" id="stratStarts">
@@ -259,6 +263,35 @@
         </div>
       </div>
 
+      <div class="card" style="margin-bottom:28px;">
+        <h3 style="font-size:18px;margin-bottom:16px;">Bulk Upload Leads</h3>
+        <div class="two-col">
+          <div class="form-row">
+            <label for="uploadStrategy">Assign to strategy</label>
+            <select id="uploadStrategy">
+              <option value="">— Select strategy —</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <label for="uploadSource">Source tag (optional)</label>
+            <input type="text" id="uploadSource" placeholder="e.g. bulk_import, facebook_2026">
+          </div>
+        </div>
+        <div class="form-row">
+          <label for="uploadFile">Upload CSV or Excel file</label>
+          <input type="file" id="uploadFile" accept=".csv,.xlsx,.xls" onchange="handleFileUpload()">
+          <p style="font-size:13px;color:var(--ink-soft);margin-top:6px;">Columns: <b>name, email, phone</b>. Optional: <b>opt_in</b> (yes/no/true/false). Duplicates are allowed and tagged to the selected strategy.</p>
+        </div>
+        <div class="form-row" id="uploadPreview" style="display:none;">
+          <label>Preview (<span id="uploadCount">0</span> leads ready)</label>
+          <div id="uploadPreviewRows" style="max-height:180px;overflow:auto;border:1px solid var(--line);border-radius:var(--radius);padding:12px;background:#fff;"></div>
+        </div>
+        <div class="form-row" style="margin-top:12px;">
+          <button type="button" class="submit-btn" id="uploadSubmitBtn" onclick="submitBulkUpload()" style="width:auto;padding:14px 24px;" disabled>Import Leads</button>
+        </div>
+        <div class="msg" id="uploadMsg"></div>
+      </div>
+
       <div id="winnerPanel" class="winner-panel hidden">
         <div class="sec-eyebrow">Random draw result</div>
         <div class="winner-name" id="winnerName">-</div>
@@ -319,6 +352,7 @@
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
 <script src="js/supabase-client.js"></script>
 <script src="js/auth.js"></script>
 <script src="js/site-settings.js"></script>
@@ -330,6 +364,7 @@
   let allLeads = [];
   let currentSettings = null;
   let drawnWinner = null;
+  let pendingUploadRows = [];
 
   function showMsg(el, text, type) {
     el.textContent = text;
@@ -443,6 +478,7 @@
       populateStrategyFilter();
       populateCompFilter();
       populateStrategySelect();
+      populateUploadStrategySelect();
       renderStrategies();
       renderCompetitions();
       renderLeads();
@@ -483,6 +519,13 @@
     sel.innerHTML = '<option value="">— Select strategy —</option>' + renderStrategyOptions(current, false);
   }
 
+  function populateUploadStrategySelect() {
+    const sel = document.getElementById('uploadStrategy');
+    if (!sel) return;
+    const current = sel.value;
+    sel.innerHTML = '<option value="">— Select strategy —</option>' + renderStrategyOptions(current, false);
+  }
+
   function renderStrategyOptions(selectedId, includeEmpty) {
     let html = includeEmpty ? '<option value="">— Select strategy —</option>' : '';
     allStrategies.forEach(function (s) {
@@ -503,12 +546,13 @@
   }
 
   function gatherStrategyPayload() {
+    const ongoing = document.getElementById('stratOngoing').checked;
     return {
       name: document.getElementById('stratName').value.trim(),
       type: document.getElementById('stratType').value,
       status: 'draft',
-      starts_at: document.getElementById('stratStarts').value ? new Date(document.getElementById('stratStarts').value).toISOString() : null,
-      ends_at: document.getElementById('stratEnds').value ? new Date(document.getElementById('stratEnds').value).toISOString() : null,
+      starts_at: ongoing ? null : (document.getElementById('stratStarts').value ? new Date(document.getElementById('stratStarts').value).toISOString() : null),
+      ends_at: ongoing ? null : (document.getElementById('stratEnds').value ? new Date(document.getElementById('stratEnds').value).toISOString() : null),
       description: document.getElementById('stratDesc').value.trim() || null,
       utm_source: document.getElementById('stratUtmSource').value.trim() || null,
       utm_medium: document.getElementById('stratUtmMedium').value.trim() || null,
@@ -549,12 +593,23 @@
   function clearStrategyForm() {
     document.getElementById('stratName').value = '';
     document.getElementById('stratType').value = 'giveaway';
+    document.getElementById('stratOngoing').checked = false;
+    document.getElementById('stratDateRow').style.display = 'grid';
     document.getElementById('stratStarts').value = '';
     document.getElementById('stratEnds').value = '';
     document.getElementById('stratDesc').value = '';
     document.getElementById('stratUtmSource').value = '';
     document.getElementById('stratUtmMedium').value = '';
     document.getElementById('stratUtmCampaign').value = '';
+  }
+
+  function toggleStrategyDates() {
+    const ongoing = document.getElementById('stratOngoing').checked;
+    document.getElementById('stratDateRow').style.display = ongoing ? 'none' : 'grid';
+    if (ongoing) {
+      document.getElementById('stratStarts').value = '';
+      document.getElementById('stratEnds').value = '';
+    }
   }
 
   async function updateStrategyStatus(id, status) {
@@ -1107,6 +1162,195 @@
     window.location.href = 'index.html';
   }
 
+  // ---------- bulk upload helpers ----------
+
+  function normaliseHeader(h) {
+    return String(h || '').toLowerCase().trim().replace(/\s+/g, '_');
+  }
+
+  function parseOptIn(val) {
+    const s = String(val || '').toLowerCase().trim();
+    if (!s) return true;
+    return ['yes', 'true', '1', 'y'].includes(s);
+  }
+
+  function rowsToLeads(rows) {
+    const headers = (rows[0] || []).map(normaliseHeader);
+    const nameIdx = headers.indexOf('name');
+    const emailIdx = headers.indexOf('email');
+    const phoneIdx = headers.indexOf('phone');
+    const optInIdx = headers.indexOf('opt_in');
+
+    if (nameIdx === -1 || emailIdx === -1) {
+      throw new Error('CSV must have at least name and email columns.');
+    }
+
+    const leads = [];
+    for (let i = 1; i < rows.length; i++) {
+      const row = rows[i];
+      if (!row || !row.length) continue;
+      const name = String(row[nameIdx] || '').trim();
+      const email = String(row[emailIdx] || '').trim();
+      if (!name || !email) continue;
+      leads.push({
+        full_name: name,
+        email: email,
+        phone: String(row[phoneIdx] || '').trim() || null,
+        opt_in: optInIdx === -1 ? true : parseOptIn(row[optInIdx])
+      });
+    }
+    return leads;
+  }
+
+  function parseCsv(text) {
+    const rows = [];
+    const lines = text.split(/\r?\n/);
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i].trim();
+      if (!line) continue;
+      const cells = [];
+      let cell = '';
+      let inQuotes = false;
+      for (let j = 0; j < line.length; j++) {
+        const ch = line[j];
+        const next = line[j + 1];
+        if (ch === '"') {
+          if (inQuotes && next === '"') {
+            cell += '"';
+            j++;
+          } else {
+            inQuotes = !inQuotes;
+          }
+        } else if (ch === ',' && !inQuotes) {
+          cells.push(cell);
+          cell = '';
+        } else {
+          cell += ch;
+        }
+      }
+      cells.push(cell);
+      rows.push(cells);
+    }
+    return rows;
+  }
+
+  function parseExcel(arrayBuffer) {
+    if (typeof XLSX === 'undefined') {
+      throw new Error('Excel library not loaded. Please refresh and try again.');
+    }
+    const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+    const json = XLSX.utils.sheet_to_json(firstSheet, { header: 1, defval: '' });
+    return json;
+  }
+
+  function renderUploadPreview(leads) {
+    const container = document.getElementById('uploadPreviewRows');
+    let html = '<table style="width:100%;border-collapse:collapse;font-size:13px;">' +
+      '<thead><tr><th style="text-align:left;padding:6px;border-bottom:1px solid var(--line);">Name</th>' +
+      '<th style="text-align:left;padding:6px;border-bottom:1px solid var(--line);">Email</th>' +
+      '<th style="text-align:left;padding:6px;border-bottom:1px solid var(--line);">Phone</th></tr></thead><tbody>';
+    leads.slice(0, 10).forEach(function (l) {
+      html += '<tr><td style="padding:6px;border-bottom:1px solid var(--paper-2);">' + escapeHtml(l.full_name) + '</td>' +
+        '<td style="padding:6px;border-bottom:1px solid var(--paper-2);">' + escapeHtml(l.email) + '</td>' +
+        '<td style="padding:6px;border-bottom:1px solid var(--paper-2);">' + escapeHtml(l.phone || '-') + '</td></tr>';
+    });
+    if (leads.length > 10) {
+      html += '<tr><td colspan="3" style="padding:6px;color:var(--ink-soft);">... and ' + (leads.length - 10) + ' more</td></tr>';
+    }
+    html += '</tbody></table>';
+    container.innerHTML = html;
+    document.getElementById('uploadCount').textContent = leads.length;
+    document.getElementById('uploadPreview').style.display = 'block';
+    document.getElementById('uploadSubmitBtn').disabled = leads.length === 0;
+  }
+
+  function resetUploadPreview() {
+    pendingUploadRows = [];
+    document.getElementById('uploadPreview').style.display = 'none';
+    document.getElementById('uploadPreviewRows').innerHTML = '';
+    document.getElementById('uploadCount').textContent = '0';
+    document.getElementById('uploadSubmitBtn').disabled = true;
+  }
+
+  async function handleFileUpload() {
+    const input = document.getElementById('uploadFile');
+    const msg = document.getElementById('uploadMsg');
+    msg.className = 'msg';
+    resetUploadPreview();
+
+    const file = input.files[0];
+    if (!file) return;
+
+    try {
+      const ext = file.name.split('.').pop().toLowerCase();
+      let rows = [];
+      if (ext === 'csv') {
+        const text = await file.text();
+        rows = parseCsv(text);
+      } else if (ext === 'xlsx' || ext === 'xls') {
+        const buffer = await file.arrayBuffer();
+        rows = parseExcel(buffer);
+      } else {
+        throw new Error('Please upload a CSV or Excel (.xlsx/.xls) file.');
+      }
+
+      pendingUploadRows = rowsToLeads(rows);
+      renderUploadPreview(pendingUploadRows);
+    } catch (err) {
+      console.error(err);
+      showMsg(msg, err.message || 'Could not read file.', 'error');
+      input.value = '';
+    }
+  }
+
+  async function submitBulkUpload() {
+    const btn = document.getElementById('uploadSubmitBtn');
+    const msg = document.getElementById('uploadMsg');
+    const strategyId = document.getElementById('uploadStrategy').value;
+    const source = document.getElementById('uploadSource').value.trim() || 'bulk_import';
+    msg.className = 'msg';
+
+    if (!strategyId) {
+      showMsg(msg, 'Please select a strategy to assign these leads to.', 'error');
+      return;
+    }
+    if (!pendingUploadRows.length) {
+      showMsg(msg, 'No valid leads to import.', 'error');
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'Importing...';
+
+    const rows = pendingUploadRows.map(function (l) {
+      return {
+        strategy_id: strategyId,
+        full_name: l.full_name,
+        email: l.email,
+        phone: l.phone,
+        opt_in: l.opt_in,
+        source: source,
+        status: 'entered'
+      };
+    });
+
+    try {
+      const { error } = await client.from('leads').insert(rows);
+      if (error) throw error;
+      showMsg(msg, pendingUploadRows.length + ' leads imported into strategy.', 'success');
+      resetUploadPreview();
+      document.getElementById('uploadFile').value = '';
+      await loadData();
+    } catch (err) {
+      console.error(err);
+      showMsg(msg, err.message || 'Could not import leads.', 'error');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Import Leads';
+    }
+  }
+
   // Expose functions needed by inline onclick handlers.
   window.switchTab = switchTab;
   window.createStrategy = createStrategy;
@@ -1125,6 +1369,9 @@
   window.loadData = loadData;
   window.saveSettings = saveSettings;
   window.handleSignOut = handleSignOut;
+  window.handleFileUpload = handleFileUpload;
+  window.submitBulkUpload = submitBulkUpload;
+  window.toggleStrategyDates = toggleStrategyDates;
 
   init();
 })();
