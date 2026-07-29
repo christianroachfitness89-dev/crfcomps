@@ -1251,6 +1251,20 @@
     POOLS.forEach(function (p) { renderLeadPool(p.key); });
   }
 
+  async function promoteLeadToClient(id) {
+    const lead = allLeads.find(function (x) { return x.id === id; });
+    if (!lead) return;
+    if (!confirm('Promote ' + lead.full_name + ' to a client?\n\nThis will create a client record and mark the lead as converted.')) return;
+    try {
+      await window.operations.promoteLeadToClient(id);
+      await loadData();
+      alert(lead.full_name + ' has been promoted to a client.');
+    } catch (err) {
+      alert('Could not promote lead: ' + (err.message || err));
+      console.error(err);
+    }
+  }
+
   async function deleteLead(id) {
     if (!confirm('Delete this lead? This cannot be undone.')) return;
     try {
