@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CRF Comps · Admin Panel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/main.css">
+</head>
+<body>
+
+<header>
+  <div class="nav">
+    <button class="nav-menu-toggle" onclick="toggleMobileNav()" aria-label="Open menu">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M3 6h18M3 12h18M3 18h18" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+    </button>
+    <a href="index.html" class="brand"><span class="dot"></span>CRF Comps</a>
+    <nav class="nav-links">
+      <a href="index.html">Home</a>
+    </nav>
+    <div class="nav-user">
+      <span id="adminName">Admin</span>
+      <button onclick="handleSignOut()">Sign out</button>
+    </div>
+  </div>
+</header>
+
+<div class="admin-layout">
+
+  <aside class="admin-sidebar" id="adminSidebar">
+    <div class="admin-sidebar-inner">
+      <div class="admin-brand">
+        <span class="dot"></span>
+        <span class="admin-brand-text">Organiser Panel</span>
+        <button class="sidebar-close" onclick="toggleSidebar()" aria-label="Close menu">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </div>
+      <nav class="admin-nav">
+        <a href="#" data-nav="dashboard" onclick="navigate('dashboard'); return false;">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M4 13h6a1 1 0 001-1V4a1 1 0 00-1-1H4a1 1 0 00-1 1v8a1 1 0 001 1zm0 8h6a1 1 0 001-1v-4a1 1 0 00-1-1H4a1 1 0 00-1 1v4a1 1 0 001 1zm10 0h6a1 1 0 001-1v-8a1 1 0 00-1-1h-6a1 1 0 00-1 1v8a1 1 0 001 1zm0-12h6a1 1 0 001-1V4a1 1 0 00-1-1h-6a1 1 0 00-1 1v4a1 1 0 001 1z"/></svg>
+          <span>Dashboard</span>
+        </a>
+        <a href="#" data-nav="giveaway" onclick="navigate('giveaway'); return false;">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          <span>Giveaway Leads</span>
+        </a>
+        <a href="#" data-nav="new_member" onclick="navigate('new_member'); return false;">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+          <span>New Member Leads</span>
+        </a>
+        <a href="#" data-nav="non_attendance" onclick="navigate('non_attendance'); return false;">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14h-2v-4H6v-2h4V7h2v4h4v2h-4v4z"/></svg>
+          <span>Non-Attendance Leads</span>
+        </a>
+        <a href="#" data-nav="birthday" onclick="navigate('birthday'); return false;">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm1-13h-2v6h2zm0 8h-2v2h2z"/></svg>
+          <span>Birthday Leads</span>
+        </a>
+        <div class="admin-nav-divider"></div>
+        <a href="#" data-nav="strategies" onclick="navigate('strategies'); return false;">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/></svg>
+          <span>Strategies</span>
+        </a>
+        <a href="#" data-nav="competitions" onclick="navigate('competitions'); return false;">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M20 6h-4V4c0-1.11-.89-2-2-2h-4c-1.11 0-2 .89-2 2v2H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-6 0h-4V4h4v2z"/></svg>
+          <span>Giveaways</span>
+        </a>
+        <a href="#" data-nav="settings" onclick="navigate('settings'); return false;">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 00.12-.61l-1.92-3.32a.488.488 0 00-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 00-.48-.41h-3.84a.484.484 0 00-.48.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96a.488.488 0 00-.59.22L2.74 8.87a.49.49 0 00.12.61l2.03 1.58c-.05.3-.07.63-.07.94s.02.64.07.94l-2.03 1.58a.49.49 0 00-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.27.41.48.41h3.84c.24 0 .44-.17.48-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32a.49.49 0 00-.12-.61l-2.03-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+          <span>Settings</span>
+        </a>
+      </nav>
+    </div>
+  </aside>
+
+  <div class="nav-overlay" onclick="closeMobileNav()"></div>
+
+  <main class="admin-main">
+
+    <!-- DASHBOARD -->
+    <section class="admin-page active" id="page-dashboard">
+      <div class="page-head">
+        <div>
+          <div class="sec-eyebrow">Overview</div>
+          <h2>Dashboard</h2>
+        </div>
+      </div>
+
+      <div class="dash-grid">
+        <div class="stat-box dash-stat">
+          <div class="stat-label">Open Leads</div>
+          <div class="stat-value" id="dashOpenCount">0</div>
+        </div>
+        <div class="stat-box dash-stat">
+          <div class="stat-label">Converted</div>
+          <div class="stat-value" id="dashConvertedCount">0</div>
+          <div class="stat-sub" id="dashConvertedToday">0 today</div>
+        </div>
+        <div class="stat-box dash-stat">
+          <div class="stat-label">Cold Leads</div>
+          <div class="stat-value" id="dashColdCount">0</div>
+        </div>
+        <div class="stat-box dash-stat">
+          <div class="stat-label">Hot Leads</div>
+          <div class="stat-value" id="dashHotCount">0</div>
+        </div>
+      </div>
+
+      <div class="two-col" style="margin-top:28px;">
+        <div class="card">
+          <h3 style="font-size:18px;margin:0 0 16px;">Leads by pool</h3>
+          <div id="dashPoolSplit">
+            <div class="dash-empty">Loading...</div>
+          </div>
+        </div>
+        <div class="card">
+          <h3 style="font-size:18px;margin:0 0 16px;">Status breakdown</h3>
+          <div id="dashStatusBreakdown">
+            <div class="dash-empty">Loading...</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="two-col" style="margin-top:28px;">
+        <div class="card">
+          <h3 style="font-size:18px;margin:0 0 16px;">Newest leads</h3>
+          <div id="dashNewestLeads">
+            <div class="dash-empty">Loading...</div>
+          </div>
+        </div>
+        <div class="card">
+          <h3 style="font-size:18px;margin:0 0 16px;">Needs attention</h3>
+          <div id="dashNeedsAttention">
+            <div class="dash-empty">Loading...</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- LEAD POOL: GIVEAWAY -->
+    <section class="admin-page" id="page-giveaway">
+      <div class="page-head">
+        <div>
+          <div class="sec-eyebrow">Lead Pool</div>
+          <h2>Giveaway Leads</h2>
+        </div>
+      </div>
+      <div id="winnerPanel" class="winner-panel hidden">
+        <div class="sec-eyebrow">Random draw result</div>
+        <div class="winner-name" id="winnerName">-</div>
+        <p id="winnerDetail" style="margin:0;color:var(--ink-soft);">-</p>
+        <button class="admin-btn mt-2" onclick="markWinnerFromPanel()">Mark as winner</button>
+      </div>
+      <div class="pool-stats stat-grid"></div>
+      <div class="card" style="margin-bottom:28px;">
+        <h3 style="font-size:18px;margin-bottom:16px;">Bulk Upload Giveaway Leads</h3>
+        <div class="two-col">
+          <div class="form-row">
+            <label for="uploadStrategy-giveaway">Assign to strategy</label>
+            <select id="uploadStrategy-giveaway">
+              <option value="">— Select strategy —</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <label for="uploadSource-giveaway">Source tag (optional)</label>
+            <input type="text" id="uploadSource-giveaway" placeholder="e.g. bulk_import, facebook_2026">
+          </div>
+        </div>
+        <div class="form-row">
+          <label for="uploadFile-giveaway">Upload CSV or Excel file</label>
+          <input type="file" id="uploadFile-giveaway" accept=".csv,.xlsx,.xls" onchange="handleFileUpload('giveaway')">
+          <p style="font-size:13px;color:var(--ink-soft);margin-top:6px;">Required columns: <b>first_name, last_name, mobile</b>. Optional: <b>email</b> and <b>opt_in</b> (yes/no/true/false). Any other headers are captured as tags and become SMS placeholders, e.g. <b>{age}</b> or <b>{birth_month}</b>. A <b>birthday</b>/<b>dob</b> column auto-creates age and birth_month tags.</p>
+        </div>
+        <div class="form-row" id="uploadPreview-giveaway" style="display:none;">
+          <label>Preview (<span id="uploadCount-giveaway">0</span> leads ready)</label>
+          <div id="uploadPreviewRows-giveaway" style="max-height:180px;overflow:auto;border:1px solid var(--line);border-radius:var(--radius);padding:12px;background:#fff;"></div>
+        </div>
+        <div class="form-row" style="margin-top:12px;">
+          <button type="button" class="submit-btn" id="uploadSubmitBtn-giveaway" onclick="submitBulkUpload('giveaway')" style="width:auto;padding:14px 24px;" disabled>Import Leads</button>
+        </div>
+        <div class="msg" id="uploadMsg-giveaway"></div>
+      </div>
+      <div class="admin-bar">
+        <div class="filter-row">
+          <input type="text" class="pool-search" placeholder="Search name, email or phone..." oninput="renderLeadPool('giveaway')">
+          <select class="pool-strategy" onchange="renderLeadPool('giveaway')">
+            <option value="all">All strategies</option>
+          </select>
+          <select class="pool-comp" onchange="renderLeadPool('giveaway')">
+            <option value="all">All giveaways</option>
+          </select>
+          <select class="pool-status" onchange="renderLeadPool('giveaway')">
+            <option value="all">All statuses</option>
+            <option value="entered">Entered</option>
+            <option value="called">Called</option>
+            <option value="no_answer">No answer</option>
+            <option value="sms_sent">SMS sent</option>
+            <option value="email_sent">Email sent</option>
+            <option value="follow_up">Follow up</option>
+            <option value="converted">Converted</option>
+            <option value="not_interested">Not interested</option>
+            <option value="contact_later">Contact later</option>
+            <option value="winner">Winner</option>
+            <option value="runner_up">Runner-up</option>
+            <option value="runner_up_2">2nd runner-up</option>
+            <option value="disqualified">Disqualified</option>
+          </select>
+        </div>
+        <div class="admin-actions">
+          <button class="admin-btn" onclick="renderLeadPool('giveaway')">Refresh</button>
+          <button class="admin-btn" onclick="exportCsv('giveaway')">Export CSV</button>
+          <button class="admin-btn" onclick="pickRandomWinner('giveaway')">Pick Winner</button>
+          <button class="admin-btn" onclick="openBulkSmsPanel('giveaway')">Bulk SMS</button>
+          <button class="admin-btn danger" onclick="deleteSelectedLeads('giveaway')">Delete Selected</button>
+        </div>
+      </div>
+
+      <div class="bulk-sms-panel" id="bulkSmsPanel-giveaway" style="display:none;">
+        <div class="card" style="margin-bottom:28px;">
+          <h3 style="font-size:18px;margin-bottom:16px;">Bulk SMS Queue</h3>
+          <div class="three-col">
+            <div class="form-row">
+              <label for="bulkSmsTemplate-giveaway">SMS template</label>
+              <select id="bulkSmsTemplate-giveaway">
+                <option value="">— Select strategy / template —</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <label for="bulkSmsDelay-giveaway">Delay between sends (seconds)</label>
+              <input type="number" id="bulkSmsDelay-giveaway" value="3" min="1" max="300">
+            </div>
+            <div class="form-row">
+              <label for="bulkSmsScope-giveaway">Scope</label>
+              <select id="bulkSmsScope-giveaway">
+                <option value="selected">Selected leads only</option>
+                <option value="filtered">All currently filtered leads</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <label for="bulkSmsBody-giveaway">Message preview (editable)</label>
+            <textarea id="bulkSmsBody-giveaway" rows="3" placeholder="Pick a strategy template to populate this, or type your own message..."></textarea>
+            <p style="font-size:13px;color:var(--ink-soft);margin-top:6px;">Placeholders: <b>{first_name}</b>, <b>{last_name}</b>, <b>{full_name}</b>, <b>{phone}</b>, <b>{email}</b>, <b>{strategy_name}</b>, plus any tags such as <b>{age}</b> or <b>{birth_month}</b>. The message is filled per lead when sent.</p>
+          </div>
+          <div class="admin-actions">
+            <button class="submit-btn" id="bulkSmsStartBtn-giveaway" onclick="startBulkSms('giveaway')" style="width:auto;padding:12px 22px;">Start Queue</button>
+            <button class="admin-btn" id="bulkSmsPauseBtn-giveaway" onclick="pauseBulkSms('giveaway')" style="display:none;">Pause</button>
+            <button class="admin-btn" onclick="closeBulkSmsPanel('giveaway')">Close</button>
+          </div>
+          <div class="bulk-sms-status" id="bulkSmsStatus-giveaway">Ready.</div>
+          <div class="bulk-sms-log" id="bulkSmsLog-giveaway"></div>
+        </div>
+      </div>
+
+      <div class="pool-table-wrap">
+        <div class="loading">Loading leads...</div>
+      </div>
+    </section>
+
+    <!-- LEAD POOL: NEW MEMBER -->
+    <section class="admin-page" id="page-new_member">
+      <div class="page-head">
+        <div>
+          <div class="sec-eyebrow">Lead Pool</div>
+          <h2>New Member Leads</h2>
+        </div>
+      </div>
+      <div class="pool-stats stat-grid"></div>
+      <div class="card" style="margin-bottom:28px;">
+        <h3 style="font-size:18px;margin-bottom:16px;">Bulk Upload New Member Leads</h3>
+        <div class="two-col">
+          <div class="form-row">
+            <label for="uploadStrategy-new_member">Assign to strategy (optional)</label>
+            <select id="uploadStrategy-new_member">
+              <option value="">— None —</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <label for="uploadSource-new_member">Source tag (optional)</label>
+            <input type="text" id="uploadSource-new_member" placeholder="e.g. bulk_import, facebook_2026">
+          </div>
+        </div>
+        <div class="form-row">
+          <label for="uploadFile-new_member">Upload CSV or Excel file</label>
+          <input type="file" id="uploadFile-new_member" accept=".csv,.xlsx,.xls" onchange="handleFileUpload('new_member')">
+          <p style="font-size:13px;color:var(--ink-soft);margin-top:6px;">Required columns: <b>first_name, last_name, mobile</b>. Optional: <b>email</b> and <b>opt_in</b> (yes/no/true/false). Any other headers are captured as tags and become SMS placeholders, e.g. <b>{age}</b> or <b>{birth_month}</b>. A <b>birthday</b>/<b>dob</b> column auto-creates age and birth_month tags.</p>
+        </div>
+        <div class="form-row" id="uploadPreview-new_member" style="display:none;">
+          <label>Preview (<span id="uploadCount-new_member">0</span> leads ready)</label>
+          <div id="uploadPreviewRows-new_member" style="max-height:180px;overflow:auto;border:1px solid var(--line);border-radius:var(--radius);padding:12px;background:#fff;"></div>
+        </div>
+        <div class="form-row" style="margin-top:12px;">
+          <button type="button" class="submit-btn" id="uploadSubmitBtn-new_member" onclick="submitBulkUpload('new_member')" style="width:auto;padding:14px 24px;" disabled>Import Leads</button>
+        </div>
+        <div class="msg" id="uploadMsg-new_member"></div>
+      </div>
+      <div class="admin-bar">
+        <div class="filter-row">
+          <input type="text" class="pool-search" placeholder="Search name, email or phone..." oninput="renderLeadPool('new_member')">
+          <select class="pool-strategy" onchange="renderLeadPool('new_member')">
+            <option value="all">All strategies</option>
+          </select>
+          <select class="pool-comp" onchange="renderLeadPool('new_member')">
+            <option value="all">All giveaways</option>
+          </select>
+          <select class="pool-status" onchange="renderLeadPool('new_member')">
+            <option value="all">All statuses</option>
+            <option value="entered">Entered</option>
+            <option value="called">Called</option>
+            <option value="no_answer">No answer</option>
+            <option value="sms_sent">SMS sent</option>
+            <option value="email_sent">Email sent</option>
+            <option value="follow_up">Follow up</option>
+            <option value="converted">Converted</option>
+            <option value="not_interested">Not interested</option>
+            <option value="contact_later">Contact later</option>
+            <option value="disqualified">Disqualified</option>
+          </select>
+        </div>
+        <div class="admin-actions">
+          <button class="admin-btn" onclick="renderLeadPool('new_member')">Refresh</button>
+          <button class="admin-btn" onclick="exportCsv('new_member')">Export CSV</button>
+          <button class="admin-btn" onclick="openBulkSmsPanel('new_member')">Bulk SMS</button>
+          <button class="admin-btn danger" onclick="deleteSelectedLeads('new_member')">Delete Selected</button>
+        </div>
+      </div>
+
+      <div class="bulk-sms-panel" id="bulkSmsPanel-new_member" style="display:none;">
+        <div class="card" style="margin-bottom:28px;">
+          <h3 style="font-size:18px;margin-bottom:16px;">Bulk SMS Queue</h3>
+          <div class="three-col">
+            <div class="form-row">
+              <label for="bulkSmsTemplate-new_member">SMS template</label>
+              <select id="bulkSmsTemplate-new_member">
+                <option value="">— Select strategy / template —</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <label for="bulkSmsDelay-new_member">Delay between sends (seconds)</label>
+              <input type="number" id="bulkSmsDelay-new_member" value="3" min="1" max="300">
+            </div>
+            <div class="form-row">
+              <label for="bulkSmsScope-new_member">Scope</label>
+              <select id="bulkSmsScope-new_member">
+                <option value="selected">Selected leads only</option>
+                <option value="filtered">All currently filtered leads</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <label for="bulkSmsBody-new_member">Message preview (editable)</label>
+            <textarea id="bulkSmsBody-new_member" rows="3" placeholder="Pick a strategy template to populate this, or type your own message..."></textarea>
+            <p style="font-size:13px;color:var(--ink-soft);margin-top:6px;">Placeholders: <b>{first_name}</b>, <b>{last_name}</b>, <b>{full_name}</b>, <b>{phone}</b>, <b>{email}</b>, <b>{strategy_name}</b>, plus any tags such as <b>{age}</b> or <b>{birth_month}</b>. The message is filled per lead when sent.</p>
+          </div>
+          <div class="admin-actions">
+            <button class="submit-btn" id="bulkSmsStartBtn-new_member" onclick="startBulkSms('new_member')" style="width:auto;padding:12px 22px;">Start Queue</button>
+            <button class="admin-btn" id="bulkSmsPauseBtn-new_member" onclick="pauseBulkSms('new_member')" style="display:none;">Pause</button>
+            <button class="admin-btn" onclick="closeBulkSmsPanel('new_member')">Close</button>
+          </div>
+          <div class="bulk-sms-status" id="bulkSmsStatus-new_member">Ready.</div>
+          <div class="bulk-sms-log" id="bulkSmsLog-new_member"></div>
+        </div>
+      </div>
+
+      <div class="pool-table-wrap">
+        <div class="loading">Loading leads...</div>
+      </div>
+    </section>
+
+    <!-- LEAD POOL: NON-ATTENDANCE -->
+    <section class="admin-page" id="page-non_attendance">
+      <div class="page-head">
+        <div>
+          <div class="sec-eyebrow">Lead Pool</div>
+          <h2>Non-Attendance Leads</h2>
+        </div>
+      </div>
+      <div class="pool-stats stat-grid"></div>
+      <div class="card" style="margin-bottom:28px;">
+        <h3 style="font-size:18px;margin-bottom:16px;">Bulk Upload Non-Attendance Leads</h3>
+        <div class="two-col">
+          <div class="form-row">
+            <label for="uploadStrategy-non_attendance">Assign to strategy (optional)</label>
+            <select id="uploadStrategy-non_attendance">
+              <option value="">— None —</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <label for="uploadSource-non_attendance">Source tag (optional)</label>
+            <input type="text" id="uploadSource-non_attendance" placeholder="e.g. bulk_import, lapsed_30d">
+          </div>
+        </div>
+        <div class="form-row">
+          <label for="uploadFile-non_attendance">Upload CSV or Excel file</label>
+          <input type="file" id="uploadFile-non_attendance" accept=".csv,.xlsx,.xls" onchange="handleFileUpload('non_attendance')">
+          <p style="font-size:13px;color:var(--ink-soft);margin-top:6px;">Required columns: <b>first_name, last_name, mobile</b>. Optional: <b>email</b> and <b>opt_in</b> (yes/no/true/false). Any other headers are captured as tags and become SMS placeholders, e.g. <b>{age}</b> or <b>{birth_month}</b>. A <b>birthday</b>/<b>dob</b> column auto-creates age and birth_month tags.</p>
+        </div>
+        <div class="form-row" id="uploadPreview-non_attendance" style="display:none;">
+          <label>Preview (<span id="uploadCount-non_attendance">0</span> leads ready)</label>
+          <div id="uploadPreviewRows-non_attendance" style="max-height:180px;overflow:auto;border:1px solid var(--line);border-radius:var(--radius);padding:12px;background:#fff;"></div>
+        </div>
+        <div class="form-row" style="margin-top:12px;">
+          <button type="button" class="submit-btn" id="uploadSubmitBtn-non_attendance" onclick="submitBulkUpload('non_attendance')" style="width:auto;padding:14px 24px;" disabled>Import Leads</button>
+        </div>
+        <div class="msg" id="uploadMsg-non_attendance"></div>
+      </div>
+      <div class="admin-bar">
+        <div class="filter-row">
+          <input type="text" class="pool-search" placeholder="Search name, email or phone..." oninput="renderLeadPool('non_attendance')">
+          <select class="pool-strategy" onchange="renderLeadPool('non_attendance')">
+            <option value="all">All strategies</option>
+          </select>
+          <select class="pool-comp" onchange="renderLeadPool('non_attendance')">
+            <option value="all">All giveaways</option>
+          </select>
+          <select class="pool-status" onchange="renderLeadPool('non_attendance')">
+            <option value="all">All statuses</option>
+            <option value="entered">Entered</option>
+            <option value="called">Called</option>
+            <option value="no_answer">No answer</option>
+            <option value="sms_sent">SMS sent</option>
+            <option value="email_sent">Email sent</option>
+            <option value="follow_up">Follow up</option>
+            <option value="converted">Converted</option>
+            <option value="not_interested">Not interested</option>
+            <option value="contact_later">Contact later</option>
+            <option value="disqualified">Disqualified</option>
+          </select>
+        </div>
+        <div class="admin-actions">
+          <button class="admin-btn" onclick="renderLeadPool('non_attendance')">Refresh</button>
+          <button class="admin-btn" onclick="exportCsv('non_attendance')">Export CSV</button>
+          <button class="admin-btn" onclick="openBulkSmsPanel('non_attendance')">Bulk SMS</button>
+          <button class="admin-btn danger" onclick="deleteSelectedLeads('non_attendance')">Delete Selected</button>
+        </div>
+      </div>
+
+      <div class="bulk-sms-panel" id="bulkSmsPanel-non_attendance" style="display:none;">
+        <div class="card" style="margin-bottom:28px;">
+          <h3 style="font-size:18px;margin-bottom:16px;">Bulk SMS Queue</h3>
+          <div class="three-col">
+            <div class="form-row">
+              <label for="bulkSmsTemplate-non_attendance">SMS template</label>
+              <select id="bulkSmsTemplate-non_attendance">
+                <option value="">— Select strategy / template —</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <label for="bulkSmsDelay-non_attendance">Delay between sends (seconds)</label>
+              <input type="number" id="bulkSmsDelay-non_attendance" value="3" min="1" max="300">
+            </div>
+            <div class="form-row">
+              <label for="bulkSmsScope-non_attendance">Scope</label>
+              <select id="bulkSmsScope-non_attendance">
+                <option value="selected">Selected leads only</option>
+                <option value="filtered">All currently filtered leads</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <label for="bulkSmsBody-non_attendance">Message preview (editable)</label>
+            <textarea id="bulkSmsBody-non_attendance" rows="3" placeholder="Pick a strategy template to populate this, or type your own message..."></textarea>
+            <p style="font-size:13px;color:var(--ink-soft);margin-top:6px;">Placeholders: <b>{first_name}</b>, <b>{last_name}</b>, <b>{full_name}</b>, <b>{phone}</b>, <b>{email}</b>, <b>{strategy_name}</b>, plus any tags such as <b>{age}</b> or <b>{birth_month}</b>. The message is filled per lead when sent.</p>
+          </div>
+          <div class="admin-actions">
+            <button class="submit-btn" id="bulkSmsStartBtn-non_attendance" onclick="startBulkSms('non_attendance')" style="width:auto;padding:12px 22px;">Start Queue</button>
+            <button class="admin-btn" id="bulkSmsPauseBtn-non_attendance" onclick="pauseBulkSms('non_attendance')" style="display:none;">Pause</button>
+            <button class="admin-btn" onclick="closeBulkSmsPanel('non_attendance')">Close</button>
+          </div>
+          <div class="bulk-sms-status" id="bulkSmsStatus-non_attendance">Ready.</div>
+          <div class="bulk-sms-log" id="bulkSmsLog-non_attendance"></div>
+        </div>
+      </div>
+
+      <div class="pool-table-wrap">
+        <div class="loading">Loading leads...</div>
+      </div>
+    </section>
+
+    <!-- LEAD POOL: BIRTHDAY -->
+    <section class="admin-page" id="page-birthday">
+      <div class="page-head">
+        <div>
+          <div class="sec-eyebrow">Lead Pool</div>
+          <h2>Birthday Leads</h2>
+        </div>
+      </div>
+      <div class="pool-stats stat-grid"></div>
+      <div class="card" style="margin-bottom:28px;">
+        <h3 style="font-size:18px;margin-bottom:16px;">Bulk Upload Birthday Leads</h3>
+        <div class="three-col">
+          <div class="form-row">
+            <label for="uploadStrategy-birthday">Assign to strategy (optional)</label>
+            <select id="uploadStrategy-birthday">
+              <option value="">— None —</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <label for="uploadBirthMonth-birthday">Birth month</label>
+            <select id="uploadBirthMonth-birthday">
+              <option value="">— Select month —</option>
+              <option value="January">January</option>
+              <option value="February">February</option>
+              <option value="March">March</option>
+              <option value="April">April</option>
+              <option value="May">May</option>
+              <option value="June">June</option>
+              <option value="July">July</option>
+              <option value="August">August</option>
+              <option value="September">September</option>
+              <option value="October">October</option>
+              <option value="November">November</option>
+              <option value="December">December</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <label for="uploadSource-birthday">Source tag (optional)</label>
+            <input type="text" id="uploadSource-birthday" placeholder="e.g. birthday_monthly">
+          </div>
+        </div>
+        <div class="form-row">
+          <label for="uploadFile-birthday">Upload CSV or Excel file</label>
+          <input type="file" id="uploadFile-birthday" accept=".csv,.xlsx,.xls" onchange="handleFileUpload('birthday')">
+          <p style="font-size:13px;color:var(--ink-soft);margin-top:6px;">Required columns: <b>first_name, last_name, mobile</b>. Optional: <b>email</b>, <b>opt_in</b> (yes/no/true/false), and <b>birthday</b> for day/month/year so we can auto-calculate <b>{age}</b>. Choose the birth month from the dropdown above and it will be applied to every lead as the <b>{birth_month}</b> placeholder. Any other headers become SMS placeholders.</p>
+        </div>
+        <div class="form-row" id="uploadPreview-birthday" style="display:none;">
+          <label>Preview (<span id="uploadCount-birthday">0</span> leads ready)</label>
+          <div id="uploadPreviewRows-birthday" style="max-height:180px;overflow:auto;border:1px solid var(--line);border-radius:var(--radius);padding:12px;background:#fff;"></div>
+        </div>
+        <div class="form-row" style="margin-top:12px;">
+          <button type="button" class="submit-btn" id="uploadSubmitBtn-birthday" onclick="submitBulkUpload('birthday')" style="width:auto;padding:14px 24px;" disabled>Import Leads</button>
+        </div>
+        <div class="msg" id="uploadMsg-birthday"></div>
+      </div>
+      <div class="admin-bar">
+        <div class="filter-row">
+          <input type="text" class="pool-search" placeholder="Search name, email or phone..." oninput="renderLeadPool('birthday')">
+          <select class="pool-strategy" onchange="renderLeadPool('birthday')">
+            <option value="all">All strategies</option>
+          </select>
+          <select class="pool-comp" onchange="renderLeadPool('birthday')">
+            <option value="all">All giveaways</option>
+          </select>
+          <select class="pool-status" onchange="renderLeadPool('birthday')">
+            <option value="all">All statuses</option>
+            <option value="entered">Entered</option>
+            <option value="called">Called</option>
+            <option value="no_answer">No answer</option>
+            <option value="sms_sent">SMS sent</option>
+            <option value="email_sent">Email sent</option>
+            <option value="follow_up">Follow up</option>
+            <option value="converted">Converted</option>
+            <option value="not_interested">Not interested</option>
+            <option value="contact_later">Contact later</option>
+            <option value="disqualified">Disqualified</option>
+          </select>
+        </div>
+        <div class="admin-actions">
+          <button class="admin-btn" onclick="renderLeadPool('birthday')">Refresh</button>
+          <button class="admin-btn" onclick="exportCsv('birthday')">Export CSV</button>
+          <button class="admin-btn" onclick="openBulkSmsPanel('birthday')">Bulk SMS</button>
+          <button class="admin-btn danger" onclick="deleteSelectedLeads('birthday')">Delete Selected</button>
+        </div>
+      </div>
+
+      <div class="bulk-sms-panel" id="bulkSmsPanel-birthday" style="display:none;">
+        <div class="card" style="margin-bottom:28px;">
+          <h3 style="font-size:18px;margin-bottom:16px;">Bulk SMS Queue</h3>
+          <div class="three-col">
+            <div class="form-row">
+              <label for="bulkSmsTemplate-birthday">SMS template</label>
+              <select id="bulkSmsTemplate-birthday">
+                <option value="">— Select strategy / template —</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <label for="bulkSmsDelay-birthday">Delay between sends (seconds)</label>
+              <input type="number" id="bulkSmsDelay-birthday" value="3" min="1" max="300">
+            </div>
+            <div class="form-row">
+              <label for="bulkSmsScope-birthday">Scope</label>
+              <select id="bulkSmsScope-birthday">
+                <option value="selected">Selected leads only</option>
+                <option value="filtered">All currently filtered leads</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <label for="bulkSmsBody-birthday">Message preview (editable)</label>
+            <textarea id="bulkSmsBody-birthday" rows="3" placeholder="Pick a strategy template to populate this, or type your own message..."></textarea>
+            <p style="font-size:13px;color:var(--ink-soft);margin-top:6px;">Placeholders: <b>{first_name}</b>, <b>{last_name}</b>, <b>{full_name}</b>, <b>{phone}</b>, <b>{email}</b>, <b>{strategy_name}</b>, plus any tags such as <b>{age}</b> or <b>{birth_month}</b>. The message is filled per lead when sent.</p>
+          </div>
+          <div class="admin-actions">
+            <button class="submit-btn" id="bulkSmsStartBtn-birthday" onclick="startBulkSms('birthday')" style="width:auto;padding:12px 22px;">Start Queue</button>
+            <button class="admin-btn" id="bulkSmsPauseBtn-birthday" onclick="pauseBulkSms('birthday')" style="display:none;">Pause</button>
+            <button class="admin-btn" onclick="closeBulkSmsPanel('birthday')">Close</button>
+          </div>
+          <div class="bulk-sms-status" id="bulkSmsStatus-birthday">Ready.</div>
+          <div class="bulk-sms-log" id="bulkSmsLog-birthday"></div>
+        </div>
+      </div>
+
+      <div class="pool-table-wrap">
+        <div class="loading">Loading leads...</div>
+      </div>
+    </section>
+
+    <!-- STRATEGIES -->
+    <section class="admin-page" id="page-strategies">
+      <div class="page-head">
+        <div>
+          <div class="sec-eyebrow">Marketing</div>
+          <h2>Strategies</h2>
+        </div>
+      </div>
+      <div class="card" style="margin-bottom:28px;">
+        <h3 style="font-size:20px;margin-bottom:16px;">Create New Strategy</h3>
+        <div class="two-col">
+          <div class="form-row">
+            <label for="stratName">Strategy name</label>
+            <input type="text" id="stratName" placeholder="e.g. Summer 2026 Challenge">
+          </div>
+          <div class="form-row">
+            <label for="stratType">Type</label>
+            <select id="stratType">
+              <option value="giveaway">Giveaway</option>
+              <option value="lead_magnet">Lead magnet</option>
+              <option value="challenge">Challenge</option>
+              <option value="webinar">Webinar</option>
+              <option value="funnel">Funnel</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+        </div>
+        <div class="check-row" style="margin-bottom:18px;">
+          <input type="checkbox" id="stratOngoing" onchange="toggleStrategyDates()">
+          <label for="stratOngoing">This is an ongoing strategy — no fixed start/end dates</label>
+        </div>
+        <div class="two-col" id="stratDateRow">
+          <div class="form-row">
+            <label for="stratStarts">Start date</label>
+            <input type="datetime-local" id="stratStarts">
+          </div>
+          <div class="form-row">
+            <label for="stratEnds">End date</label>
+            <input type="datetime-local" id="stratEnds">
+          </div>
+        </div>
+        <div class="form-row">
+          <label for="stratDesc">Description / notes</label>
+          <textarea id="stratDesc" rows="2" placeholder="What is this strategy trying to achieve?"></textarea>
+        </div>
+        <div class="two-col">
+          <div class="form-row">
+            <label for="stratUtmSource">UTM source (optional)</label>
+            <input type="text" id="stratUtmSource" placeholder="e.g. facebook">
+          </div>
+          <div class="form-row">
+            <label for="stratUtmMedium">UTM medium (optional)</label>
+            <input type="text" id="stratUtmMedium" placeholder="e.g. paid_social">
+          </div>
+        </div>
+        <div class="form-row">
+          <label for="stratUtmCampaign">UTM campaign (optional)</label>
+          <input type="text" id="stratUtmCampaign" placeholder="e.g. summer_challenge_2026">
+        </div>
+        <div class="form-row">
+          <label for="stratSmsTemplate">SMS template (optional)</label>
+          <textarea id="stratSmsTemplate" rows="3" placeholder="Hi {first_name}, this is CRF Comps about the {strategy_name}..."></textarea>
+          <p style="font-size:13px;color:var(--ink-soft);margin-top:6px;">Placeholders: <b>{first_name}</b>, <b>{last_name}</b>, <b>{full_name}</b>, <b>{phone}</b>, <b>{email}</b>, <b>{strategy_name}</b>, plus any extra upload column such as <b>{age}</b> or <b>{birth_month}</b>. A <b>birthday</b>/<b>dob</b> column auto-creates <b>age</b> and <b>birth_month</b> tags.</p>
+        </div>
+        <div class="form-row" style="margin-top:12px;">
+          <button type="button" class="submit-btn" id="createStratBtn" onclick="createStrategy()" style="width:auto;padding:14px 24px;">Create Strategy</button>
+        </div>
+        <div class="msg" id="stratMsg"></div>
+      </div>
+
+      <h3 style="font-size:18px;margin:0 0 16px;">Existing Strategies</h3>
+      <div class="strategy-list" id="strategyList">
+        <div class="loading">Loading strategies...</div>
+      </div>
+    </section>
+
+    <!-- COMPETITIONS / GIVEAWAYS -->
+    <section class="admin-page" id="page-competitions">
+      <div class="page-head">
+        <div>
+          <div class="sec-eyebrow">Rounds</div>
+          <h2>Giveaways</h2>
+        </div>
+      </div>
+      <div class="card" style="margin-bottom:28px;">
+        <h3 style="font-size:20px;margin-bottom:16px;">Create New Giveaway</h3>
+        <div class="two-col">
+          <div class="form-row">
+            <label for="compName">Giveaway name</label>
+            <input type="text" id="compName" placeholder="e.g. Summer 2026 Coaching Giveaway">
+          </div>
+          <div class="form-row">
+            <label for="compStrategy">Marketing strategy</label>
+            <select id="compStrategy">
+              <option value="">— Select strategy —</option>
+            </select>
+          </div>
+        </div>
+        <div class="two-col">
+          <div class="form-row">
+            <label for="compType">Giveaway type</label>
+            <select id="compType">
+              <option value="random_draw">Random draw</option>
+              <option value="referral">Referral giveaway</option>
+              <option value="other">Other / free-text</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <label for="compStatus">Initial status</label>
+            <select id="compStatus">
+              <option value="draft">Draft</option>
+              <option value="active">Active</option>
+              <option value="closed">Closed</option>
+              <option value="archived">Archived</option>
+            </select>
+          </div>
+        </div>
+        <div class="two-col">
+          <div class="form-row">
+            <label for="compStarts">Start date</label>
+            <input type="datetime-local" id="compStarts">
+          </div>
+          <div class="form-row">
+            <label for="compEnds">End / close date</label>
+            <input type="datetime-local" id="compEnds">
+          </div>
+        </div>
+        <div class="form-row">
+          <label for="compMain">Main giveaway prize</label>
+          <input type="text" id="compMain" placeholder="e.g. 8 weeks of 1:1 coaching">
+        </div>
+        <div class="form-row">
+          <label for="compMainBullets">Main prize bullet points (one per line)</label>
+          <textarea id="compMainBullets" rows="3" placeholder="8 weeks of personalised coaching&#10;Weekly check-ins and programming&#10;Nutrition guidance included"></textarea>
+        </div>
+        <div class="two-col">
+          <div class="form-row">
+            <label for="compRunnerUp">Runner-up prize (optional)</label>
+            <input type="text" id="compRunnerUp" placeholder="e.g. 4 weeks of group coaching">
+          </div>
+          <div class="form-row">
+            <label for="compRunnerUp2">Second runner-up prize (optional)</label>
+            <input type="text" id="compRunnerUp2" placeholder="e.g. 2 weeks of online programming">
+          </div>
+        </div>
+        <div class="two-col">
+          <div class="form-row">
+            <label for="compRunnerUpBullets">Runner-up bullets (optional)</label>
+            <textarea id="compRunnerUpBullets" rows="3" placeholder="4 weeks of group coaching&#10;Access to private community"></textarea>
+          </div>
+          <div class="form-row">
+            <label for="compRunnerUp2Bullets">Second runner-up bullets (optional)</label>
+            <textarea id="compRunnerUp2Bullets" rows="3" placeholder="2 weeks of online programming&#10;Custom training plan"></textarea>
+          </div>
+        </div>
+        <div class="two-col">
+          <div class="form-row">
+            <label for="compValue">Total prize value ($) — optional</label>
+            <input type="number" id="compValue" min="0" step="1" placeholder="e.g. 1500">
+          </div>
+          <div class="form-row">
+            <label for="compPrizeDesc">Prize notes</label>
+            <input type="text" id="compPrizeDesc" placeholder="e.g. Coaching sessions must be redeemed within 90 days">
+          </div>
+        </div>
+        <div class="form-row">
+          <label for="compHeadline">Hero headline (HTML allowed)</label>
+          <input type="text" id="compHeadline" placeholder="Enter free.<em>Win coaching.</em>">
+        </div>
+        <div class="form-row">
+          <label for="compSub">Hero subheadline</label>
+          <textarea id="compSub" rows="2" placeholder="Short description shown under the headline"></textarea>
+        </div>
+        <div class="form-row">
+          <label for="compRules">Rules text (one rule per line)</label>
+          <textarea id="compRules" rows="4" placeholder="Entry is free.&#10;One entry per person per round.&#10;Winners contacted by email and phone."></textarea>
+        </div>
+        <div class="form-row" style="margin-top:12px;">
+          <button type="button" class="submit-btn" id="createCompBtn" onclick="createCompetition()" style="width:auto;padding:14px 24px;">Create Giveaway</button>
+        </div>
+        <div class="msg" id="compMsg"></div>
+      </div>
+
+      <h3 style="font-size:18px;margin:0 0 16px;">Existing Giveaways</h3>
+      <div class="competition-list" id="competitionList">
+        <div class="loading">Loading giveaways...</div>
+      </div>
+    </section>
+
+    <!-- SETTINGS -->
+    <section class="admin-page" id="page-settings">
+      <div class="page-head">
+        <div>
+          <div class="sec-eyebrow">Configuration</div>
+          <h2>Settings</h2>
+        </div>
+      </div>
+      <div class="card" style="max-width:760px;">
+        <div class="msg" id="settingsMsg"></div>
+        <div class="form-row">
+          <label for="setBrand">Brand / site name</label>
+          <input type="text" id="setBrand" placeholder="CRF Comps">
+        </div>
+        <div class="form-row">
+          <label for="setFallbackHeadline">Fallback headline (no active giveaway)</label>
+          <input type="text" id="setFallbackHeadline" placeholder="Win coaching. Enter free.">
+        </div>
+        <div class="form-row">
+          <label for="setFallbackSub">Fallback subheadline</label>
+          <textarea id="setFallbackSub" rows="2" placeholder="A new giveaway is coming soon."></textarea>
+        </div>
+        <div class="form-row">
+          <label for="setFallbackValue">Fallback total prize value ($) — optional</label>
+          <input type="number" id="setFallbackValue" min="0" step="1">
+        </div>
+        <div class="form-row">
+          <label for="setAdminEmail">Admin contact email</label>
+          <input type="email" id="setAdminEmail" placeholder="admin@example.com">
+        </div>
+        <div class="form-row" style="margin-top:12px;">
+          <button type="button" class="submit-btn" id="saveSettingsBtn" onclick="saveSettings()" style="width:auto;padding:14px 24px;">Save Settings</button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<footer>
+  <div class="wrap">
+    <p class="foot-text">Admin panel. Only authorised organisers should access this page. Lead data is private and must not be shared outside the giveaway team.</p>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+<script src="js/supabase-client.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/site-settings.js"></script>
+<script src="js/admin.js"></script>
+
+</body>
+</html>
