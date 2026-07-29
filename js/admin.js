@@ -1159,6 +1159,7 @@
         if (error) throw error;
         lead.status = 'sms_sent';
         lead.last_contact_at = new Date().toISOString();
+        logCommunication({ lead_id: id, type: 'sms', direction: 'outbound', status: 'completed', body: body });
         logBulkSms(pool, 'Sent to ' + (lead.full_name || lead.phone) + ' · ' + (state.index + 1) + '/' + state.ids.length, 'success');
       } catch (err) {
         logBulkSms(pool, 'Failed to update status for ' + (lead.full_name || lead.phone) + ': ' + err.message, 'error');
