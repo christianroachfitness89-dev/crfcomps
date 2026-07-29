@@ -115,7 +115,8 @@ This creates:
 | Pick a winner | Go to **Giveaway Leads**, filter, then click **Pick Winner**. |
 | Export leads | Use **Export CSV** on any lead pool page. |
 | Update brand/copy | Use the **Settings** page. |
-| Manage prospects | Use **New Member Leads** or **Non-Attendance Leads**. |
+| Manage prospects | Use **New Member Leads**, **Non-Attendance Leads** or **Birthday Leads**. |
+| Bulk SMS with delay | Use **Bulk SMS** on any lead pool page to queue messages with a delay. |
 
 ---
 
