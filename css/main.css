@@ -771,6 +771,8 @@ footer{padding:40px 0 60px;border-top:1px solid var(--line);}
 .attendance-name{font-weight:600;}
 .attendance-note{width:100%;font-size:13px;color:var(--ink-soft);margin-top:4px;}
 
+.client-communications .client-note-text .tag{margin-right:6px;}
+
 @media(min-width:960px){
   .admin-sidebar{position:fixed;transform:translateX(0);}
   .admin-main{margin-left:260px;}
