@@ -1291,6 +1291,27 @@
     }
   }
 
+  async function logCall(id) {
+    const note = prompt('Call note (optional):');
+    if (note === null) return;
+    try {
+      await logCommunication({ lead_id: id, type: 'call', direction: 'outbound', status: 'completed', body: note });
+      await updateLeadStatus(id, 'called');
+    } catch (err) {
+      alert('Could not log call: ' + err.message);
+    }
+  }
+
+  function openLogEmail(id) {
+    const note = prompt('Email note / subject (optional):');
+    if (note === null) return;
+    logCommunication({ lead_id: id, type: 'email', direction: 'outbound', status: 'completed', body: note }).then(function () {
+      return updateLeadStatus(id, 'email_sent');
+    }).catch(function (err) {
+      alert('Could not log email: ' + err.message);
+    });
+  }
+
   async function deleteLead(id) {
     if (!confirm('Delete this lead? This cannot be undone.')) return;
     try {
