@@ -37,11 +37,24 @@
         </div>
       </div>
       <div class="prize-card">
-        <div class="prize-label">Main Giveaway</div>
-        <div class="prize-amount" id="prizeMain" style="font-size:32px;line-height:1.1;">Coaching giveaway</div>
+        <div class="prize-shimmer"></div>
+        <div class="prize-badge" id="prizeValueBadge" style="display:none;">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M12 1L15.09 7.26L22 8.27L17 13.14L18.18 20.02L12 16.77L5.82 20.02L7 13.14L2 8.27L8.91 7.26L12 1Z"/></svg>
+          <span>Prize value <strong id="prizeValueAmount">$0</strong></span>
+        </div>
+        <div class="prize-live" id="prizeLiveBadge">
+          <span class="live-dot"></span>
+          <span>Live now</span>
+        </div>
+        <div class="prize-label prize-label-gold">Main Giveaway</div>
+        <div class="prize-amount" id="prizeMain">Coaching giveaway</div>
         <div class="prize-desc" id="prizeDesc">Winner announced after the giveaway closes. Enter once per active round.</div>
-        <div class="prize-label mt-3">Giveaway type</div>
-        <div class="prize-desc" id="compType">Random draw</div>
+        <div class="prize-meta">
+          <div>
+            <div class="prize-label">Giveaway type</div>
+            <div class="prize-type" id="compType">Random draw</div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -271,6 +284,13 @@
     setText('prizeMain', main);
     setText('prizeDesc', c ? (c.prize_description || 'Winner announced after the giveaway closes. Enter once per active round.') : 'No active giveaway right now. Check back soon.');
     setText('compType', typeLabel);
+
+    const valueBadge = document.getElementById('prizeValueBadge');
+    if (valueBadge) valueBadge.style.display = value ? 'inline-flex' : 'none';
+    setText('prizeValueAmount', formatCurrency(value));
+
+    const liveBadge = document.getElementById('prizeLiveBadge');
+    if (liveBadge) liveBadge.style.display = c ? 'flex' : 'none';
 
     setText('prizeHeadline', 'Giveaway prizes' + (value ? ' · Total value ' + formatCurrency(value) : ''));
     setText('prizeMainCard', main);
