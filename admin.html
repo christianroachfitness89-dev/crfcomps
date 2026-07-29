@@ -314,8 +314,14 @@
         client.from('leads').select('*').order('created_at', { ascending: false })
       ]);
 
-      if (compsRes.error) throw compsRes.error;
-      if (leadsRes.error) throw leadsRes.error;
+      if (compsRes.error) {
+        console.error('Comps error:', compsRes.error);
+        throw compsRes.error;
+      }
+      if (leadsRes.error) {
+        console.error('Leads error:', leadsRes.error);
+        throw leadsRes.error;
+      }
 
       allCompetitions = compsRes.data || [];
       allLeads = leadsRes.data || [];
