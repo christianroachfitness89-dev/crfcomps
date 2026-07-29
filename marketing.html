@@ -872,7 +872,13 @@
 <script src="js/supabase-client.js"></script>
 <script src="js/auth.js"></script>
 <script src="js/site-settings.js"></script>
+<script src="js/operations.js"></script>
 <script src="js/admin.js"></script>
+<script>
+  window.operations.init().then(function () {
+    if (typeof loadData === 'function') loadData();
+  });
+</script>
 
 </body>
 </html>
