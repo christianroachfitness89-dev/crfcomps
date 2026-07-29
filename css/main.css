@@ -624,7 +624,9 @@ footer{padding:40px 0 60px;border-top:1px solid var(--line);}
 @media(min-width:960px){
   .admin-sidebar{position:fixed;transform:translateX(0);}
   .admin-main{margin-left:260px;}
+  .admin-main.expanded{margin-left:62px;}
   .nav-menu-toggle,.nav-overlay{display:none;}
+  .sidebar-close{display:block;}
   .dash-grid{grid-template-columns:repeat(4,1fr);}
 }
 
