@@ -176,7 +176,7 @@
   }
 
   function kpiCard(label, value, sub) {
-    return '<div class="stat-box">' +
+    return '<div class="ops-kpi">' +
       '<div class="stat-label">' + escapeHtml(label) + '</div>' +
       '<div class="stat-value">' + escapeHtml(String(value)) + '</div>' +
       (sub ? '<div class="stat-sub">' + escapeHtml(sub) + '</div>' : '') +
@@ -184,9 +184,13 @@
   }
 
   function deptCard(href, title, desc, color) {
-    return '<a href="' + escapeHtml(href) + '" class="ops-dept-card" style="--dept-color:' + escapeHtml(color) + '">' +
-      '<div class="ops-dept-title">' + escapeHtml(title) + '</div>' +
-      '<div class="ops-dept-desc">' + escapeHtml(desc) + '</div>' +
+    return '<a href="' + escapeHtml(href) + '" class="ops-dept-card" style="border-left:3px solid ' + escapeHtml(color) + '">' +
+      '<div class="ops-dept-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/></svg></div>' +
+      '<div class="ops-dept-info">' +
+        '<div class="ops-dept-name">' + escapeHtml(title) + '</div>' +
+        '<div class="ops-dept-desc">' + escapeHtml(desc) + '</div>' +
+      '</div>' +
+      '<div class="ops-dept-arrow"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></div>' +
     '</a>';
   }
 
