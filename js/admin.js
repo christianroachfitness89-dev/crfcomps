@@ -20,7 +20,8 @@
   const POOLS = [
     { key: 'giveaway', label: 'Giveaway Leads' },
     { key: 'new_member', label: 'New Member Leads' },
-    { key: 'non_attendance', label: 'Non-Attendance Leads' }
+    { key: 'non_attendance', label: 'Non-Attendance Leads' },
+    { key: 'birthday', label: 'Birthday Leads' }
   ];
 
   const STATUSES = [
