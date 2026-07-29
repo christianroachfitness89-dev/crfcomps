@@ -110,6 +110,11 @@
           <label for="stratUtmCampaign">UTM campaign (optional)</label>
           <input type="text" id="stratUtmCampaign" placeholder="e.g. summer_challenge_2026">
         </div>
+        <div class="form-row">
+          <label for="stratSmsTemplate">SMS template (optional)</label>
+          <textarea id="stratSmsTemplate" rows="3" placeholder="Hi {first_name}, this is CRF Comps about the {strategy_name}..."></textarea>
+          <p style="font-size:13px;color:var(--ink-soft);margin-top:6px;">Placeholders: <b>{first_name}</b>, <b>{last_name}</b>, <b>{full_name}</b>, <b>{phone}</b>, <b>{email}</b>, <b>{strategy_name}</b>. Filled per lead when you click "Template SMS".</p>
+        </div>
         <div class="form-row" style="margin-top:12px;">
           <button type="button" class="submit-btn" id="createStratBtn" onclick="createStrategy()" style="width:auto;padding:14px 24px;">Create Strategy</button>
         </div>
@@ -251,9 +256,18 @@
           <select id="filterStatus" onchange="renderLeads()">
             <option value="all">All statuses</option>
             <option value="entered">Entered</option>
+            <option value="called">Called</option>
+            <option value="no_answer">No answer</option>
+            <option value="sms_sent">SMS sent</option>
+            <option value="email_sent">Email sent</option>
+            <option value="follow_up">Follow up</option>
+            <option value="converted">Converted</option>
+            <option value="not_interested">Not interested</option>
+            <option value="contact_later">Contact later</option>
             <option value="winner">Winner</option>
             <option value="runner_up">Runner-up</option>
             <option value="runner_up_2">Second runner-up</option>
+            <option value="disqualified">Disqualified</option>
           </select>
         </div>
         <div class="admin-actions">
@@ -558,6 +572,7 @@
       utm_source: document.getElementById('stratUtmSource').value.trim() || null,
       utm_medium: document.getElementById('stratUtmMedium').value.trim() || null,
       utm_campaign: document.getElementById('stratUtmCampaign').value.trim() || null,
+      sms_template: document.getElementById('stratSmsTemplate').value.trim() || null,
       updated_at: new Date().toISOString()
     };
   }
@@ -602,6 +617,7 @@
     document.getElementById('stratUtmSource').value = '';
     document.getElementById('stratUtmMedium').value = '';
     document.getElementById('stratUtmCampaign').value = '';
+    document.getElementById('stratSmsTemplate').value = '';
   }
 
   function toggleStrategyDates() {
@@ -663,11 +679,113 @@
             ? '<button class="admin-btn danger" onclick="updateStrategyStatus(\'' + s.id + '\', \'paused\')">Pause</button>'
             : '<button class="admin-btn" onclick="updateStrategyStatus(\'' + s.id + '\', \'active\')">' + (s.status === 'archived' ? 'Reopen' : 'Activate') + '</button>') +
           (s.status !== 'archived' ? '<button class="admin-btn" onclick="updateStrategyStatus(\'' + s.id + '\', \'archived\')">Archive</button>' : '') +
+          '<button class="admin-btn" onclick="toggleStrategyEditForm(\'' + s.id + '\')">Edit</button>' +
           '<button class="admin-btn danger" onclick="deleteStrategy(\'' + s.id + '\')">Delete</button>' +
         '</div>' +
-        '</div>';
+        '</div>' +
+        '<div class="edit-form" id="edit-strategy-' + s.id + '" data-loaded="false"></div>';
     });
     container.innerHTML = html;
+  }
+
+  async function toggleStrategyEditForm(id) {
+    const panel = document.getElementById('edit-strategy-' + id);
+    const isOpen = panel.classList.contains('show');
+    if (!isOpen) {
+      panel.classList.add('show');
+      if (panel.dataset.loaded !== 'true') {
+        await renderStrategyEditForm(id, panel);
+        panel.dataset.loaded = 'true';
+      }
+    } else {
+      panel.classList.remove('show');
+    }
+  }
+
+  async function renderStrategyEditForm(id, panel) {
+    const s = allStrategies.find(function (x) { return x.id === id; });
+    if (!s) return;
+    const ongoing = !s.starts_at && !s.ends_at;
+    const typeOptions = [
+      ['giveaway','Giveaway'],
+      ['lead_magnet','Lead magnet'],
+      ['challenge','Challenge'],
+      ['webinar','Webinar'],
+      ['funnel','Funnel'],
+      ['other','Other']
+    ].map(function (o) {
+      return '<option value="' + o[0] + '"' + (s.type === o[0] ? ' selected' : '') + '>' + o[1] + '</option>';
+    }).join('');
+
+    panel.innerHTML =
+      '<h4 style="font-size:16px;margin:0 0 14px;">Edit Strategy</h4>' +
+      '<div class="form-row"><label>Name</label><input type="text" id="edit-strat-name-' + id + '" value="' + escapeHtml(s.name || '') + '" maxlength="120"></div>' +
+      '<div class="two-col">' +
+        '<div class="form-row"><label>Type</label><select id="edit-strat-type-' + id + '" value="' + escapeHtml(s.type || '') + '" onchange="this.setAttribute(\'value\', this.value)">' + typeOptions + '</select></div>' +
+        '<div class="form-row"><label>Status</label><select id="edit-strat-status-' + id + '" value="' + escapeHtml(s.status || '') + '" onchange="this.setAttribute(\'value\', this.value)">' +
+          '<option value="draft"' + (s.status === 'draft' ? ' selected' : '') + '>Draft</option>' +
+          '<option value="active"' + (s.status === 'active' ? ' selected' : '') + '>Active</option>' +
+          '<option value="paused"' + (s.status === 'paused' ? ' selected' : '') + '>Paused</option>' +
+          '<option value="archived"' + (s.status === 'archived' ? ' selected' : '') + '>Archived</option>' +
+        '</select></div>' +
+      '</div>' +
+      '<div class="form-row"><label>Description / notes</label><textarea id="edit-strat-desc-' + id + '" rows="2">' + escapeHtml(s.description || '') + '</textarea></div>' +
+      '<div class="check-row" style="margin-bottom:14px;">' +
+        '<input type="checkbox" id="edit-strat-ongoing-' + id + '"' + (ongoing ? ' checked' : '') + ' onchange="document.getElementById(\'edit-strat-dates-' + id + '\').style.display = this.checked ? \'none\' : \'grid\'; if(this.checked){ document.getElementById(\'edit-strat-starts-' + id + '\').value=\'\'; document.getElementById(\'edit-strat-ends-' + id + '\').value=\'\'; }">' +
+        '<label for="edit-strat-ongoing-' + id + '" style="display:inline;margin:0;">Ongoing strategy — no fixed start/end dates</label>' +
+      '</div>' +
+      '<div class="two-col" id="edit-strat-dates-' + id + '" style="display:' + (ongoing ? 'none' : 'grid') + ';">' +
+        '<div class="form-row"><label>Start date</label><input type="datetime-local" id="edit-strat-starts-' + id + '" value="' + toDatetimeLocal(s.starts_at) + '"></div>' +
+        '<div class="form-row"><label>End date</label><input type="datetime-local" id="edit-strat-ends-' + id + '" value="' + toDatetimeLocal(s.ends_at) + '"></div>' +
+      '</div>' +
+      '<div class="two-col">' +
+        '<div class="form-row"><label>UTM source</label><input type="text" id="edit-strat-utm-source-' + id + '" value="' + escapeHtml(s.utm_source || '') + '"></div>' +
+        '<div class="form-row"><label>UTM medium</label><input type="text" id="edit-strat-utm-medium-' + id + '" value="' + escapeHtml(s.utm_medium || '') + '"></div>' +
+      '</div>' +
+      '<div class="form-row"><label>UTM campaign</label><input type="text" id="edit-strat-utm-campaign-' + id + '" value="' + escapeHtml(s.utm_campaign || '') + '"></div>' +
+      '<div class="form-row"><label>SMS template</label><textarea id="edit-strat-sms-' + id + '" rows="3" placeholder="Hi {first_name}, this is CRF Comps about the {strategy_name}...">' + escapeHtml(s.sms_template || '') + '</textarea>' +
+        '<p style="font-size:13px;color:var(--ink-soft);margin-top:6px;">Placeholders: <b>{first_name}</b>, <b>{last_name}</b>, <b>{full_name}</b>, <b>{phone}</b>, <b>{email}</b>, <b>{strategy_name}</b>.</p></div>' +
+      '<div class="admin-actions">' +
+        '<button class="admin-btn" onclick="saveStrategyEdit(\'' + id + '\')">Save Changes</button>' +
+        '<button class="admin-btn" onclick="document.getElementById(\'edit-strategy-' + id + '\').classList.remove(\'show\')">Cancel</button>' +
+      '</div>';
+  }
+
+  async function saveStrategyEdit(id) {
+    const ongoing = document.getElementById('edit-strat-ongoing-' + id).checked;
+    const name = document.getElementById('edit-strat-name-' + id).value.trim();
+    if (!name) {
+      alert('Strategy name is required.');
+      return;
+    }
+
+    const payload = {
+      name: name,
+      type: document.getElementById('edit-strat-type-' + id).value,
+      status: document.getElementById('edit-strat-status-' + id).value,
+      description: document.getElementById('edit-strat-desc-' + id).value.trim() || null,
+      starts_at: ongoing ? null : (document.getElementById('edit-strat-starts-' + id).value ? new Date(document.getElementById('edit-strat-starts-' + id).value).toISOString() : null),
+      ends_at: ongoing ? null : (document.getElementById('edit-strat-ends-' + id).value ? new Date(document.getElementById('edit-strat-ends-' + id).value).toISOString() : null),
+      utm_source: document.getElementById('edit-strat-utm-source-' + id).value.trim() || null,
+      utm_medium: document.getElementById('edit-strat-utm-medium-' + id).value.trim() || null,
+      utm_campaign: document.getElementById('edit-strat-utm-campaign-' + id).value.trim() || null,
+      sms_template: document.getElementById('edit-strat-sms-' + id).value.trim() || null,
+      updated_at: new Date().toISOString()
+    };
+
+    if (payload.ends_at && payload.starts_at && new Date(payload.ends_at) <= new Date(payload.starts_at)) {
+      alert('End date must be after start date.');
+      return;
+    }
+
+    try {
+      const { error } = await client.from('marketing_strategies').update(payload).eq('id', id);
+      if (error) throw error;
+      document.getElementById('edit-strategy-' + id).classList.remove('show');
+      await loadData();
+    } catch (err) {
+      alert('Could not save strategy: ' + err.message);
+    }
   }
 
   function gatherCompetitionPayload() {
@@ -949,10 +1067,12 @@
     const total = filtered.length;
     const winners = filtered.filter(function (l) { return l.status === 'winner'; }).length;
     const runnerUps = filtered.filter(function (l) { return l.status === 'runner_up'; }).length;
+    const converted = filtered.filter(function (l) { return l.status === 'converted'; }).length;
     stats.innerHTML =
       '<div class="stat-box"><div class="stat-label">Leads shown</div><div class="stat-value">' + total + '</div></div>' +
       '<div class="stat-box"><div class="stat-label">Winners</div><div class="stat-value">' + winners + '</div></div>' +
-      '<div class="stat-box"><div class="stat-label">Runner-ups</div><div class="stat-value">' + runnerUps + '</div></div>';
+      '<div class="stat-box"><div class="stat-label">Runner-ups</div><div class="stat-value">' + runnerUps + '</div></div>' +
+      '<div class="stat-box"><div class="stat-label">Converted</div><div class="stat-value">' + converted + '</div></div>';
 
     if (!filtered.length) {
       container.innerHTML = '<div class="empty">No leads match your filters.</div>';
@@ -981,14 +1101,11 @@
         '<td>' + escapeHtml(getStrategyName(l.strategy_id)) + '</td>' +
         '<td>' + escapeHtml(getCompName(l.competition_id)) + '</td>' +
         '<td>' + (l.created_at ? new Date(l.created_at).toLocaleDateString() : '-') + '</td>' +
-        '<td><select onchange="updateLeadStatus(\'' + l.id + '\', this.value)" style="font-size:12px;padding:4px 8px;border-radius:var(--radius);border:1.5px solid var(--line);">' +
-          '<option value="entered"' + (l.status === 'entered' ? ' selected' : '') + '>Entered</option>' +
-          '<option value="winner"' + (l.status === 'winner' ? ' selected' : '') + '>Winner</option>' +
-          '<option value="runner_up"' + (l.status === 'runner_up' ? ' selected' : '') + '>Runner-up</option>' +
-          '<option value="runner_up_2"' + (l.status === 'runner_up_2' ? ' selected' : '') + '>3rd place</option>' +
-          '<option value="contact_later"' + (l.status === 'contact_later' ? ' selected' : '') + '>Contact later</option>' +
-        '</select></td>' +
-        '<td><button class="admin-btn danger" onclick="deleteLead(\'' + l.id + '\')" style="padding:6px 12px;font-size:11px;">Delete</button></td>' +
+        '<td><select onchange="updateLeadStatus(\'' + l.id + '\', this.value)" style="font-size:12px;padding:4px 8px;border-radius:var(--radius);border:1.5px solid var(--line);">' + renderStatusOptions(l.status) + '</select></td>' +
+        '<td>' +
+          '<button class="admin-btn" onclick="openSmsWithTemplate(\'' + l.id + '\')" style="padding:6px 12px;font-size:11px;margin-right:6px;">Template SMS</button>' +
+          '<button class="admin-btn danger" onclick="deleteLead(\'' + l.id + '\')" style="padding:6px 12px;font-size:11px;">Delete</button>' +
+        '</td>' +
       '</tr>';
     });
 
@@ -1003,6 +1120,77 @@
       '<a href="tel:' + escapeHtml(clean) + '" title="Call" style="margin-right:10px;">' + escapeHtml(phone) + ' · Call</a>' +
       '<a href="sms:' + escapeHtml(clean) + '" title="SMS">SMS</a>' +
       '</span>';
+  }
+
+  function splitName(fullName) {
+    const parts = String(fullName || '').trim().split(/\s+/);
+    return { first: parts[0] || '', last: parts.slice(1).join(' ') || '' };
+  }
+
+  function fillSmsTemplate(template, lead, strategy) {
+    if (!template) return '';
+    const { first, last } = splitName(lead.full_name);
+    return template
+      .replace(/\{first_name\}/gi, first)
+      .replace(/\{last_name\}/gi, last)
+      .replace(/\{full_name\}/gi, lead.full_name || '')
+      .replace(/\{phone\}/gi, lead.phone || '')
+      .replace(/\{email\}/gi, lead.email || '')
+      .replace(/\{strategy_name\}/gi, strategy ? (strategy.name || '') : '');
+  }
+
+  function renderStatusOptions(current) {
+    const opts = [
+      ['entered','Entered'],
+      ['called','Called'],
+      ['no_answer','No answer'],
+      ['sms_sent','SMS sent'],
+      ['email_sent','Email sent'],
+      ['follow_up','Follow up'],
+      ['converted','Converted'],
+      ['not_interested','Not interested'],
+      ['contact_later','Contact later'],
+      ['winner','Winner'],
+      ['runner_up','Runner-up'],
+      ['runner_up_2','2nd runner-up'],
+      ['disqualified','Disqualified']
+    ];
+    return opts.map(function (o) {
+      return '<option value="' + o[0] + '"' + (current === o[0] ? ' selected' : '') + '>' + o[1] + '</option>';
+    }).join('');
+  }
+
+  async function openSmsWithTemplate(id) {
+    const lead = allLeads.find(function (x) { return x.id === id; });
+    if (!lead) return;
+    if (!lead.phone) {
+      alert('This lead has no phone number.');
+      return;
+    }
+    const strategy = allStrategies.find(function (x) { return x.id === lead.strategy_id; });
+    const template = strategy ? (strategy.sms_template || '') : '';
+    if (!template) {
+      if (confirm('No SMS template for this strategy. Send a blank SMS instead?')) {
+        const clean = String(lead.phone).replace(/\s/g, '');
+        window.location.href = 'sms:' + clean;
+      }
+      return;
+    }
+    const body = fillSmsTemplate(template, lead, strategy);
+    if (!confirm('Open Messages with:\n\n' + body)) return;
+
+    const clean = String(lead.phone).replace(/\s/g, '');
+    window.location.href = 'sms:' + clean + '?body=' + encodeURIComponent(body);
+
+    // Mark pipeline as SMS sent.
+    try {
+      const { error } = await client.from('leads').update({ status: 'sms_sent' }).eq('id', id);
+      if (error) throw error;
+      lead.status = 'sms_sent';
+      renderLeads();
+    } catch (err) {
+      console.error('Could not update lead status after SMS:', err);
+    }
   }
 
   function getSelectedLeadIds() {
@@ -1433,6 +1621,8 @@
   window.createStrategy = createStrategy;
   window.updateStrategyStatus = updateStrategyStatus;
   window.deleteStrategy = deleteStrategy;
+  window.toggleStrategyEditForm = toggleStrategyEditForm;
+  window.saveStrategyEdit = saveStrategyEdit;
   window.createCompetition = createCompetition;
   window.updateCompetitionStatus = updateCompetitionStatus;
   window.deleteCompetition = deleteCompetition;
@@ -1452,6 +1642,7 @@
   window.toggleSelectAllLeads = toggleSelectAllLeads;
   window.updateSelectAllState = updateSelectAllState;
   window.deleteSelectedLeads = deleteSelectedLeads;
+  window.openSmsWithTemplate = openSmsWithTemplate;
 
   init();
 })();

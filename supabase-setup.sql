@@ -25,11 +25,16 @@ create table if not exists public.marketing_strategies (
   utm_source text,
   utm_medium text,
   utm_campaign text,
+  sms_template text,
   form_headline text,
   form_subheadline text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+-- Migration: add SMS template column to strategies if created before this update.
+alter table public.marketing_strategies
+  add column if not exists sms_template text;
 
 -- Competitions / giveaway rounds. Each belongs to a marketing strategy.
 create table if not exists public.competitions (
@@ -85,7 +90,7 @@ create table if not exists public.leads (
   tags text[],
   referral_code text unique,
   referred_by uuid references public.leads on delete set null,
-  status text not null default 'entered' check (status in ('entered', 'winner', 'runner_up', 'runner_up_2', 'contact_later')),
+  status text not null default 'entered' check (status in ('entered', 'called', 'no_answer', 'sms_sent', 'email_sent', 'follow_up', 'converted', 'not_interested', 'winner', 'runner_up', 'runner_up_2', 'contact_later', 'disqualified')),
   created_at timestamptz not null default now()
 );
 
@@ -101,6 +106,11 @@ alter table public.leads drop constraint if exists leads_competition_id_email_ke
 -- Migration: make competition_id and email nullable for strategy-only / bulk-imported leads.
 alter table public.leads alter column competition_id drop not null;
 alter table public.leads alter column email drop not null;
+
+-- Migration: expand leads status constraint to include outreach pipeline stages.
+alter table public.leads drop constraint if exists leads_status_check;
+alter table public.leads add constraint leads_status_check
+  check (status in ('entered', 'called', 'no_answer', 'sms_sent', 'email_sent', 'follow_up', 'converted', 'not_interested', 'winner', 'runner_up', 'runner_up_2', 'contact_later', 'disqualified'));
 
 -- Single-row public site settings and fallback content.
 create table if not exists public.site_settings (
