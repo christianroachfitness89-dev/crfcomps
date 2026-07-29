@@ -362,6 +362,95 @@
       </div>
     </section>
 
+    <!-- LEAD POOL: BIRTHDAY -->
+    <section class="admin-page" id="page-birthday">
+      <div class="page-head">
+        <div>
+          <div class="sec-eyebrow">Lead Pool</div>
+          <h2>Birthday Leads</h2>
+        </div>
+      </div>
+      <div class="pool-stats stat-grid"></div>
+      <div class="card" style="margin-bottom:28px;">
+        <h3 style="font-size:18px;margin-bottom:16px;">Bulk Upload Birthday Leads</h3>
+        <div class="three-col">
+          <div class="form-row">
+            <label for="uploadStrategy-birthday">Assign to strategy (optional)</label>
+            <select id="uploadStrategy-birthday">
+              <option value="">— None —</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <label for="uploadBirthMonth-birthday">Birth month</label>
+            <select id="uploadBirthMonth-birthday">
+              <option value="">— Select month —</option>
+              <option value="January">January</option>
+              <option value="February">February</option>
+              <option value="March">March</option>
+              <option value="April">April</option>
+              <option value="May">May</option>
+              <option value="June">June</option>
+              <option value="July">July</option>
+              <option value="August">August</option>
+              <option value="September">September</option>
+              <option value="October">October</option>
+              <option value="November">November</option>
+              <option value="December">December</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <label for="uploadSource-birthday">Source tag (optional)</label>
+            <input type="text" id="uploadSource-birthday" placeholder="e.g. birthday_monthly">
+          </div>
+        </div>
+        <div class="form-row">
+          <label for="uploadFile-birthday">Upload CSV or Excel file</label>
+          <input type="file" id="uploadFile-birthday" accept=".csv,.xlsx,.xls" onchange="handleFileUpload('birthday')">
+          <p style="font-size:13px;color:var(--ink-soft);margin-top:6px;">Required columns: <b>first_name, last_name, mobile</b>. Optional: <b>email</b>, <b>opt_in</b> (yes/no/true/false), and <b>birthday</b> for day/month/year so we can auto-calculate <b>{age}</b>. Choose the birth month from the dropdown above and it will be applied to every lead as the <b>{birth_month}</b> placeholder. Any other headers become SMS placeholders.</p>
+        </div>
+        <div class="form-row" id="uploadPreview-birthday" style="display:none;">
+          <label>Preview (<span id="uploadCount-birthday">0</span> leads ready)</label>
+          <div id="uploadPreviewRows-birthday" style="max-height:180px;overflow:auto;border:1px solid var(--line);border-radius:var(--radius);padding:12px;background:#fff;"></div>
+        </div>
+        <div class="form-row" style="margin-top:12px;">
+          <button type="button" class="submit-btn" id="uploadSubmitBtn-birthday" onclick="submitBulkUpload('birthday')" style="width:auto;padding:14px 24px;" disabled>Import Leads</button>
+        </div>
+        <div class="msg" id="uploadMsg-birthday"></div>
+      </div>
+      <div class="admin-bar">
+        <div class="filter-row">
+          <input type="text" class="pool-search" placeholder="Search name, email or phone..." oninput="renderLeadPool('birthday')">
+          <select class="pool-strategy" onchange="renderLeadPool('birthday')">
+            <option value="all">All strategies</option>
+          </select>
+          <select class="pool-comp" onchange="renderLeadPool('birthday')">
+            <option value="all">All giveaways</option>
+          </select>
+          <select class="pool-status" onchange="renderLeadPool('birthday')">
+            <option value="all">All statuses</option>
+            <option value="entered">Entered</option>
+            <option value="called">Called</option>
+            <option value="no_answer">No answer</option>
+            <option value="sms_sent">SMS sent</option>
+            <option value="email_sent">Email sent</option>
+            <option value="follow_up">Follow up</option>
+            <option value="converted">Converted</option>
+            <option value="not_interested">Not interested</option>
+            <option value="contact_later">Contact later</option>
+            <option value="disqualified">Disqualified</option>
+          </select>
+        </div>
+        <div class="admin-actions">
+          <button class="admin-btn" onclick="renderLeadPool('birthday')">Refresh</button>
+          <button class="admin-btn" onclick="exportCsv('birthday')">Export CSV</button>
+          <button class="admin-btn danger" onclick="deleteSelectedLeads('birthday')">Delete Selected</button>
+        </div>
+      </div>
+      <div class="pool-table-wrap">
+        <div class="loading">Loading leads...</div>
+      </div>
+    </section>
+
     <!-- STRATEGIES -->
     <section class="admin-page" id="page-strategies">
       <div class="page-head">
