@@ -653,10 +653,16 @@ footer{padding:40px 0 60px;border-top:1px solid var(--line);}
 @media(min-width:960px){
   .admin-sidebar{position:fixed;transform:translateX(0);}
   .admin-main{margin-left:260px;}
-  .admin-main.expanded{margin-left:62px;}
+  .admin-main.expanded{margin-left:72px;}
   .nav-overlay{display:none;}
   .sidebar-close{display:block;}
   .dash-grid{grid-template-columns:repeat(4,1fr);}
+}
+
+@media(max-width:720px){
+  .admin-sidebar{width:min(280px, 85vw);}
+  .admin-sidebar-inner{padding:20px 16px;}
+  .admin-brand{margin-bottom:22px;}
 }
 
 @media(max-width:720px){
