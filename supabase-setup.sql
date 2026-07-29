@@ -369,6 +369,28 @@ create policy "Admins can manage client notes"
   using (public.is_admin(auth.uid()))
   with check (public.is_admin(auth.uid()));
 
+-- ---------- payment policies ----------
+
+drop policy if exists "Admins can manage payments" on public.payments;
+
+create policy "Admins can manage payments"
+  on public.payments
+  for all
+  to authenticated
+  using (public.is_admin(auth.uid()))
+  with check (public.is_admin(auth.uid()));
+
+-- ---------- invoice policies ----------
+
+drop policy if exists "Admins can manage invoices" on public.invoices;
+
+create policy "Admins can manage invoices"
+  on public.invoices
+  for all
+  to authenticated
+  using (public.is_admin(auth.uid()))
+  with check (public.is_admin(auth.uid()));
+
 -- ---------- trigger: auto-create admin profile on signup ----------
 
 create or replace function public.handle_new_user()
