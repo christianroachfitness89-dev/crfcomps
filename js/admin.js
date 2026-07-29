@@ -967,24 +967,24 @@
     return result;
   }
 
-  async function openSmsWithTemplate(id) {
+  async function openSmsWithTemplate(id, templateOverride) {
     const lead = allLeads.find(function (x) { return x.id === id; });
-    if (!lead) return;
+    if (!lead) return { ok: false, reason: 'not_found' };
     if (!lead.phone) {
       alert('This lead has no phone number.');
-      return;
+      return { ok: false, reason: 'no_phone' };
     }
     const strategy = allStrategies.find(function (x) { return x.id === lead.strategy_id; });
-    const template = strategy ? (strategy.sms_template || '') : '';
+    const template = templateOverride || (strategy ? (strategy.sms_template || '') : '');
     if (!template) {
       if (confirm('No SMS template for this strategy. Send a blank SMS instead?')) {
         const clean = String(lead.phone).replace(/\s/g, '');
         window.location.href = 'sms:' + clean;
       }
-      return;
+      return { ok: false, reason: 'no_template' };
     }
     const body = fillSmsTemplate(template, lead, strategy);
-    if (!confirm('Open Messages with:\n\n' + body)) return;
+    if (!confirm('Open Messages with:\n\n' + body)) return { ok: false, reason: 'cancelled' };
 
     const clean = String(lead.phone).replace(/\s/g, '');
     window.location.href = 'sms:' + clean + '?body=' + encodeURIComponent(body);
@@ -995,8 +995,190 @@
       lead.status = 'sms_sent';
       lead.last_contact_at = new Date().toISOString();
       refreshLeadViews();
+      return { ok: true };
     } catch (err) {
       console.error('Could not update lead status after SMS:', err);
+      return { ok: false, reason: 'db_error' };
+    }
+  }
+
+  // ---------- bulk SMS queue ----------
+
+  const bulkSmsQueues = {};
+
+  function openBulkSmsPanel(pool) {
+    document.getElementById('bulkSmsPanel-' + pool).style.display = 'block';
+    const select = document.getElementById('bulkSmsTemplate-' + pool);
+    const current = select ? select.value : '';
+    if (select) {
+      select.innerHTML = '<option value="">— Select strategy / template —</option>' +
+        allStrategies.map(function (s) {
+          return '<option value="' + escapeHtml(s.id) + '"' + (s.id === current ? ' selected' : '') + '>' + escapeHtml((s.name || 'Unnamed') + ' · ' + fmtStratType(s.type)) + '</option>';
+        }).join('');
+      select.onchange = function () {
+        const strategy = allStrategies.find(function (x) { return x.id === this.value; });
+        document.getElementById('bulkSmsBody-' + pool).value = strategy ? (strategy.sms_template || '') : '';
+      };
+    }
+    if (select && !select.value) {
+      const bodyEl = document.getElementById('bulkSmsBody-' + pool);
+      if (bodyEl) bodyEl.value = '';
+    }
+  }
+
+  function closeBulkSmsPanel(pool) {
+    document.getElementById('bulkSmsPanel-' + pool).style.display = 'none';
+    if (bulkSmsQueues[pool]) {
+      bulkSmsQueues[pool].paused = true;
+      updateBulkSmsStatus(pool, 'Paused and closed.');
+      document.getElementById('bulkSmsStartBtn-' + pool).style.display = 'inline-block';
+      document.getElementById('bulkSmsPauseBtn-' + pool).style.display = 'none';
+    }
+  }
+
+  function updateBulkSmsStatus(pool, text) {
+    const el = document.getElementById('bulkSmsStatus-' + pool);
+    if (el) el.textContent = text;
+  }
+
+  function logBulkSms(pool, text, type) {
+    const el = document.getElementById('bulkSmsLog-' + pool);
+    if (!el) return;
+    const line = document.createElement('div');
+    line.className = type || '';
+    line.textContent = text;
+    el.appendChild(line);
+    el.scrollTop = el.scrollHeight;
+  }
+
+  function getFilteredLeadIds(pool) {
+    const page = document.getElementById('page-' + pool);
+    const search = page.querySelector('.pool-search').value.toLowerCase();
+    const strategyFilter = page.querySelector('.pool-strategy').value;
+    const compFilter = page.querySelector('.pool-comp').value;
+    const statusFilter = page.querySelector('.pool-status').value;
+
+    return allLeads.filter(function (l) {
+      if ((l.pool || 'giveaway') !== pool) return false;
+      const matchesSearch = !search ||
+        (l.full_name || '').toLowerCase().includes(search) ||
+        (l.email || '').toLowerCase().includes(search) ||
+        (l.phone || '').toLowerCase().includes(search);
+      const matchesStrategy = strategyFilter === 'all' || l.strategy_id === strategyFilter;
+      const matchesComp = compFilter === 'all' || l.competition_id === compFilter;
+      const matchesStatus = statusFilter === 'all' || l.status === statusFilter;
+      return matchesSearch && matchesStrategy && matchesComp && matchesStatus;
+    }).map(function (l) { return l.id; });
+  }
+
+  async function startBulkSms(pool) {
+    if (bulkSmsQueues[pool] && bulkSmsQueues[pool].running) {
+      bulkSmsQueues[pool].paused = false;
+      document.getElementById('bulkSmsStartBtn-' + pool).style.display = 'none';
+      document.getElementById('bulkSmsPauseBtn-' + pool).style.display = 'inline-block';
+      updateBulkSmsStatus(pool, 'Resumed.');
+      return;
+    }
+
+    const bodyEl = document.getElementById('bulkSmsBody-' + pool);
+    const delayEl = document.getElementById('bulkSmsDelay-' + pool);
+    const scopeEl = document.getElementById('bulkSmsScope-' + pool);
+    const logEl = document.getElementById('bulkSmsLog-' + pool);
+    const template = bodyEl ? bodyEl.value.trim() : '';
+    const delaySec = delayEl ? parseInt(delayEl.value || '3', 10) : 3;
+
+    if (!template) {
+      alert('Please choose a strategy template or type a message.');
+      return;
+    }
+
+    logEl.innerHTML = '';
+    const scope = scopeEl ? scopeEl.value : 'selected';
+    let ids = scope === 'selected' ? getSelectedLeadIds(pool) : getFilteredLeadIds(pool);
+    ids = ids.filter(function (id) {
+      const lead = allLeads.find(function (x) { return x.id === id; });
+      return lead && lead.phone;
+    });
+
+    if (!ids.length) {
+      alert(scope === 'selected' ? 'No selected leads with phone numbers.' : 'No filtered leads with phone numbers.');
+      return;
+    }
+
+    if (!confirm('Queue ' + ids.length + ' SMS messages with a ' + delaySec + ' second delay between them?\n\nFirst message will open now.')) return;
+
+    const state = {
+      running: true,
+      paused: false,
+      cancelled: false,
+      index: 0,
+      ids: ids,
+      template: template,
+      delayMs: Math.max(1, Math.min(300, delaySec)) * 1000
+    };
+    bulkSmsQueues[pool] = state;
+
+    document.getElementById('bulkSmsStartBtn-' + pool).style.display = 'none';
+    document.getElementById('bulkSmsPauseBtn-' + pool).style.display = 'inline-block';
+
+    while (state.index < state.ids.length && !state.cancelled) {
+      if (state.paused) {
+        updateBulkSmsStatus(pool, 'Paused at ' + (state.index + 1) + ' of ' + state.ids.length + '.');
+        await new Promise(function (resolve) { setTimeout(resolve, 500); });
+        continue;
+      }
+
+      const id = state.ids[state.index];
+      const lead = allLeads.find(function (x) { return x.id === id; });
+      const strategy = allStrategies.find(function (x) { return x.id === lead.strategy_id; });
+      const body = fillSmsTemplate(state.template, lead, strategy);
+      const clean = String(lead.phone).replace(/\s/g, '');
+
+      window.location.href = 'sms:' + clean + '?body=' + encodeURIComponent(body);
+
+      try {
+        const { error } = await client.from('leads').update({ status: 'sms_sent', last_contact_at: new Date().toISOString() }).eq('id', id);
+        if (error) throw error;
+        lead.status = 'sms_sent';
+        lead.last_contact_at = new Date().toISOString();
+        logBulkSms(pool, 'Sent to ' + (lead.full_name || lead.phone) + ' · ' + (state.index + 1) + '/' + state.ids.length, 'success');
+      } catch (err) {
+        logBulkSms(pool, 'Failed to update status for ' + (lead.full_name || lead.phone) + ': ' + err.message, 'error');
+      }
+
+      refreshLeadViews();
+      updateBulkSmsStatus(pool, 'Sending ' + (state.index + 1) + ' of ' + state.ids.length + '...');
+      state.index++;
+
+      if (state.index < state.ids.length) {
+        await new Promise(function (resolve) { setTimeout(resolve, state.delayMs); });
+      }
+    }
+
+    state.running = false;
+    document.getElementById('bulkSmsStartBtn-' + pool).style.display = 'inline-block';
+    document.getElementById('bulkSmsPauseBtn-' + pool).style.display = 'none';
+    if (!state.cancelled) {
+      updateBulkSmsStatus(pool, 'Finished. ' + state.ids.length + ' messages queued.');
+      logBulkSms(pool, 'Queue complete.', 'success');
+    } else {
+      updateBulkSmsStatus(pool, 'Cancelled.');
+    }
+  }
+
+  function pauseBulkSms(pool) {
+    const state = bulkSmsQueues[pool];
+    if (!state) return;
+    state.paused = !state.paused;
+    if (state.paused) {
+      updateBulkSmsStatus(pool, 'Paused.');
+      document.getElementById('bulkSmsStartBtn-' + pool).style.display = 'inline-block';
+      document.getElementById('bulkSmsStartBtn-' + pool).textContent = 'Resume';
+      document.getElementById('bulkSmsPauseBtn-' + pool).style.display = 'none';
+    } else {
+      document.getElementById('bulkSmsStartBtn-' + pool).style.display = 'none';
+      document.getElementById('bulkSmsPauseBtn-' + pool).style.display = 'inline-block';
+      updateBulkSmsStatus(pool, 'Resuming...');
     }
   }
 
