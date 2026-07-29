@@ -461,6 +461,17 @@ create policy "Admins can manage attendance"
   using (public.is_admin(auth.uid()))
   with check (public.is_admin(auth.uid()));
 
+-- ---------- communication policies ----------
+
+drop policy if exists "Admins can manage communications" on public.communications;
+
+create policy "Admins can manage communications"
+  on public.communications
+  for all
+  to authenticated
+  using (public.is_admin(auth.uid()))
+  with check (public.is_admin(auth.uid()));
+
 -- ---------- trigger: auto-create admin profile on signup ----------
 
 create or replace function public.handle_new_user()
