@@ -1457,7 +1457,13 @@
         throw new Error('Please upload a CSV or Excel (.xlsx/.xls) file.');
       }
 
-      pendingUploadRows = rowsToLeads(rows);
+      const options = {};
+      if (pool === 'birthday') {
+        const monthSelect = document.getElementById('uploadBirthMonth-birthday');
+        if (monthSelect) options.birthMonth = monthSelect.value;
+      }
+
+      pendingUploadRows = rowsToLeads(rows, options);
       renderUploadPreview(pendingUploadRows, pool);
     } catch (err) {
       console.error(err);
