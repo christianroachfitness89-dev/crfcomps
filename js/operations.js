@@ -126,6 +126,45 @@
     return '$' + Number(amount).toLocaleString(undefined, { maximumFractionDigits: 0 });
   }
 
+  async function promoteLeadToClient(leadId) {
+    const lead = window.opsData.leads.find(function (l) { return l.id === leadId; });
+    if (!lead) throw new Error('Lead not found');
+
+    const existing = window.opsData.clients.find(function (c) { return c.lead_id === leadId; });
+    if (existing) {
+      if (!confirm('This lead is already linked to a client. Update it instead?')) return null;
+      const { error: updateErr } = await client.from('clients').update({
+        full_name: lead.full_name,
+        email: lead.email,
+        phone: lead.phone,
+        source: lead.pool || 'lead',
+        status: 'prospect',
+        updated_at: new Date().toISOString()
+      }).eq('id', existing.id);
+      if (updateErr) throw updateErr;
+    } else {
+      const { error: insertErr } = await client.from('clients').insert({
+        lead_id: leadId,
+        full_name: lead.full_name,
+        email: lead.email,
+        phone: lead.phone,
+        source: lead.pool || 'lead',
+        status: 'prospect',
+        notes: 'Converted from lead on ' + new Date().toLocaleDateString()
+      });
+      if (insertErr) throw insertErr;
+    }
+
+    const { error: leadErr } = await client.from('leads').update({
+      status: 'converted',
+      updated_at: new Date().toISOString()
+    }).eq('id', leadId);
+    if (leadErr) throw leadErr;
+
+    await loadData();
+    return true;
+  }
+
   function renderDashboard() {
     const container = document.getElementById('ops-dashboard');
     if (!container) return;
