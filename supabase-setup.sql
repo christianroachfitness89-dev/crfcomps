@@ -237,6 +237,11 @@ create index if not exists idx_payments_paid_at on public.payments(paid_at);
 create index if not exists idx_invoices_client_id on public.invoices(client_id);
 create index if not exists idx_invoices_status on public.invoices(status);
 create index if not exists idx_invoices_due_at on public.invoices(due_at);
+create index if not exists idx_sessions_client_id on public.sessions(client_id);
+create index if not exists idx_sessions_scheduled_at on public.sessions(scheduled_at);
+create index if not exists idx_sessions_status on public.sessions(status);
+create index if not exists idx_attendance_session_id on public.attendance(session_id);
+create index if not exists idx_attendance_client_id on public.attendance(client_id);
 
 -- ---------- helper function: is the current user an admin? ----------
 
