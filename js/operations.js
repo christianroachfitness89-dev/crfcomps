@@ -260,7 +260,8 @@
     closeMobileNav,
     formatCurrency,
     fmtDateShort,
-    escapeHtml
+    escapeHtml,
+    promoteLeadToClient
   };
 
   window.toggleSidebar = toggleSidebar;
