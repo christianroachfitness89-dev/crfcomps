@@ -238,7 +238,7 @@
   }
 
   function populateStrategySelects() {
-    const ids = ['compStrategy', 'filterStrategy', 'uploadStrategy', 'dashFilterStrategy'];
+    const ids = ['compStrategy', 'filterStrategy', 'uploadStrategy'];
     POOLS.forEach(function (p) {
       ids.push('uploadStrategy-' + p.key);
     });
