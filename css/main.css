@@ -706,6 +706,8 @@ footer{padding:40px 0 60px;border-top:1px solid var(--line);}
   .nav-overlay{display:none;}
   .sidebar-close{display:block;}
   .dash-grid{grid-template-columns:repeat(4,1fr);}
+  .ops-kpi-grid{grid-template-columns:repeat(4,1fr);}
+  .ops-department-grid{grid-template-columns:repeat(2,1fr);}
 }
 
 @media(max-width:720px){
