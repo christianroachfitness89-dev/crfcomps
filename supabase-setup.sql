@@ -265,6 +265,8 @@ alter table public.clients enable row level security;
 alter table public.client_notes enable row level security;
 alter table public.payments enable row level security;
 alter table public.invoices enable row level security;
+alter table public.sessions enable row level security;
+alter table public.attendance enable row level security;
 
 -- ---------- profile policies ----------
 
