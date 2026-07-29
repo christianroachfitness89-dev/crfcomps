@@ -202,6 +202,8 @@ alter table public.marketing_strategies enable row level security;
 alter table public.competitions enable row level security;
 alter table public.leads enable row level security;
 alter table public.site_settings enable row level security;
+alter table public.clients enable row level security;
+alter table public.client_notes enable row level security;
 
 -- ---------- profile policies ----------
 
