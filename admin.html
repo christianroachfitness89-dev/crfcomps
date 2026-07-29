@@ -560,9 +560,48 @@
         <div class="admin-actions">
           <button class="admin-btn" onclick="renderLeadPool('birthday')">Refresh</button>
           <button class="admin-btn" onclick="exportCsv('birthday')">Export CSV</button>
+          <button class="admin-btn" onclick="openBulkSmsPanel('birthday')">Bulk SMS</button>
           <button class="admin-btn danger" onclick="deleteSelectedLeads('birthday')">Delete Selected</button>
         </div>
       </div>
+
+      <div class="bulk-sms-panel" id="bulkSmsPanel-birthday" style="display:none;">
+        <div class="card" style="margin-bottom:28px;">
+          <h3 style="font-size:18px;margin-bottom:16px;">Bulk SMS Queue</h3>
+          <div class="three-col">
+            <div class="form-row">
+              <label for="bulkSmsTemplate-birthday">SMS template</label>
+              <select id="bulkSmsTemplate-birthday">
+                <option value="">— Select strategy / template —</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <label for="bulkSmsDelay-birthday">Delay between sends (seconds)</label>
+              <input type="number" id="bulkSmsDelay-birthday" value="3" min="1" max="300">
+            </div>
+            <div class="form-row">
+              <label for="bulkSmsScope-birthday">Scope</label>
+              <select id="bulkSmsScope-birthday">
+                <option value="selected">Selected leads only</option>
+                <option value="filtered">All currently filtered leads</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <label for="bulkSmsBody-birthday">Message preview (editable)</label>
+            <textarea id="bulkSmsBody-birthday" rows="3" placeholder="Pick a strategy template to populate this, or type your own message..."></textarea>
+            <p style="font-size:13px;color:var(--ink-soft);margin-top:6px;">Placeholders: <b>{first_name}</b>, <b>{last_name}</b>, <b>{full_name}</b>, <b>{phone}</b>, <b>{email}</b>, <b>{strategy_name}</b>, plus any tags such as <b>{age}</b> or <b>{birth_month}</b>. The message is filled per lead when sent.</p>
+          </div>
+          <div class="admin-actions">
+            <button class="submit-btn" id="bulkSmsStartBtn-birthday" onclick="startBulkSms('birthday')" style="width:auto;padding:12px 22px;">Start Queue</button>
+            <button class="admin-btn" id="bulkSmsPauseBtn-birthday" onclick="pauseBulkSms('birthday')" style="display:none;">Pause</button>
+            <button class="admin-btn" onclick="closeBulkSmsPanel('birthday')">Close</button>
+          </div>
+          <div class="bulk-sms-status" id="bulkSmsStatus-birthday">Ready.</div>
+          <div class="bulk-sms-log" id="bulkSmsLog-birthday"></div>
+        </div>
+      </div>
+
       <div class="pool-table-wrap">
         <div class="loading">Loading leads...</div>
       </div>
