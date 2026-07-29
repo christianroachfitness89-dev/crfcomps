@@ -114,6 +114,17 @@ alter table public.leads drop constraint if exists leads_status_check;
 alter table public.leads add constraint leads_status_check
   check (status in ('entered', 'called', 'no_answer', 'sms_sent', 'email_sent', 'follow_up', 'converted', 'not_interested', 'winner', 'runner_up', 'runner_up_2', 'contact_later', 'disqualified'));
 
+-- Migration: add pool column for separating giveaway, new-member and non-attendance leads.
+alter table public.leads
+  add column if not exists pool text not null default 'giveaway'
+  constraint leads_pool_check check (pool in ('giveaway', 'new_member', 'non_attendance'));
+
+-- Migration: add last_contact_at for speed-to-lead tracking.
+alter table public.leads add column if not exists last_contact_at timestamptz;
+
+-- Backfill existing rows to the giveaway pool if they have no pool set.
+update public.leads set pool = 'giveaway' where pool is null or pool = '';
+
 -- Single-row public site settings and fallback content.
 create table if not exists public.site_settings (
   id integer primary key default 1 check (id = 1),
