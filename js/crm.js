@@ -226,7 +226,33 @@
       '<div class="client-detail-row"><span class="label">Notes:</span> ' + ops.escapeHtml(c.notes || '-') + '</div>';
 
     renderNotesList(c.id);
+    renderCommunications(c.id);
     document.getElementById('clientDetailModal').classList.add('show');
+  }
+
+  function renderCommunications(clientId) {
+    const container = document.getElementById('detailCommunicationsList');
+    if (!container) return;
+    const list = window.opsData.communications.filter(function (x) { return x.client_id === clientId; })
+      .sort(function (a, b) { return new Date(b.created_at) - new Date(a.created_at); });
+
+    if (!list.length) {
+      container.innerHTML = '<div class="client-notes-empty">No communications logged yet.</div>';
+      return;
+    }
+
+    container.innerHTML = list.map(function (x) {
+      return '<div class="client-note">' +
+        '<div class="client-note-text"><span class="tag ' + commClass(x.type) + '">' + ops.escapeHtml(x.type) + '</span> ' + ops.escapeHtml(x.status) + (x.direction ? ' · ' + ops.escapeHtml(x.direction) : '') + '</div>' +
+        '<div class="client-note-text">' + ops.escapeHtml(x.body || '') + '</div>' +
+        '<div class="client-note-date">' + ops.fmtDateShort(x.created_at) + '</div>' +
+      '</div>';
+    }).join('');
+  }
+
+  function commClass(type) {
+    const map = { sms: 'tag-warm', call: 'tag-active', email: 'tag-draft', whatsapp: 'tag-active', in_person: 'tag-active', note: 'tag-archived' };
+    return map[type] || 'tag-draft';
   }
 
   function closeDetailModal(e) {
