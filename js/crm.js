@@ -33,7 +33,7 @@
 
   function statusBadge(status) {
     const cls = STATUS_CLASS[status] || 'tag-draft';
-    return '<span class="tag ' + cls + '" data-status="' + ops.escapeHtml(status) + '"'>' + ops.escapeHtml(statusLabel(status)) + '</span>';
+    return '<span class="tag ' + cls + '" data-status="' + ops.escapeHtml(status) + '">' + ops.escapeHtml(statusLabel(status)) + '</span>';
   }
 
   function renderStatusOptions(current) {
