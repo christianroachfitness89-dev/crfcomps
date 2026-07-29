@@ -1259,18 +1259,36 @@
     return age;
   }
 
-  function deriveBirthdayTags(row, headers) {
+  const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+  function parseDayNumber(val) {
+    const n = parseInt(String(val || '').trim(), 10);
+    if (!isNaN(n) && n >= 1 && n <= 31) return n;
+    return null;
+  }
+
+  function deriveBirthdayTags(row, headers, forcedMonth) {
     const idx = headers.findIndex(function (h) {
       return h === 'birthday' || h === 'dob' || h === 'date_of_birth';
     });
-    if (idx === -1) return {};
-    const d = parseDateApprox(row[idx]);
-    if (!d) return {};
+    let d = null;
+    if (idx >= 0) d = parseDateApprox(row[idx]);
+
     const tags = {};
-    const age = calculateAge(d);
+    const age = d ? calculateAge(d) : null;
     if (!isNaN(age) && age >= 0) tags.age = String(age);
-    const monthName = d.toLocaleString(undefined, { month: 'long' });
-    if (monthName) tags.birth_month = monthName;
+
+    if (forcedMonth) {
+      tags.birth_month = forcedMonth;
+      const dayIdx = headers.indexOf('birthday_day');
+      if (dayIdx >= 0) {
+        const day = parseDayNumber(row[dayIdx]);
+        if (day) tags.birth_day = String(day);
+      }
+    } else if (d) {
+      const monthName = d.toLocaleString(undefined, { month: 'long' });
+      if (monthName) tags.birth_month = monthName;
+    }
     return tags;
   }
 
