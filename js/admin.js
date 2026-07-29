@@ -1239,6 +1239,12 @@
         l.status = status;
         if (updates.last_contact_at) l.last_contact_at = updates.last_contact_at;
       }
+
+      if (status === 'called' || status === 'sms_sent' || status === 'email_sent') {
+        const typeMap = { called: 'call', sms_sent: 'sms', email_sent: 'email' };
+        logCommunication({ lead_id: id, type: typeMap[status], direction: 'outbound', status: 'completed' });
+      }
+
       refreshLeadViews();
     } catch (err) {
       alert('Could not update lead status: ' + err.message);
