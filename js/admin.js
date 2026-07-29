@@ -1753,6 +1753,11 @@
   window.renderLeadPool = renderLeadPool;
   window.renderDashboard = renderDashboard;
 
+  window.openBulkSmsPanel = openBulkSmsPanel;
+  window.closeBulkSmsPanel = closeBulkSmsPanel;
+  window.startBulkSms = startBulkSms;
+  window.pauseBulkSms = pauseBulkSms;
+
   window.saveSettings = saveSettings;
   window.handleSignOut = handleSignOut;
   window.loadData = loadData;
