@@ -3,35 +3,18 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CRF Comps · Giveaway Admin Panel</title>
+<title>CRF Comps · Admin Panel</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/main.css">
-<style>
-  .admin-section{padding:36px 0;}
-  .winner-panel{
-    background:rgba(201,151,31,0.08);border:1.5px solid var(--gold);border-radius:var(--radius);
-    padding:20px;margin-bottom:24px;
-  }
-  .winner-name{font-family:'Oswald',sans-serif;font-size:24px;text-transform:uppercase;margin-bottom:6px;}
-  .edit-form{
-    display:none;
-    margin-top:12px;background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);
-    padding:20px;
-  }
-  .edit-form.show{display:block;}
-  .cr-actions{display:flex;gap:8px;flex-wrap:wrap;}
-  .cr-actions button{font-size:11px;padding:6px 12px;}
-  .stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:16px;margin-bottom:24px;}
-  .stat-box{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:16px;}
-  .stat-label{font-size:11px;font-family:'IBM Plex Mono',monospace;text-transform:uppercase;color:var(--ink-soft);}
-  .stat-value{font-family:'Oswald',sans-serif;font-size:28px;font-weight:700;margin-top:4px;}
-</style>
 </head>
 <body>
 
 <header>
   <div class="nav">
+    <button class="nav-menu-toggle" onclick="toggleMobileNav()" aria-label="Open menu">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M3 6h18M3 12h18M3 18h18" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+    </button>
     <a href="index.html" class="brand"><span class="dot"></span>CRF Comps</a>
     <nav class="nav-links">
       <a href="index.html">Home</a>
@@ -43,22 +26,348 @@
   </div>
 </header>
 
-<div class="wrap">
-  <section class="admin-section">
-    <div class="sec-head">
-      <div class="sec-eyebrow">Organiser Panel</div>
-      <h2>Giveaway Management</h2>
-    </div>
+<div class="admin-layout">
 
-    <div class="admin-tabs">
-      <button type="button" class="admin-tab active" data-tab="strategies" onclick="switchTab('strategies')">Strategies</button>
-      <button type="button" class="admin-tab" data-tab="competitions" onclick="switchTab('competitions')">Giveaways</button>
-      <button type="button" class="admin-tab" data-tab="leads" onclick="switchTab('leads')">Leads</button>
-      <button type="button" class="admin-tab" data-tab="settings" onclick="switchTab('settings')">Settings</button>
+  <aside class="admin-sidebar">
+    <div class="admin-sidebar-inner">
+      <div class="admin-brand">
+        <span class="dot"></span>
+        <span>Organiser Panel</span>
+      </div>
+      <nav class="admin-nav">
+        <a href="#" data-nav="dashboard" onclick="navigate('dashboard'); return false;">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M4 13h6a1 1 0 001-1V4a1 1 0 00-1-1H4a1 1 0 00-1 1v8a1 1 0 001 1zm0 8h6a1 1 0 001-1v-4a1 1 0 00-1-1H4a1 1 0 00-1 1v4a1 1 0 001 1zm10 0h6a1 1 0 001-1v-8a1 1 0 00-1-1h-6a1 1 0 00-1 1v8a1 1 0 001 1zm0-12h6a1 1 0 001-1V4a1 1 0 00-1-1h-6a1 1 0 00-1 1v4a1 1 0 001 1z"/></svg>
+          Dashboard
+        </a>
+        <a href="#" data-nav="giveaway" onclick="navigate('giveaway'); return false;">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          Giveaway Leads
+        </a>
+        <a href="#" data-nav="new_member" onclick="navigate('new_member'); return false;">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+          New Member Leads
+        </a>
+        <a href="#" data-nav="non_attendance" onclick="navigate('non_attendance'); return false;">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14h-2v-4H6v-2h4V7h2v4h4v2h-4v4z"/></svg>
+          Non-Attendance Leads
+        </a>
+        <div class="admin-nav-divider"></div>
+        <a href="#" data-nav="strategies" onclick="navigate('strategies'); return false;">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/></svg>
+          Strategies
+        </a>
+        <a href="#" data-nav="competitions" onclick="navigate('competitions'); return false;">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M20 6h-4V4c0-1.11-.89-2-2-2h-4c-1.11 0-2 .89-2 2v2H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-6 0h-4V4h4v2z"/></svg>
+          Giveaways
+        </a>
+        <a href="#" data-nav="settings" onclick="navigate('settings'); return false;">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 00.12-.61l-1.92-3.32a.488.488 0 00-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 00-.48-.41h-3.84a.484.484 0 00-.48.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96a.488.488 0 00-.59.22L2.74 8.87a.49.49 0 00.12.61l2.03 1.58c-.05.3-.07.63-.07.94s.02.64.07.94l-2.03 1.58a.49.49 0 00-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.27.41.48.41h3.84c.24 0 .44-.17.48-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32a.49.49 0 00-.12-.61l-2.03-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+          Settings
+        </a>
+      </nav>
     </div>
+  </aside>
 
-    <!-- STRATEGIES TAB -->
-    <div class="admin-panel active" id="panel-strategies">
+  <div class="nav-overlay" onclick="closeMobileNav()"></div>
+
+  <main class="admin-main">
+
+    <!-- DASHBOARD -->
+    <section class="admin-page active" id="page-dashboard">
+      <div class="page-head">
+        <div>
+          <div class="sec-eyebrow">Overview</div>
+          <h2>Dashboard</h2>
+        </div>
+        <div class="filter-row" style="margin:0;">
+          <select id="dashFilterStrategy" onchange="renderDashboard()">
+            <option value="all">All strategies</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="dash-grid">
+        <div class="stat-box dash-stat">
+          <div class="stat-label">Open Leads</div>
+          <div class="stat-value" id="dashOpenCount">0</div>
+        </div>
+        <div class="stat-box dash-stat">
+          <div class="stat-label">Converted</div>
+          <div class="stat-value" id="dashConvertedCount">0</div>
+          <div class="stat-sub" id="dashConvertedToday">0 today</div>
+        </div>
+        <div class="stat-box dash-stat">
+          <div class="stat-label">Cold Leads</div>
+          <div class="stat-value" id="dashColdCount">0</div>
+        </div>
+        <div class="stat-box dash-stat">
+          <div class="stat-label">Hot Leads</div>
+          <div class="stat-value" id="dashHotCount">0</div>
+        </div>
+      </div>
+
+      <div class="two-col" style="margin-top:28px;">
+        <div class="card">
+          <h3 style="font-size:18px;margin:0 0 16px;">Leads by pool</h3>
+          <div id="dashPoolSplit">
+            <div class="dash-empty">Loading...</div>
+          </div>
+        </div>
+        <div class="card">
+          <h3 style="font-size:18px;margin:0 0 16px;">Status breakdown</h3>
+          <div id="dashStatusBreakdown">
+            <div class="dash-empty">Loading...</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="two-col" style="margin-top:28px;">
+        <div class="card">
+          <h3 style="font-size:18px;margin:0 0 16px;">Newest leads</h3>
+          <div id="dashNewestLeads">
+            <div class="dash-empty">Loading...</div>
+          </div>
+        </div>
+        <div class="card">
+          <h3 style="font-size:18px;margin:0 0 16px;">Needs attention</h3>
+          <div id="dashNeedsAttention">
+            <div class="dash-empty">Loading...</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- LEAD POOL: GIVEAWAY -->
+    <section class="admin-page" id="page-giveaway">
+      <div class="page-head">
+        <div>
+          <div class="sec-eyebrow">Lead Pool</div>
+          <h2>Giveaway Leads</h2>
+        </div>
+      </div>
+      <div id="winnerPanel" class="winner-panel hidden">
+        <div class="sec-eyebrow">Random draw result</div>
+        <div class="winner-name" id="winnerName">-</div>
+        <p id="winnerDetail" style="margin:0;color:var(--ink-soft);">-</p>
+        <button class="admin-btn mt-2" onclick="markWinnerFromPanel()">Mark as winner</button>
+      </div>
+      <div class="pool-stats stat-grid"></div>
+      <div class="card" style="margin-bottom:28px;">
+        <h3 style="font-size:18px;margin-bottom:16px;">Bulk Upload Giveaway Leads</h3>
+        <div class="two-col">
+          <div class="form-row">
+            <label for="uploadStrategy-giveaway">Assign to strategy</label>
+            <select id="uploadStrategy-giveaway">
+              <option value="">— Select strategy —</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <label for="uploadSource-giveaway">Source tag (optional)</label>
+            <input type="text" id="uploadSource-giveaway" placeholder="e.g. bulk_import, facebook_2026">
+          </div>
+        </div>
+        <div class="form-row">
+          <label for="uploadFile-giveaway">Upload CSV or Excel file</label>
+          <input type="file" id="uploadFile-giveaway" accept=".csv,.xlsx,.xls" onchange="handleFileUpload('giveaway')">
+          <p style="font-size:13px;color:var(--ink-soft);margin-top:6px;">Required columns: <b>first_name, last_name, mobile</b>. Optional: <b>email</b> and <b>opt_in</b> (yes/no/true/false). Any other headers are captured as tags and become SMS placeholders, e.g. <b>{age}</b> or <b>{birth_month}</b>. A <b>birthday</b>/<b>dob</b> column auto-creates age and birth_month tags.</p>
+        </div>
+        <div class="form-row" id="uploadPreview-giveaway" style="display:none;">
+          <label>Preview (<span id="uploadCount-giveaway">0</span> leads ready)</label>
+          <div id="uploadPreviewRows-giveaway" style="max-height:180px;overflow:auto;border:1px solid var(--line);border-radius:var(--radius);padding:12px;background:#fff;"></div>
+        </div>
+        <div class="form-row" style="margin-top:12px;">
+          <button type="button" class="submit-btn" id="uploadSubmitBtn-giveaway" onclick="submitBulkUpload('giveaway')" style="width:auto;padding:14px 24px;" disabled>Import Leads</button>
+        </div>
+        <div class="msg" id="uploadMsg-giveaway"></div>
+      </div>
+      <div class="admin-bar">
+        <div class="filter-row">
+          <input type="text" class="pool-search" placeholder="Search name, email or phone..." oninput="renderLeadPool('giveaway')">
+          <select class="pool-strategy" onchange="renderLeadPool('giveaway')">
+            <option value="all">All strategies</option>
+          </select>
+          <select class="pool-comp" onchange="renderLeadPool('giveaway')">
+            <option value="all">All giveaways</option>
+          </select>
+          <select class="pool-status" onchange="renderLeadPool('giveaway')">
+            <option value="all">All statuses</option>
+            <option value="entered">Entered</option>
+            <option value="called">Called</option>
+            <option value="no_answer">No answer</option>
+            <option value="sms_sent">SMS sent</option>
+            <option value="email_sent">Email sent</option>
+            <option value="follow_up">Follow up</option>
+            <option value="converted">Converted</option>
+            <option value="not_interested">Not interested</option>
+            <option value="contact_later">Contact later</option>
+            <option value="winner">Winner</option>
+            <option value="runner_up">Runner-up</option>
+            <option value="runner_up_2">2nd runner-up</option>
+            <option value="disqualified">Disqualified</option>
+          </select>
+        </div>
+        <div class="admin-actions">
+          <button class="admin-btn" onclick="renderLeadPool('giveaway')">Refresh</button>
+          <button class="admin-btn" onclick="exportCsv('giveaway')">Export CSV</button>
+          <button class="admin-btn" onclick="pickRandomWinner('giveaway')">Pick Winner</button>
+          <button class="admin-btn danger" onclick="deleteSelectedLeads('giveaway')">Delete Selected</button>
+        </div>
+      </div>
+      <div class="pool-table-wrap">
+        <div class="loading">Loading leads...</div>
+      </div>
+    </section>
+
+    <!-- LEAD POOL: NEW MEMBER -->
+    <section class="admin-page" id="page-new_member">
+      <div class="page-head">
+        <div>
+          <div class="sec-eyebrow">Lead Pool</div>
+          <h2>New Member Leads</h2>
+        </div>
+      </div>
+      <div class="pool-stats stat-grid"></div>
+      <div class="card" style="margin-bottom:28px;">
+        <h3 style="font-size:18px;margin-bottom:16px;">Bulk Upload New Member Leads</h3>
+        <div class="two-col">
+          <div class="form-row">
+            <label for="uploadStrategy-new_member">Assign to strategy</label>
+            <select id="uploadStrategy-new_member">
+              <option value="">— Select strategy —</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <label for="uploadSource-new_member">Source tag (optional)</label>
+            <input type="text" id="uploadSource-new_member" placeholder="e.g. bulk_import, facebook_2026">
+          </div>
+        </div>
+        <div class="form-row">
+          <label for="uploadFile-new_member">Upload CSV or Excel file</label>
+          <input type="file" id="uploadFile-new_member" accept=".csv,.xlsx,.xls" onchange="handleFileUpload('new_member')">
+          <p style="font-size:13px;color:var(--ink-soft);margin-top:6px;">Required columns: <b>first_name, last_name, mobile</b>. Optional: <b>email</b> and <b>opt_in</b> (yes/no/true/false). Any other headers are captured as tags and become SMS placeholders, e.g. <b>{age}</b> or <b>{birth_month}</b>. A <b>birthday</b>/<b>dob</b> column auto-creates age and birth_month tags.</p>
+        </div>
+        <div class="form-row" id="uploadPreview-new_member" style="display:none;">
+          <label>Preview (<span id="uploadCount-new_member">0</span> leads ready)</label>
+          <div id="uploadPreviewRows-new_member" style="max-height:180px;overflow:auto;border:1px solid var(--line);border-radius:var(--radius);padding:12px;background:#fff;"></div>
+        </div>
+        <div class="form-row" style="margin-top:12px;">
+          <button type="button" class="submit-btn" id="uploadSubmitBtn-new_member" onclick="submitBulkUpload('new_member')" style="width:auto;padding:14px 24px;" disabled>Import Leads</button>
+        </div>
+        <div class="msg" id="uploadMsg-new_member"></div>
+      </div>
+      <div class="admin-bar">
+        <div class="filter-row">
+          <input type="text" class="pool-search" placeholder="Search name, email or phone..." oninput="renderLeadPool('new_member')">
+          <select class="pool-strategy" onchange="renderLeadPool('new_member')">
+            <option value="all">All strategies</option>
+          </select>
+          <select class="pool-comp" onchange="renderLeadPool('new_member')">
+            <option value="all">All giveaways</option>
+          </select>
+          <select class="pool-status" onchange="renderLeadPool('new_member')">
+            <option value="all">All statuses</option>
+            <option value="entered">Entered</option>
+            <option value="called">Called</option>
+            <option value="no_answer">No answer</option>
+            <option value="sms_sent">SMS sent</option>
+            <option value="email_sent">Email sent</option>
+            <option value="follow_up">Follow up</option>
+            <option value="converted">Converted</option>
+            <option value="not_interested">Not interested</option>
+            <option value="contact_later">Contact later</option>
+            <option value="disqualified">Disqualified</option>
+          </select>
+        </div>
+        <div class="admin-actions">
+          <button class="admin-btn" onclick="renderLeadPool('new_member')">Refresh</button>
+          <button class="admin-btn" onclick="exportCsv('new_member')">Export CSV</button>
+          <button class="admin-btn danger" onclick="deleteSelectedLeads('new_member')">Delete Selected</button>
+        </div>
+      </div>
+      <div class="pool-table-wrap">
+        <div class="loading">Loading leads...</div>
+      </div>
+    </section>
+
+    <!-- LEAD POOL: NON-ATTENDANCE -->
+    <section class="admin-page" id="page-non_attendance">
+      <div class="page-head">
+        <div>
+          <div class="sec-eyebrow">Lead Pool</div>
+          <h2>Non-Attendance Leads</h2>
+        </div>
+      </div>
+      <div class="pool-stats stat-grid"></div>
+      <div class="card" style="margin-bottom:28px;">
+        <h3 style="font-size:18px;margin-bottom:16px;">Bulk Upload Non-Attendance Leads</h3>
+        <div class="two-col">
+          <div class="form-row">
+            <label for="uploadStrategy-non_attendance">Assign to strategy</label>
+            <select id="uploadStrategy-non_attendance">
+              <option value="">— Select strategy —</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <label for="uploadSource-non_attendance">Source tag (optional)</label>
+            <input type="text" id="uploadSource-non_attendance" placeholder="e.g. bulk_import, lapsed_30d">
+          </div>
+        </div>
+        <div class="form-row">
+          <label for="uploadFile-non_attendance">Upload CSV or Excel file</label>
+          <input type="file" id="uploadFile-non_attendance" accept=".csv,.xlsx,.xls" onchange="handleFileUpload('non_attendance')">
+          <p style="font-size:13px;color:var(--ink-soft);margin-top:6px;">Required columns: <b>first_name, last_name, mobile</b>. Optional: <b>email</b> and <b>opt_in</b> (yes/no/true/false). Any other headers are captured as tags and become SMS placeholders, e.g. <b>{age}</b> or <b>{birth_month}</b>. A <b>birthday</b>/<b>dob</b> column auto-creates age and birth_month tags.</p>
+        </div>
+        <div class="form-row" id="uploadPreview-non_attendance" style="display:none;">
+          <label>Preview (<span id="uploadCount-non_attendance">0</span> leads ready)</label>
+          <div id="uploadPreviewRows-non_attendance" style="max-height:180px;overflow:auto;border:1px solid var(--line);border-radius:var(--radius);padding:12px;background:#fff;"></div>
+        </div>
+        <div class="form-row" style="margin-top:12px;">
+          <button type="button" class="submit-btn" id="uploadSubmitBtn-non_attendance" onclick="submitBulkUpload('non_attendance')" style="width:auto;padding:14px 24px;" disabled>Import Leads</button>
+        </div>
+        <div class="msg" id="uploadMsg-non_attendance"></div>
+      </div>
+      <div class="admin-bar">
+        <div class="filter-row">
+          <input type="text" class="pool-search" placeholder="Search name, email or phone..." oninput="renderLeadPool('non_attendance')">
+          <select class="pool-strategy" onchange="renderLeadPool('non_attendance')">
+            <option value="all">All strategies</option>
+          </select>
+          <select class="pool-comp" onchange="renderLeadPool('non_attendance')">
+            <option value="all">All giveaways</option>
+          </select>
+          <select class="pool-status" onchange="renderLeadPool('non_attendance')">
+            <option value="all">All statuses</option>
+            <option value="entered">Entered</option>
+            <option value="called">Called</option>
+            <option value="no_answer">No answer</option>
+            <option value="sms_sent">SMS sent</option>
+            <option value="email_sent">Email sent</option>
+            <option value="follow_up">Follow up</option>
+            <option value="converted">Converted</option>
+            <option value="not_interested">Not interested</option>
+            <option value="contact_later">Contact later</option>
+            <option value="disqualified">Disqualified</option>
+          </select>
+        </div>
+        <div class="admin-actions">
+          <button class="admin-btn" onclick="renderLeadPool('non_attendance')">Refresh</button>
+          <button class="admin-btn" onclick="exportCsv('non_attendance')">Export CSV</button>
+          <button class="admin-btn danger" onclick="deleteSelectedLeads('non_attendance')">Delete Selected</button>
+        </div>
+      </div>
+      <div class="pool-table-wrap">
+        <div class="loading">Loading leads...</div>
+      </div>
+    </section>
+
+    <!-- STRATEGIES -->
+    <section class="admin-page" id="page-strategies">
+      <div class="page-head">
+        <div>
+          <div class="sec-eyebrow">Marketing</div>
+          <h2>Strategies</h2>
+        </div>
+      </div>
       <div class="card" style="margin-bottom:28px;">
         <h3 style="font-size:20px;margin-bottom:16px;">Create New Strategy</h3>
         <div class="two-col">
@@ -125,10 +434,16 @@
       <div class="strategy-list" id="strategyList">
         <div class="loading">Loading strategies...</div>
       </div>
-    </div>
+    </section>
 
-    <!-- COMPETITIONS TAB -->
-    <div class="admin-panel" id="panel-competitions">
+    <!-- COMPETITIONS / GIVEAWAYS -->
+    <section class="admin-page" id="page-competitions">
+      <div class="page-head">
+        <div>
+          <div class="sec-eyebrow">Rounds</div>
+          <h2>Giveaways</h2>
+        </div>
+      </div>
       <div class="card" style="margin-bottom:28px;">
         <h3 style="font-size:20px;margin-bottom:16px;">Create New Giveaway</h3>
         <div class="two-col">
@@ -162,7 +477,6 @@
             </select>
           </div>
         </div>
-
         <div class="two-col">
           <div class="form-row">
             <label for="compStarts">Start date</label>
@@ -173,7 +487,6 @@
             <input type="datetime-local" id="compEnds">
           </div>
         </div>
-
         <div class="form-row">
           <label for="compMain">Main giveaway prize</label>
           <input type="text" id="compMain" placeholder="e.g. 8 weeks of 1:1 coaching">
@@ -182,7 +495,6 @@
           <label for="compMainBullets">Main prize bullet points (one per line)</label>
           <textarea id="compMainBullets" rows="3" placeholder="8 weeks of personalised coaching&#10;Weekly check-ins and programming&#10;Nutrition guidance included"></textarea>
         </div>
-
         <div class="two-col">
           <div class="form-row">
             <label for="compRunnerUp">Runner-up prize (optional)</label>
@@ -203,7 +515,6 @@
             <textarea id="compRunnerUp2Bullets" rows="3" placeholder="2 weeks of online programming&#10;Custom training plan"></textarea>
           </div>
         </div>
-
         <div class="two-col">
           <div class="form-row">
             <label for="compValue">Total prize value ($) — optional</label>
@@ -214,22 +525,18 @@
             <input type="text" id="compPrizeDesc" placeholder="e.g. Coaching sessions must be redeemed within 90 days">
           </div>
         </div>
-
         <div class="form-row">
           <label for="compHeadline">Hero headline (HTML allowed)</label>
           <input type="text" id="compHeadline" placeholder="Enter free.<em>Win coaching.</em>">
         </div>
-
         <div class="form-row">
           <label for="compSub">Hero subheadline</label>
           <textarea id="compSub" rows="2" placeholder="Short description shown under the headline"></textarea>
         </div>
-
         <div class="form-row">
           <label for="compRules">Rules text (one rule per line)</label>
           <textarea id="compRules" rows="4" placeholder="Entry is free.&#10;One entry per person per round.&#10;Winners contacted by email and phone."></textarea>
         </div>
-
         <div class="form-row" style="margin-top:12px;">
           <button type="button" class="submit-btn" id="createCompBtn" onclick="createCompetition()" style="width:auto;padding:14px 24px;">Create Giveaway</button>
         </div>
@@ -238,126 +545,47 @@
 
       <h3 style="font-size:18px;margin:0 0 16px;">Existing Giveaways</h3>
       <div class="competition-list" id="competitionList">
-        <div class="loading">Loading competitions...</div>
+        <div class="loading">Loading giveaways...</div>
       </div>
-    </div>
+    </section>
 
-    <!-- LEADS TAB -->
-    <div class="admin-panel" id="panel-leads">
-      <div class="admin-bar">
-        <div class="filter-row">
-          <input type="text" id="searchInput" placeholder="Search name, email or phone..." oninput="renderLeads()">
-          <select id="filterStrategy" onchange="renderLeads()">
-            <option value="all">All strategies</option>
-          </select>
-          <select id="filterComp" onchange="renderLeads()">
-            <option value="all">All competitions</option>
-          </select>
-          <select id="filterStatus" onchange="renderLeads()">
-            <option value="all">All statuses</option>
-            <option value="entered">Entered</option>
-            <option value="called">Called</option>
-            <option value="no_answer">No answer</option>
-            <option value="sms_sent">SMS sent</option>
-            <option value="email_sent">Email sent</option>
-            <option value="follow_up">Follow up</option>
-            <option value="converted">Converted</option>
-            <option value="not_interested">Not interested</option>
-            <option value="contact_later">Contact later</option>
-            <option value="winner">Winner</option>
-            <option value="runner_up">Runner-up</option>
-            <option value="runner_up_2">Second runner-up</option>
-            <option value="disqualified">Disqualified</option>
-          </select>
-        </div>
-        <div class="admin-actions">
-          <button class="admin-btn" onclick="loadData()">Refresh</button>
-          <button class="admin-btn" onclick="exportCsv()">Export CSV</button>
-          <button class="admin-btn" onclick="pickRandomWinner()">Pick Winner</button>
-          <button class="admin-btn danger" onclick="deleteSelectedLeads()">Delete Selected</button>
+    <!-- SETTINGS -->
+    <section class="admin-page" id="page-settings">
+      <div class="page-head">
+        <div>
+          <div class="sec-eyebrow">Configuration</div>
+          <h2>Settings</h2>
         </div>
       </div>
-
-      <div class="card" style="margin-bottom:28px;">
-        <h3 style="font-size:18px;margin-bottom:16px;">Bulk Upload Leads</h3>
-        <div class="two-col">
-          <div class="form-row">
-            <label for="uploadStrategy">Assign to strategy</label>
-            <select id="uploadStrategy">
-              <option value="">— Select strategy —</option>
-            </select>
-          </div>
-          <div class="form-row">
-            <label for="uploadSource">Source tag (optional)</label>
-            <input type="text" id="uploadSource" placeholder="e.g. bulk_import, facebook_2026">
-          </div>
-        </div>
-        <div class="form-row">
-          <label for="uploadFile">Upload CSV or Excel file</label>
-          <input type="file" id="uploadFile" accept=".csv,.xlsx,.xls" onchange="handleFileUpload()">
-          <p style="font-size:13px;color:var(--ink-soft);margin-top:6px;">Required columns: <b>first_name, last_name, mobile</b>. Optional: <b>email</b> and <b>opt_in</b> (yes/no/true/false). Any other headers are captured as tags and become SMS placeholders, e.g. <b>{age}</b> or <b>{birth_month}</b>. A <b>birthday</b>/<b>dob</b> column auto-creates age and birth_month tags.</p>
-        </div>
-        <div class="form-row" id="uploadPreview" style="display:none;">
-          <label>Preview (<span id="uploadCount">0</span> leads ready)</label>
-          <div id="uploadPreviewRows" style="max-height:180px;overflow:auto;border:1px solid var(--line);border-radius:var(--radius);padding:12px;background:#fff;"></div>
-        </div>
-        <div class="form-row" style="margin-top:12px;">
-          <button type="button" class="submit-btn" id="uploadSubmitBtn" onclick="submitBulkUpload()" style="width:auto;padding:14px 24px;" disabled>Import Leads</button>
-        </div>
-        <div class="msg" id="uploadMsg"></div>
-      </div>
-
-      <div id="winnerPanel" class="winner-panel hidden">
-        <div class="sec-eyebrow">Random draw result</div>
-        <div class="winner-name" id="winnerName">-</div>
-        <p id="winnerDetail" style="margin:0;color:var(--ink-soft);">-</p>
-        <button class="admin-btn mt-2" onclick="markWinnerFromPanel()">Mark as winner</button>
-      </div>
-
-      <div id="leadsStats" class="stat-grid"></div>
-
-      <div id="leadsContent">
-        <div class="loading">Loading leads...</div>
-      </div>
-    </div>
-
-    <!-- SETTINGS TAB -->
-    <div class="admin-panel" id="panel-settings">
       <div class="card" style="max-width:760px;">
-        <h3 style="font-size:20px;margin-bottom:16px;">Site Settings</h3>
         <div class="msg" id="settingsMsg"></div>
-
         <div class="form-row">
           <label for="setBrand">Brand / site name</label>
           <input type="text" id="setBrand" placeholder="CRF Comps">
         </div>
-
         <div class="form-row">
           <label for="setFallbackHeadline">Fallback headline (no active giveaway)</label>
           <input type="text" id="setFallbackHeadline" placeholder="Win coaching. Enter free.">
         </div>
-
         <div class="form-row">
           <label for="setFallbackSub">Fallback subheadline</label>
           <textarea id="setFallbackSub" rows="2" placeholder="A new giveaway is coming soon."></textarea>
         </div>
-
         <div class="form-row">
           <label for="setFallbackValue">Fallback total prize value ($) — optional</label>
           <input type="number" id="setFallbackValue" min="0" step="1">
         </div>
-
         <div class="form-row">
           <label for="setAdminEmail">Admin contact email</label>
           <input type="email" id="setAdminEmail" placeholder="admin@example.com">
         </div>
-
         <div class="form-row" style="margin-top:12px;">
           <button type="button" class="submit-btn" id="saveSettingsBtn" onclick="saveSettings()" style="width:auto;padding:14px 24px;">Save Settings</button>
         </div>
       </div>
-    </div>
-  </section>
+    </section>
+
+  </main>
 </div>
 
 <footer>
@@ -371,1354 +599,7 @@
 <script src="js/supabase-client.js"></script>
 <script src="js/auth.js"></script>
 <script src="js/site-settings.js"></script>
-<script>
-(function () {
-  const client = window.sb;
-  let allStrategies = [];
-  let allCompetitions = [];
-  let allLeads = [];
-  let currentSettings = null;
-  let drawnWinner = null;
-  let pendingUploadRows = [];
-
-  function showMsg(el, text, type) {
-    el.textContent = text;
-    el.className = 'msg show ' + type;
-  }
-
-  function escapeHtml(str) {
-    const d = document.createElement('div');
-    d.textContent = String(str || '');
-    return d.innerHTML;
-  }
-
-  function fmtType(type) {
-    if (type === 'random_draw') return 'Random draw';
-    if (type === 'referral') return 'Referral giveaway';
-    return 'Giveaway';
-  }
-
-  function fmtStatus(status) {
-    if (status === 'active') return 'Active';
-    if (status === 'closed') return 'Closed';
-    if (status === 'archived') return 'Archived';
-    return 'Draft';
-  }
-
-  function fmtStratType(type) {
-    if (type === 'giveaway') return 'Giveaway';
-    if (type === 'lead_magnet') return 'Lead magnet';
-    if (type === 'challenge') return 'Challenge';
-    if (type === 'webinar') return 'Webinar';
-    if (type === 'funnel') return 'Funnel';
-    return 'Other';
-  }
-
-  function fmtStratStatus(status) {
-    if (status === 'active') return 'Active';
-    if (status === 'paused') return 'Paused';
-    if (status === 'archived') return 'Archived';
-    return 'Draft';
-  }
-
-  function stratStatusClass(status) {
-    if (status === 'active') return 'tag tag-active';
-    if (status === 'paused') return 'tag tag-draft';
-    if (status === 'archived') return 'tag tag-archived';
-    return 'tag tag-draft';
-  }
-
-  function statusClass(status) {
-    if (status === 'active') return 'tag tag-active';
-    if (status === 'closed') return 'tag tag-closed';
-    if (status === 'archived') return 'tag tag-archived';
-    return 'tag tag-draft';
-  }
-
-  function fmtDate(iso) {
-    if (!iso) return '-';
-    return new Date(iso).toLocaleString(undefined, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-  }
-
-  function switchTab(tab) {
-    document.querySelectorAll('.admin-tab').forEach(function (btn) {
-      btn.classList.toggle('active', btn.dataset.tab === tab);
-    });
-    document.querySelectorAll('.admin-panel').forEach(function (p) {
-      p.classList.toggle('active', p.id === 'panel-' + tab);
-    });
-    if (tab === 'strategies') renderStrategies();
-    if (tab === 'competitions') renderCompetitions();
-    if (tab === 'leads') renderLeads();
-    if (tab === 'settings') loadSettingsPanel();
-  }
-
-  async function init() {
-    const { user, profile } = await window.auth.requireAdmin();
-    if (!user) return;
-    document.getElementById('adminName').textContent = profile.full_name || 'Admin';
-    await loadData();
-    await loadSettingsPanel();
-  }
-
-  async function loadData() {
-    document.getElementById('strategyList').innerHTML = '<div class="loading">Loading strategies...</div>';
-    document.getElementById('competitionList').innerHTML = '<div class="loading">Loading competitions...</div>';
-    document.getElementById('leadsContent').innerHTML = '<div class="loading">Loading leads...</div>';
-
-    try {
-      const [stratsRes, compsRes, leadsRes] = await Promise.all([
-        client.from('marketing_strategies').select('*').order('created_at', { ascending: false }),
-        client.from('competitions').select('*').order('starts_at', { ascending: false }),
-        client.from('leads').select('*').order('created_at', { ascending: false })
-      ]);
-
-      if (stratsRes.error) {
-        console.error('Strategies error:', stratsRes.error);
-        throw stratsRes.error;
-      }
-      if (compsRes.error) {
-        console.error('Comps error:', compsRes.error);
-        throw compsRes.error;
-      }
-      if (leadsRes.error) {
-        console.error('Leads error:', leadsRes.error);
-        throw leadsRes.error;
-      }
-
-      allStrategies = stratsRes.data || [];
-      allCompetitions = compsRes.data || [];
-      allLeads = leadsRes.data || [];
-
-      populateStrategyFilter();
-      populateCompFilter();
-      populateStrategySelect();
-      populateUploadStrategySelect();
-      renderStrategies();
-      renderCompetitions();
-      renderLeads();
-    } catch (err) {
-      console.error(err);
-      document.getElementById('strategyList').innerHTML = '<div class="empty">Could not load strategies. ' + escapeHtml(err.message) + '</div>';
-      document.getElementById('competitionList').innerHTML = '<div class="empty">Could not load competitions. ' + escapeHtml(err.message) + '</div>';
-      document.getElementById('leadsContent').innerHTML = '<div class="empty">Could not load leads. ' + escapeHtml(err.message) + '</div>';
-    }
-  }
-
-  function populateCompFilter() {
-    const sel = document.getElementById('filterComp');
-    sel.innerHTML = '<option value="all">All giveaways</option>';
-    allCompetitions.forEach(function (c) {
-      const opt = document.createElement('option');
-      opt.value = c.id;
-      opt.textContent = (c.name || 'Unnamed') + ' · ' + fmtStatus(c.status);
-      sel.appendChild(opt);
-    });
-  }
-
-  function populateStrategyFilter() {
-    const sel = document.getElementById('filterStrategy');
-    sel.innerHTML = '<option value="all">All strategies</option>';
-    allStrategies.forEach(function (s) {
-      const opt = document.createElement('option');
-      opt.value = s.id;
-      opt.textContent = (s.name || 'Unnamed') + ' · ' + fmtStratStatus(s.status);
-      sel.appendChild(opt);
-    });
-  }
-
-  function populateStrategySelect() {
-    const sel = document.getElementById('compStrategy');
-    if (!sel) return;
-    const current = sel.value;
-    sel.innerHTML = '<option value="">— Select strategy —</option>' + renderStrategyOptions(current, false);
-  }
-
-  function populateUploadStrategySelect() {
-    const sel = document.getElementById('uploadStrategy');
-    if (!sel) return;
-    const current = sel.value;
-    sel.innerHTML = '<option value="">— Select strategy —</option>' + renderStrategyOptions(current, false);
-  }
-
-  function renderStrategyOptions(selectedId, includeEmpty) {
-    let html = includeEmpty ? '<option value="">— Select strategy —</option>' : '';
-    allStrategies.forEach(function (s) {
-      const selected = s.id === selectedId ? ' selected' : '';
-      html += '<option value="' + escapeHtml(s.id) + '"' + selected + '>' + escapeHtml((s.name || 'Unnamed') + ' · ' + fmtStratType(s.type)) + '</option>';
-    });
-    return html;
-  }
-
-  function getCompName(id) {
-    const c = allCompetitions.find(function (x) { return x.id === id; });
-    return c ? (c.name || 'Unnamed') : '-';
-  }
-
-  function getStrategyName(id) {
-    const s = allStrategies.find(function (x) { return x.id === id; });
-    return s ? (s.name || 'Unnamed') : '-';
-  }
-
-  function gatherStrategyPayload() {
-    const ongoing = document.getElementById('stratOngoing').checked;
-    return {
-      name: document.getElementById('stratName').value.trim(),
-      type: document.getElementById('stratType').value,
-      status: 'draft',
-      starts_at: ongoing ? null : (document.getElementById('stratStarts').value ? new Date(document.getElementById('stratStarts').value).toISOString() : null),
-      ends_at: ongoing ? null : (document.getElementById('stratEnds').value ? new Date(document.getElementById('stratEnds').value).toISOString() : null),
-      description: document.getElementById('stratDesc').value.trim() || null,
-      utm_source: document.getElementById('stratUtmSource').value.trim() || null,
-      utm_medium: document.getElementById('stratUtmMedium').value.trim() || null,
-      utm_campaign: document.getElementById('stratUtmCampaign').value.trim() || null,
-      sms_template: document.getElementById('stratSmsTemplate').value.trim() || null,
-      updated_at: new Date().toISOString()
-    };
-  }
-
-  async function createStrategy() {
-    const btn = document.getElementById('createStratBtn');
-    const msg = document.getElementById('stratMsg');
-    msg.className = 'msg';
-
-    const payload = gatherStrategyPayload();
-    if (!payload.name) {
-      showMsg(msg, 'Please enter a strategy name.', 'error');
-      return;
-    }
-
-    btn.disabled = true;
-    btn.textContent = 'Creating...';
-
-    try {
-      const { error } = await client.from('marketing_strategies').insert(payload);
-      if (error) throw error;
-      showMsg(msg, 'Strategy created. Activate it when you are ready to collect leads.', 'success');
-      clearStrategyForm();
-      await loadData();
-    } catch (err) {
-      console.error(err);
-      showMsg(msg, err.message || 'Could not create strategy.', 'error');
-    } finally {
-      btn.disabled = false;
-      btn.textContent = 'Create Strategy';
-    }
-  }
-
-  function clearStrategyForm() {
-    document.getElementById('stratName').value = '';
-    document.getElementById('stratType').value = 'giveaway';
-    document.getElementById('stratOngoing').checked = false;
-    document.getElementById('stratDateRow').style.display = 'grid';
-    document.getElementById('stratStarts').value = '';
-    document.getElementById('stratEnds').value = '';
-    document.getElementById('stratDesc').value = '';
-    document.getElementById('stratUtmSource').value = '';
-    document.getElementById('stratUtmMedium').value = '';
-    document.getElementById('stratUtmCampaign').value = '';
-    document.getElementById('stratSmsTemplate').value = '';
-  }
-
-  function toggleStrategyDates() {
-    const ongoing = document.getElementById('stratOngoing').checked;
-    document.getElementById('stratDateRow').style.display = ongoing ? 'none' : 'grid';
-    if (ongoing) {
-      document.getElementById('stratStarts').value = '';
-      document.getElementById('stratEnds').value = '';
-    }
-  }
-
-  async function updateStrategyStatus(id, status) {
-    try {
-      const { error } = await client.from('marketing_strategies').update({ status: status, updated_at: new Date().toISOString() }).eq('id', id);
-      if (error) throw error;
-      await loadData();
-    } catch (err) {
-      alert('Could not update strategy status: ' + err.message);
-    }
-  }
-
-  async function deleteStrategy(id) {
-    const leadCount = allLeads.filter(function (l) { return l.strategy_id === id; }).length;
-    const compCount = allCompetitions.filter(function (c) { return c.strategy_id === id; }).length;
-    let warning = '';
-    if (leadCount) warning += ' It has ' + leadCount + ' lead(s).';
-    if (compCount) warning += ' It has ' + compCount + ' giveaway(s) which will be unlinked.';
-    if (!confirm('Delete this strategy?' + warning)) return;
-    try {
-      const { error } = await client.from('marketing_strategies').delete().eq('id', id);
-      if (error) throw error;
-      await loadData();
-    } catch (err) {
-      alert('Could not delete strategy: ' + err.message);
-    }
-  }
-
-  function renderStrategies() {
-    const container = document.getElementById('strategyList');
-    if (!allStrategies.length) {
-      container.innerHTML = '<p style="color:var(--ink-soft);font-size:14px;">No strategies yet. Create one above.</p>';
-      return;
-    }
-
-    let html = '';
-    allStrategies.forEach(function (s) {
-      const typeLabel = fmtStratType(s.type);
-      const status = fmtStratStatus(s.status);
-      const dates = (s.starts_at || s.ends_at) ? ' · ' + fmtDate(s.starts_at) + ' – ' + fmtDate(s.ends_at) : '';
-
-      html += '<div class="competition-row" data-id="' + escapeHtml(s.id) + '" style="align-items:flex-start;">' +
-        '<div style="flex:1;">' +
-          '<div class="cr-name">' + escapeHtml(s.name || 'Unnamed') + ' <span class="' + stratStatusClass(s.status) + '">' + status + '</span></div>' +
-          '<div class="cr-dates">' + typeLabel + dates + '</div>' +
-          (s.description ? '<div class="cr-dates" style="margin-top:4px;">' + escapeHtml(s.description) + '</div>' : '') +
-        '</div>' +
-        '<div class="cr-actions">' +
-          (s.status === 'active'
-            ? '<button class="admin-btn danger" onclick="updateStrategyStatus(\'' + s.id + '\', \'paused\')">Pause</button>'
-            : '<button class="admin-btn" onclick="updateStrategyStatus(\'' + s.id + '\', \'active\')">' + (s.status === 'archived' ? 'Reopen' : 'Activate') + '</button>') +
-          (s.status !== 'archived' ? '<button class="admin-btn" onclick="updateStrategyStatus(\'' + s.id + '\', \'archived\')">Archive</button>' : '') +
-          '<button class="admin-btn" onclick="toggleStrategyEditForm(\'' + s.id + '\')">Edit</button>' +
-          '<button class="admin-btn danger" onclick="deleteStrategy(\'' + s.id + '\')">Delete</button>' +
-        '</div>' +
-        '</div>' +
-        '<div class="edit-form" id="edit-strategy-' + s.id + '" data-loaded="false"></div>';
-    });
-    container.innerHTML = html;
-  }
-
-  async function toggleStrategyEditForm(id) {
-    const panel = document.getElementById('edit-strategy-' + id);
-    const isOpen = panel.classList.contains('show');
-    if (!isOpen) {
-      panel.classList.add('show');
-      if (panel.dataset.loaded !== 'true') {
-        await renderStrategyEditForm(id, panel);
-        panel.dataset.loaded = 'true';
-      }
-    } else {
-      panel.classList.remove('show');
-    }
-  }
-
-  async function renderStrategyEditForm(id, panel) {
-    const s = allStrategies.find(function (x) { return x.id === id; });
-    if (!s) return;
-    const ongoing = !s.starts_at && !s.ends_at;
-    const typeOptions = [
-      ['giveaway','Giveaway'],
-      ['lead_magnet','Lead magnet'],
-      ['challenge','Challenge'],
-      ['webinar','Webinar'],
-      ['funnel','Funnel'],
-      ['other','Other']
-    ].map(function (o) {
-      return '<option value="' + o[0] + '"' + (s.type === o[0] ? ' selected' : '') + '>' + o[1] + '</option>';
-    }).join('');
-
-    panel.innerHTML =
-      '<h4 style="font-size:16px;margin:0 0 14px;">Edit Strategy</h4>' +
-      '<div class="form-row"><label>Name</label><input type="text" id="edit-strat-name-' + id + '" value="' + escapeHtml(s.name || '') + '" maxlength="120"></div>' +
-      '<div class="two-col">' +
-        '<div class="form-row"><label>Type</label><select id="edit-strat-type-' + id + '" value="' + escapeHtml(s.type || '') + '" onchange="this.setAttribute(\'value\', this.value)">' + typeOptions + '</select></div>' +
-        '<div class="form-row"><label>Status</label><select id="edit-strat-status-' + id + '" value="' + escapeHtml(s.status || '') + '" onchange="this.setAttribute(\'value\', this.value)">' +
-          '<option value="draft"' + (s.status === 'draft' ? ' selected' : '') + '>Draft</option>' +
-          '<option value="active"' + (s.status === 'active' ? ' selected' : '') + '>Active</option>' +
-          '<option value="paused"' + (s.status === 'paused' ? ' selected' : '') + '>Paused</option>' +
-          '<option value="archived"' + (s.status === 'archived' ? ' selected' : '') + '>Archived</option>' +
-        '</select></div>' +
-      '</div>' +
-      '<div class="form-row"><label>Description / notes</label><textarea id="edit-strat-desc-' + id + '" rows="2">' + escapeHtml(s.description || '') + '</textarea></div>' +
-      '<div class="check-row" style="margin-bottom:14px;">' +
-        '<input type="checkbox" id="edit-strat-ongoing-' + id + '"' + (ongoing ? ' checked' : '') + ' onchange="document.getElementById(\'edit-strat-dates-' + id + '\').style.display = this.checked ? \'none\' : \'grid\'; if(this.checked){ document.getElementById(\'edit-strat-starts-' + id + '\').value=\'\'; document.getElementById(\'edit-strat-ends-' + id + '\').value=\'\'; }">' +
-        '<label for="edit-strat-ongoing-' + id + '" style="display:inline;margin:0;">Ongoing strategy — no fixed start/end dates</label>' +
-      '</div>' +
-      '<div class="two-col" id="edit-strat-dates-' + id + '" style="display:' + (ongoing ? 'none' : 'grid') + ';">' +
-        '<div class="form-row"><label>Start date</label><input type="datetime-local" id="edit-strat-starts-' + id + '" value="' + toDatetimeLocal(s.starts_at) + '"></div>' +
-        '<div class="form-row"><label>End date</label><input type="datetime-local" id="edit-strat-ends-' + id + '" value="' + toDatetimeLocal(s.ends_at) + '"></div>' +
-      '</div>' +
-      '<div class="two-col">' +
-        '<div class="form-row"><label>UTM source</label><input type="text" id="edit-strat-utm-source-' + id + '" value="' + escapeHtml(s.utm_source || '') + '"></div>' +
-        '<div class="form-row"><label>UTM medium</label><input type="text" id="edit-strat-utm-medium-' + id + '" value="' + escapeHtml(s.utm_medium || '') + '"></div>' +
-      '</div>' +
-      '<div class="form-row"><label>UTM campaign</label><input type="text" id="edit-strat-utm-campaign-' + id + '" value="' + escapeHtml(s.utm_campaign || '') + '"></div>' +
-      '<div class="form-row"><label>SMS template</label><textarea id="edit-strat-sms-' + id + '" rows="3" placeholder="Hi {first_name}, this is CRF Comps about the {strategy_name}...">' + escapeHtml(s.sms_template || '') + '</textarea>' +
-        '<p style="font-size:13px;color:var(--ink-soft);margin-top:6px;">Placeholders: <b>{first_name}</b>, <b>{last_name}</b>, <b>{full_name}</b>, <b>{phone}</b>, <b>{email}</b>, <b>{strategy_name}</b>, plus any extra upload column such as <b>{age}</b> or <b>{birth_month}</b>.</p></div>' +
-      '<div class="admin-actions">' +
-        '<button class="admin-btn" onclick="saveStrategyEdit(\'' + id + '\')">Save Changes</button>' +
-        '<button class="admin-btn" onclick="document.getElementById(\'edit-strategy-' + id + '\').classList.remove(\'show\')">Cancel</button>' +
-      '</div>';
-  }
-
-  async function saveStrategyEdit(id) {
-    const ongoing = document.getElementById('edit-strat-ongoing-' + id).checked;
-    const name = document.getElementById('edit-strat-name-' + id).value.trim();
-    if (!name) {
-      alert('Strategy name is required.');
-      return;
-    }
-
-    const payload = {
-      name: name,
-      type: document.getElementById('edit-strat-type-' + id).value,
-      status: document.getElementById('edit-strat-status-' + id).value,
-      description: document.getElementById('edit-strat-desc-' + id).value.trim() || null,
-      starts_at: ongoing ? null : (document.getElementById('edit-strat-starts-' + id).value ? new Date(document.getElementById('edit-strat-starts-' + id).value).toISOString() : null),
-      ends_at: ongoing ? null : (document.getElementById('edit-strat-ends-' + id).value ? new Date(document.getElementById('edit-strat-ends-' + id).value).toISOString() : null),
-      utm_source: document.getElementById('edit-strat-utm-source-' + id).value.trim() || null,
-      utm_medium: document.getElementById('edit-strat-utm-medium-' + id).value.trim() || null,
-      utm_campaign: document.getElementById('edit-strat-utm-campaign-' + id).value.trim() || null,
-      sms_template: document.getElementById('edit-strat-sms-' + id).value.trim() || null,
-      updated_at: new Date().toISOString()
-    };
-
-    if (payload.ends_at && payload.starts_at && new Date(payload.ends_at) <= new Date(payload.starts_at)) {
-      alert('End date must be after start date.');
-      return;
-    }
-
-    try {
-      const { error } = await client.from('marketing_strategies').update(payload).eq('id', id);
-      if (error) throw error;
-      document.getElementById('edit-strategy-' + id).classList.remove('show');
-      await loadData();
-    } catch (err) {
-      alert('Could not save strategy: ' + err.message);
-    }
-  }
-
-  function gatherCompetitionPayload() {
-    const value = parseFloat(document.getElementById('compValue').value);
-    const strategyId = document.getElementById('compStrategy').value;
-
-    return {
-      name: document.getElementById('compName').value.trim(),
-      strategy_id: strategyId || null,
-      status: document.getElementById('compStatus').value || 'draft',
-      type: document.getElementById('compType').value,
-      starts_at: document.getElementById('compStarts').value ? new Date(document.getElementById('compStarts').value).toISOString() : null,
-      ends_at: document.getElementById('compEnds').value ? new Date(document.getElementById('compEnds').value).toISOString() : null,
-      prize_value: isNaN(value) ? 0 : value,
-      prize_main: document.getElementById('compMain').value.trim() || 'Main giveaway prize',
-      prize_main_bullets: document.getElementById('compMainBullets').value.trim() || null,
-      prize_runner_up: document.getElementById('compRunnerUp').value.trim() || null,
-      prize_runner_up_bullets: document.getElementById('compRunnerUpBullets').value.trim() || null,
-      prize_runner_up_2: document.getElementById('compRunnerUp2').value.trim() || null,
-      prize_runner_up_2_bullets: document.getElementById('compRunnerUp2Bullets').value.trim() || null,
-      prize_description: document.getElementById('compPrizeDesc').value.trim() || null,
-      hero_headline: document.getElementById('compHeadline').value.trim() || 'Enter for free.<br><em>Win coaching.</em>',
-      hero_subheadline: document.getElementById('compSub').value.trim() || 'Join the current giveaway for a chance to win coaching prizes. No purchase needed.',
-      rules_text: document.getElementById('compRules').value.trim() || null,
-      updated_at: new Date().toISOString()
-    };
-  }
-
-  async function createCompetition() {
-    const btn = document.getElementById('createCompBtn');
-    const msg = document.getElementById('compMsg');
-    msg.className = 'msg';
-
-    const payload = gatherCompetitionPayload();
-    if (!payload.name) {
-      showMsg(msg, 'Please enter a giveaway name.', 'error');
-      return;
-    }
-    if (!payload.starts_at || !payload.ends_at) {
-      showMsg(msg, 'Please set a start and end date.', 'error');
-      return;
-    }
-    if (new Date(payload.ends_at) <= new Date(payload.starts_at)) {
-      showMsg(msg, 'End date must be after start date.', 'error');
-      return;
-    }
-
-    btn.disabled = true;
-    btn.textContent = 'Creating...';
-
-    try {
-      const { error } = await client.from('competitions').insert(payload);
-      if (error) throw error;
-      showMsg(msg, 'Giveaway created. Set it to Active when you are ready to open entries.', 'success');
-      clearCompForm();
-      await loadData();
-    } catch (err) {
-      console.error(err);
-      showMsg(msg, err.message || 'Could not create giveaway.', 'error');
-    } finally {
-      btn.disabled = false;
-      btn.textContent = 'Create Giveaway';
-    }
-  }
-
-  function clearCompForm() {
-    document.getElementById('compName').value = '';
-    document.getElementById('compStrategy').value = '';
-    document.getElementById('compStatus').value = 'draft';
-    document.getElementById('compType').value = 'random_draw';
-    document.getElementById('compStarts').value = '';
-    document.getElementById('compEnds').value = '';
-    document.getElementById('compMain').value = '';
-    document.getElementById('compMainBullets').value = '';
-    document.getElementById('compRunnerUp').value = '';
-    document.getElementById('compRunnerUpBullets').value = '';
-    document.getElementById('compRunnerUp2').value = '';
-    document.getElementById('compRunnerUp2Bullets').value = '';
-    document.getElementById('compValue').value = '';
-    document.getElementById('compPrizeDesc').value = '';
-    document.getElementById('compHeadline').value = '';
-    document.getElementById('compSub').value = '';
-    document.getElementById('compRules').value = '';
-  }
-
-  async function updateCompetitionStatus(id, status) {
-    try {
-      // Only one giveaway can be active at a time.
-      if (status === 'active') {
-        const active = allCompetitions.find(function (c) { return c.status === 'active' && c.id !== id; });
-        if (active) {
-          if (!confirm('Another giveaway is already active. Activating this one will close it. Continue?')) return;
-          const { error: closeErr } = await client.from('competitions').update({ status: 'closed' }).eq('id', active.id);
-          if (closeErr) throw closeErr;
-        }
-      }
-
-      const { error } = await client.from('competitions').update({ status: status }).eq('id', id);
-      if (error) throw error;
-      await loadData();
-    } catch (err) {
-      alert('Could not update status: ' + err.message);
-    }
-  }
-
-  async function deleteCompetition(id) {
-    const leadCount = allLeads.filter(function (l) { return l.competition_id === id; }).length;
-    if (!confirm('Delete this giveaway?' + (leadCount ? ' It has ' + leadCount + ' lead(s) which will also be removed.' : ''))) return;
-    try {
-      const { error } = await client.from('competitions').delete().eq('id', id);
-      if (error) throw error;
-      await loadData();
-    } catch (err) {
-      alert('Could not delete giveaway: ' + err.message);
-    }
-  }
-
-  function renderCompetitions() {
-    const container = document.getElementById('competitionList');
-    if (!allCompetitions.length) {
-      container.innerHTML = '<p style="color:var(--ink-soft);font-size:14px;">No giveaways yet. Create one above.</p>';
-      return;
-    }
-
-    let html = '';
-    allCompetitions.forEach(function (c) {
-      const typeLabel = fmtType(c.type);
-      const status = fmtStatus(c.status);
-      const main = c.prize_main || 'Main prize not set';
-      const valueText = c.prize_value ? ' · Value $' + Number(c.prize_value).toLocaleString() : '';
-
-      html += '<div class="competition-row" data-id="' + escapeHtml(c.id) + '" style="align-items:flex-start;">' +
-        '<div style="flex:1;">' +
-          '<div class="cr-name">' + escapeHtml(c.name || 'Unnamed') + ' <span class="' + statusClass(c.status) + '">' + status + '</span></div>' +
-          '<div class="cr-dates">' + typeLabel + ' · ' + fmtDate(c.starts_at) + ' – ' + fmtDate(c.ends_at) + valueText + '</div>' +
-          '<div class="cr-dates" style="margin-top:4px;">Main: ' + escapeHtml(main) + '</div>' +
-        '</div>' +
-        '<div class="cr-actions">' +
-          (c.status === 'active'
-            ? '<button class="admin-btn danger" onclick="updateCompetitionStatus(\'' + c.id + '\', \'closed\')">Close</button>'
-            : '<button class="admin-btn" onclick="updateCompetitionStatus(\'' + c.id + '\', \'active\')">' + (c.status === 'archived' ? 'Reopen' : 'Activate') + '</button>') +
-          (c.status !== 'archived' ? '<button class="admin-btn" onclick="updateCompetitionStatus(\'' + c.id + '\', \'archived\')">Archive</button>' : '') +
-          '<button class="admin-btn" onclick="toggleEditForm(\'' + c.id + '\')">Edit</button>' +
-          '<button class="admin-btn danger" onclick="deleteCompetition(\'' + c.id + '\')">Delete</button>' +
-        '</div>' +
-        '</div>' +
-        '<div class="edit-form" id="edit-' + c.id + '" data-loaded="false"></div>';
-    });
-    container.innerHTML = html;
-  }
-
-  async function toggleEditForm(id) {
-    const panel = document.getElementById('edit-' + id);
-    const isOpen = panel.classList.contains('show');
-    if (!isOpen) {
-      panel.classList.add('show');
-      if (panel.dataset.loaded !== 'true') {
-        await renderEditForm(id, panel);
-        panel.dataset.loaded = 'true';
-      }
-    } else {
-      panel.classList.remove('show');
-    }
-  }
-
-  function toDatetimeLocal(iso) {
-    if (!iso) return '';
-    const d = new Date(iso);
-    d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
-    return d.toISOString().slice(0, 16);
-  }
-
-  async function renderEditForm(id, panel) {
-    const c = allCompetitions.find(function (x) { return x.id === id; });
-    if (!c) return;
-
-    panel.innerHTML =
-      '<h4 style="font-size:16px;margin:0 0 14px;">Edit Competition</h4>' +
-      '<div class="two-col">' +
-        '<div class="form-row"><label>Name</label><input type="text" id="edit-name-' + c.id + '" value="' + escapeHtml(c.name) + '"></div>' +
-        '<div class="form-row"><label>Marketing strategy</label><select id="edit-strategy-' + c.id + '">' + renderStrategyOptions(c.strategy_id) + '</select></div>' +
-      '</div>' +
-      '<div class="two-col">' +
-        '<div class="form-row"><label>Type</label><select id="edit-type-' + c.id + '" value="' + escapeHtml(c.type) + '" onchange="this.setAttribute(\'value\', this.value)">' +
-          '<option value="random_draw"' + (c.type === 'random_draw' ? ' selected' : '') + '>Random draw</option>' +
-          '<option value="referral"' + (c.type === 'referral' ? ' selected' : '') + '>Referral giveaway</option>' +
-          '<option value="other"' + (c.type === 'other' ? ' selected' : '') + '>Other</option>' +
-        '</select></div>' +
-      '</div>' +
-      '<div class="two-col">' +
-        '<div class="form-row"><label>Start</label><input type="datetime-local" id="edit-starts-' + c.id + '" value="' + toDatetimeLocal(c.starts_at) + '"></div>' +
-        '<div class="form-row"><label>End</label><input type="datetime-local" id="edit-ends-' + c.id + '" value="' + toDatetimeLocal(c.ends_at) + '"></div>' +
-      '</div>' +
-      '<div class="form-row"><label>Main giveaway prize</label><input type="text" id="edit-main-' + c.id + '" value="' + escapeHtml(c.prize_main || '') + '"></div>' +
-      '<div class="form-row"><label>Main prize bullet points (one per line)</label><textarea id="edit-main-bullets-' + c.id + '" rows="3">' + escapeHtml(c.prize_main_bullets || '') + '</textarea></div>' +
-      '<div class="two-col">' +
-        '<div class="form-row"><label>Runner-up prize (optional)</label><input type="text" id="edit-runnerup-' + c.id + '" value="' + escapeHtml(c.prize_runner_up || '') + '"></div>' +
-        '<div class="form-row"><label>Second runner-up (optional)</label><input type="text" id="edit-runnerup2-' + c.id + '" value="' + escapeHtml(c.prize_runner_up_2 || '') + '"></div>' +
-      '</div>' +
-      '<div class="two-col">' +
-        '<div class="form-row"><label>Runner-up bullets (optional)</label><textarea id="edit-runnerup-bullets-' + c.id + '" rows="3">' + escapeHtml(c.prize_runner_up_bullets || '') + '</textarea></div>' +
-        '<div class="form-row"><label>Second runner-up bullets (optional)</label><textarea id="edit-runnerup2-bullets-' + c.id + '" rows="3">' + escapeHtml(c.prize_runner_up_2_bullets || '') + '</textarea></div>' +
-      '</div>' +
-      '<div class="two-col">' +
-        '<div class="form-row"><label>Total value ($) — optional</label><input type="number" id="edit-value-' + c.id + '" value="' + (c.prize_value || '') + '"></div>' +
-        '<div class="form-row"><label>Prize notes</label><input type="text" id="edit-desc-' + c.id + '" value="' + escapeHtml(c.prize_description || '') + '"></div>' +
-      '</div>' +
-      '<div class="form-row"><label>Hero headline (HTML allowed)</label><input type="text" id="edit-headline-' + c.id + '" value="' + escapeHtml(c.hero_headline || '') + '"></div>' +
-      '<div class="form-row"><label>Hero subheadline</label><textarea id="edit-sub-' + c.id + '" rows="2">' + escapeHtml(c.hero_subheadline || '') + '</textarea></div>' +
-      '<div class="form-row"><label>Rules text (one per line)</label><textarea id="edit-rules-' + c.id + '" rows="4">' + escapeHtml(c.rules_text || '') + '</textarea></div>' +
-      '<div class="admin-actions">' +
-        '<button class="admin-btn" onclick="saveCompetitionEdit(\'' + c.id + '\')">Save Changes</button>' +
-        '<button class="admin-btn" onclick="document.getElementById(\'edit-' + c.id + '\').classList.remove(\'show\')">Cancel</button>' +
-      '</div>';
-  }
-
-  async function saveCompetitionEdit(id) {
-    const value = parseFloat(document.getElementById('edit-value-' + id).value);
-
-    const payload = {
-      name: document.getElementById('edit-name-' + id).value.trim(),
-      strategy_id: document.getElementById('edit-strategy-' + id).value || null,
-      type: document.getElementById('edit-type-' + id).value,
-      starts_at: document.getElementById('edit-starts-' + id).value ? new Date(document.getElementById('edit-starts-' + id).value).toISOString() : null,
-      ends_at: document.getElementById('edit-ends-' + id).value ? new Date(document.getElementById('edit-ends-' + id).value).toISOString() : null,
-      prize_value: isNaN(value) ? 0 : value,
-      prize_main: document.getElementById('edit-main-' + id).value.trim() || 'Main giveaway prize',
-      prize_main_bullets: document.getElementById('edit-main-bullets-' + id).value.trim() || null,
-      prize_runner_up: document.getElementById('edit-runnerup-' + id).value.trim() || null,
-      prize_runner_up_bullets: document.getElementById('edit-runnerup-bullets-' + id).value.trim() || null,
-      prize_runner_up_2: document.getElementById('edit-runnerup2-' + id).value.trim() || null,
-      prize_runner_up_2_bullets: document.getElementById('edit-runnerup2-bullets-' + id).value.trim() || null,
-      prize_description: document.getElementById('edit-desc-' + id).value.trim() || null,
-      hero_headline: document.getElementById('edit-headline-' + id).value.trim() || 'Enter for free.<br><em>Win coaching.</em>',
-      hero_subheadline: document.getElementById('edit-sub-' + id).value.trim() || 'Join the current giveaway for a chance to win coaching prizes. No purchase needed.',
-      rules_text: document.getElementById('edit-rules-' + id).value.trim() || null,
-      updated_at: new Date().toISOString()
-    };
-
-    if (!payload.name) {
-      alert('Giveaway name is required.');
-      return;
-    }
-    if (payload.ends_at && payload.starts_at && new Date(payload.ends_at) <= new Date(payload.starts_at)) {
-      alert('End date must be after start date.');
-      return;
-    }
-
-    try {
-      const { error } = await client.from('competitions').update(payload).eq('id', id);
-      if (error) throw error;
-      document.getElementById('edit-' + id).classList.remove('show');
-      await loadData();
-    } catch (err) {
-      alert('Could not save changes: ' + err.message);
-    }
-  }
-
-  function renderLeads() {
-    const container = document.getElementById('leadsContent');
-    const search = document.getElementById('searchInput').value.toLowerCase();
-    const strategyFilter = document.getElementById('filterStrategy').value;
-    const compFilter = document.getElementById('filterComp').value;
-    const statusFilter = document.getElementById('filterStatus').value;
-
-    const filtered = allLeads.filter(function (l) {
-      const matchesSearch = !search ||
-        (l.full_name || '').toLowerCase().includes(search) ||
-        (l.email || '').toLowerCase().includes(search) ||
-        (l.phone || '').toLowerCase().includes(search);
-      const matchesStrategy = strategyFilter === 'all' || l.strategy_id === strategyFilter;
-      const matchesComp = compFilter === 'all' || l.competition_id === compFilter;
-      const matchesStatus = statusFilter === 'all' || l.status === statusFilter;
-      return matchesSearch && matchesStrategy && matchesComp && matchesStatus;
-    });
-
-    // Stats
-    const stats = document.getElementById('leadsStats');
-    const total = filtered.length;
-    const winners = filtered.filter(function (l) { return l.status === 'winner'; }).length;
-    const runnerUps = filtered.filter(function (l) { return l.status === 'runner_up'; }).length;
-    const converted = filtered.filter(function (l) { return l.status === 'converted'; }).length;
-    stats.innerHTML =
-      '<div class="stat-box"><div class="stat-label">Leads shown</div><div class="stat-value">' + total + '</div></div>' +
-      '<div class="stat-box"><div class="stat-label">Winners</div><div class="stat-value">' + winners + '</div></div>' +
-      '<div class="stat-box"><div class="stat-label">Runner-ups</div><div class="stat-value">' + runnerUps + '</div></div>' +
-      '<div class="stat-box"><div class="stat-label">Converted</div><div class="stat-value">' + converted + '</div></div>';
-
-    if (!filtered.length) {
-      container.innerHTML = '<div class="empty">No leads match your filters.</div>';
-      return;
-    }
-
-    let html = '<table class="data-table">' +
-      '<thead><tr>' +
-        '<th><input type="checkbox" id="selectAllLeads" onchange="toggleSelectAllLeads()"></th>' +
-        '<th>Name</th>' +
-        '<th>Email</th>' +
-        '<th>Phone</th>' +
-        '<th>Strategy</th>' +
-        '<th>Competition</th>' +
-        '<th>Entered</th>' +
-        '<th>Status</th>' +
-        '<th>Actions</th>' +
-      '</tr></thead><tbody>';
-
-    filtered.forEach(function (l) {
-      html += '<tr>' +
-        '<td><input type="checkbox" class="lead-check" value="' + escapeHtml(l.id) + '" onchange="updateSelectAllState()"></td>' +
-        '<td>' + escapeHtml(l.full_name || '-') + '</td>' +
-        '<td>' + escapeHtml(l.email || '') + '</td>' +
-        '<td>' + renderPhoneLinks(l.phone) + '</td>' +
-        '<td>' + escapeHtml(getStrategyName(l.strategy_id)) + '</td>' +
-        '<td>' + escapeHtml(getCompName(l.competition_id)) + '</td>' +
-        '<td>' + (l.created_at ? new Date(l.created_at).toLocaleDateString() : '-') + '</td>' +
-        '<td><select onchange="updateLeadStatus(\'' + l.id + '\', this.value)" style="font-size:12px;padding:4px 8px;border-radius:var(--radius);border:1.5px solid var(--line);">' + renderStatusOptions(l.status) + '</select></td>' +
-        '<td>' +
-          '<button class="admin-btn" onclick="openSmsWithTemplate(\'' + l.id + '\')" style="padding:6px 12px;font-size:11px;margin-right:6px;">Template SMS</button>' +
-          '<button class="admin-btn danger" onclick="deleteLead(\'' + l.id + '\')" style="padding:6px 12px;font-size:11px;">Delete</button>' +
-        '</td>' +
-      '</tr>';
-    });
-
-    html += '</tbody></table>';
-    container.innerHTML = html;
-  }
-
-  function renderPhoneLinks(phone) {
-    if (!phone) return '-';
-    const clean = String(phone).replace(/\s/g, '');
-    return '<span class="phone-actions">' +
-      '<a href="tel:' + escapeHtml(clean) + '" title="Call" style="margin-right:10px;">' + escapeHtml(phone) + ' · Call</a>' +
-      '<a href="sms:' + escapeHtml(clean) + '" title="SMS">SMS</a>' +
-      '</span>';
-  }
-
-  function splitName(fullName) {
-    const parts = String(fullName || '').trim().split(/\s+/);
-    return { first: parts[0] || '', last: parts.slice(1).join(' ') || '' };
-  }
-
-  function fillSmsTemplate(template, lead, strategy) {
-    if (!template) return '';
-    const { first, last } = splitName(lead.full_name);
-    let result = template
-      .replace(/\{first_name\}/gi, first)
-      .replace(/\{last_name\}/gi, last)
-      .replace(/\{full_name\}/gi, lead.full_name || '')
-      .replace(/\{phone\}/gi, lead.phone || '')
-      .replace(/\{email\}/gi, lead.email || '')
-      .replace(/\{strategy_name\}/gi, strategy ? (strategy.name || '') : '');
-
-    // Any upload column captured as a tag can be used as a placeholder, e.g. {age}, {birth_month}.
-    const tagMap = {};
-    (lead.tags || []).forEach(function (tag) {
-      const colon = tag.indexOf(':');
-      if (colon > 0) {
-        const key = tag.slice(0, colon).trim().toLowerCase();
-        const val = tag.slice(colon + 1).trim();
-        if (key && !tagMap.hasOwnProperty(key)) tagMap[key] = val;
-      }
-    });
-
-    result = result.replace(/\{([a-z0-9_]+)\}/gi, function (match, key) {
-      return tagMap.hasOwnProperty(key) ? tagMap[key] : match;
-    });
-
-    return result;
-  }
-
-  function renderStatusOptions(current) {
-    const opts = [
-      ['entered','Entered'],
-      ['called','Called'],
-      ['no_answer','No answer'],
-      ['sms_sent','SMS sent'],
-      ['email_sent','Email sent'],
-      ['follow_up','Follow up'],
-      ['converted','Converted'],
-      ['not_interested','Not interested'],
-      ['contact_later','Contact later'],
-      ['winner','Winner'],
-      ['runner_up','Runner-up'],
-      ['runner_up_2','2nd runner-up'],
-      ['disqualified','Disqualified']
-    ];
-    return opts.map(function (o) {
-      return '<option value="' + o[0] + '"' + (current === o[0] ? ' selected' : '') + '>' + o[1] + '</option>';
-    }).join('');
-  }
-
-  async function openSmsWithTemplate(id) {
-    const lead = allLeads.find(function (x) { return x.id === id; });
-    if (!lead) return;
-    if (!lead.phone) {
-      alert('This lead has no phone number.');
-      return;
-    }
-    const strategy = allStrategies.find(function (x) { return x.id === lead.strategy_id; });
-    const template = strategy ? (strategy.sms_template || '') : '';
-    if (!template) {
-      if (confirm('No SMS template for this strategy. Send a blank SMS instead?')) {
-        const clean = String(lead.phone).replace(/\s/g, '');
-        window.location.href = 'sms:' + clean;
-      }
-      return;
-    }
-    const body = fillSmsTemplate(template, lead, strategy);
-    if (!confirm('Open Messages with:\n\n' + body)) return;
-
-    const clean = String(lead.phone).replace(/\s/g, '');
-    window.location.href = 'sms:' + clean + '?body=' + encodeURIComponent(body);
-
-    // Mark pipeline as SMS sent.
-    try {
-      const { error } = await client.from('leads').update({ status: 'sms_sent' }).eq('id', id);
-      if (error) throw error;
-      lead.status = 'sms_sent';
-      renderLeads();
-    } catch (err) {
-      console.error('Could not update lead status after SMS:', err);
-    }
-  }
-
-  function getSelectedLeadIds() {
-    const ids = [];
-    document.querySelectorAll('.lead-check:checked').forEach(function (cb) {
-      ids.push(cb.value);
-    });
-    return ids;
-  }
-
-  function toggleSelectAllLeads() {
-    const master = document.getElementById('selectAllLeads');
-    const checked = master ? master.checked : false;
-    document.querySelectorAll('.lead-check').forEach(function (cb) {
-      cb.checked = checked;
-    });
-  }
-
-  function updateSelectAllState() {
-    const master = document.getElementById('selectAllLeads');
-    if (!master) return;
-    const boxes = document.querySelectorAll('.lead-check');
-    if (!boxes.length) {
-      master.checked = false;
-      return;
-    }
-    master.checked = Array.from(boxes).every(function (cb) { return cb.checked; });
-  }
-
-  async function deleteSelectedLeads() {
-    const ids = getSelectedLeadIds();
-    if (!ids.length) {
-      alert('No leads selected.');
-      return;
-    }
-    if (!confirm('Delete ' + ids.length + ' selected lead(s)? This cannot be undone.')) return;
-    try {
-      const { error } = await client.from('leads').delete().in('id', ids);
-      if (error) throw error;
-      await loadData();
-    } catch (err) {
-      alert('Could not delete leads: ' + err.message);
-    }
-  }
-
-  async function updateLeadStatus(id, status) {
-    try {
-      const { error } = await client.from('leads').update({ status: status }).eq('id', id);
-      if (error) throw error;
-      const l = allLeads.find(function (x) { return x.id === id; });
-      if (l) l.status = status;
-      renderLeads();
-    } catch (err) {
-      alert('Could not update lead status: ' + err.message);
-      await loadData();
-    }
-  }
-
-  async function deleteLead(id) {
-    if (!confirm('Delete this lead? This cannot be undone.')) return;
-    try {
-      const { error } = await client.from('leads').delete().eq('id', id);
-      if (error) throw error;
-      await loadData();
-    } catch (err) {
-      alert('Could not delete lead: ' + err.message);
-    }
-  }
-
-  function pickRandomWinner() {
-    const strategyFilter = document.getElementById('filterStrategy').value;
-    const compFilter = document.getElementById('filterComp').value;
-    const statusFilter = document.getElementById('filterStatus').value;
-
-    let pool = allLeads.filter(function (l) {
-      const matchesStrategy = strategyFilter === 'all' || l.strategy_id === strategyFilter;
-      const matchesComp = compFilter === 'all' || l.competition_id === compFilter;
-      const matchesStatus = statusFilter === 'all' || l.status === statusFilter;
-      return matchesStrategy && matchesComp && matchesStatus;
-    });
-
-    if (!pool.length) {
-      alert('No leads match the current filters to draw from.');
-      return;
-    }
-
-    const winner = pool[Math.floor(Math.random() * pool.length)];
-    drawnWinner = winner;
-
-    const panel = document.getElementById('winnerPanel');
-    panel.classList.remove('hidden');
-    document.getElementById('winnerName').textContent = winner.full_name || 'Unknown';
-    document.getElementById('winnerDetail').textContent = (winner.email || '') + ' · ' + getCompName(winner.competition_id);
-  }
-
-  async function markWinnerFromPanel() {
-    if (!drawnWinner) return;
-    try {
-      const { error } = await client.from('leads').update({ status: 'winner' }).eq('id', drawnWinner.id);
-      if (error) throw error;
-      document.getElementById('winnerPanel').classList.add('hidden');
-      drawnWinner = null;
-      await loadData();
-    } catch (err) {
-      alert('Could not mark winner: ' + err.message);
-    }
-  }
-
-  function escapeCsv(val) {
-    const str = String(val == null ? '' : val);
-    if (str.includes(',') || str.includes('"') || str.includes('\n')) {
-      return '"' + str.replace(/"/g, '""') + '"';
-    }
-    return str;
-  }
-
-  function exportCsv() {
-    const search = document.getElementById('searchInput').value.toLowerCase();
-    const strategyFilter = document.getElementById('filterStrategy').value;
-    const compFilter = document.getElementById('filterComp').value;
-    const statusFilter = document.getElementById('filterStatus').value;
-
-    const rows = [];
-    rows.push(['Name', 'Email', 'Phone', 'Strategy', 'Giveaway', 'Status', 'Opt In', 'Entered At']);
-
-    allLeads.forEach(function (l) {
-      const matchesSearch = !search ||
-        (l.full_name || '').toLowerCase().includes(search) ||
-        (l.email || '').toLowerCase().includes(search) ||
-        (l.phone || '').toLowerCase().includes(search);
-      const matchesStrategy = strategyFilter === 'all' || l.strategy_id === strategyFilter;
-      const matchesComp = compFilter === 'all' || l.competition_id === compFilter;
-      const matchesStatus = statusFilter === 'all' || l.status === statusFilter;
-      if (!matchesSearch || !matchesStrategy || !matchesComp || !matchesStatus) return;
-
-      rows.push([
-        l.full_name || '',
-        l.email || '',
-        l.phone || '',
-        getStrategyName(l.strategy_id),
-        getCompName(l.competition_id),
-        l.status || '',
-        l.opt_in ? 'Yes' : 'No',
-        l.created_at || ''
-      ]);
-    });
-
-    const csv = rows.map(function (r) { return r.map(escapeCsv).join(','); }).join('\n');
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'crfcomps-leads-' + new Date().toISOString().slice(0, 10) + '.csv';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  }
-
-  async function loadSettingsPanel() {
-    try {
-      const s = await window.siteSettings.loadSiteSettings();
-      currentSettings = s || {};
-      document.getElementById('setBrand').value = currentSettings.brand_name || '';
-      document.getElementById('setFallbackHeadline').value = currentSettings.fallback_headline || '';
-      document.getElementById('setFallbackSub').value = currentSettings.fallback_subheadline || '';
-      document.getElementById('setFallbackValue').value = currentSettings.fallback_prize_value || 0;
-      document.getElementById('setAdminEmail').value = currentSettings.admin_contact_email || '';
-    } catch (err) {
-      console.error(err);
-      const msg = document.getElementById('settingsMsg');
-      showMsg(msg, 'Could not load settings: ' + err.message, 'error');
-    }
-  }
-
-  async function saveSettings() {
-    const btn = document.getElementById('saveSettingsBtn');
-    const msg = document.getElementById('settingsMsg');
-    msg.className = 'msg';
-
-    const value = parseFloat(document.getElementById('setFallbackValue').value);
-
-    const payload = {
-      id: 1,
-      updated_at: new Date().toISOString(),
-      brand_name: document.getElementById('setBrand').value.trim(),
-      fallback_headline: document.getElementById('setFallbackHeadline').value.trim(),
-      fallback_subheadline: document.getElementById('setFallbackSub').value.trim(),
-      fallback_prize_value: isNaN(value) ? 0 : value,
-      admin_contact_email: document.getElementById('setAdminEmail').value.trim() || null
-    };
-
-    btn.disabled = true;
-    btn.textContent = 'Saving...';
-
-    try {
-      const { error } = await client.from('site_settings').upsert(payload, { onConflict: 'id' });
-      if (error) throw error;
-      showMsg(msg, 'Settings saved.', 'success');
-      await loadSettingsPanel();
-    } catch (err) {
-      console.error(err);
-      showMsg(msg, err.message || 'Could not save settings.', 'error');
-    } finally {
-      btn.disabled = false;
-      btn.textContent = 'Save Settings';
-    }
-  }
-
-  async function handleSignOut() {
-    await window.auth.signOut();
-    window.location.href = 'index.html';
-  }
-
-  // ---------- bulk upload helpers ----------
-
-  function normaliseHeader(h) {
-    return String(h || '').toLowerCase().trim().replace(/\s+/g, '_');
-  }
-
-  function parseOptIn(val) {
-    const s = String(val || '').toLowerCase().trim();
-    if (!s) return true;
-    return ['yes', 'true', '1', 'y'].includes(s);
-  }
-
-  function parseDateApprox(val) {
-    if (!val) return null;
-    const s = String(val).trim();
-    let d = new Date(s);
-    if (!isNaN(d.getTime())) return d;
-    const parts = s.split(/[\/\-\.]/);
-    if (parts.length === 3) {
-      const nums = parts.map(Number);
-      if (nums.every(function (n) { return !isNaN(n); })) {
-        // Try DD/MM/YYYY.
-        d = new Date(nums[2], nums[1] - 1, nums[0]);
-        if (!isNaN(d.getTime()) && nums[0] <= 31 && nums[1] <= 12) return d;
-        // Try MM/DD/YYYY.
-        d = new Date(nums[2], nums[0] - 1, nums[1]);
-        if (!isNaN(d.getTime()) && nums[1] <= 31 && nums[0] <= 12) return d;
-      }
-    }
-    return null;
-  }
-
-  function calculateAge(birthDate) {
-    const now = new Date();
-    let age = now.getFullYear() - birthDate.getFullYear();
-    const m = now.getMonth() - birthDate.getMonth();
-    if (m < 0 || (m === 0 && now.getDate() < birthDate.getDate())) age--;
-    return age;
-  }
-
-  function deriveBirthdayTags(row, headers) {
-    const idx = headers.findIndex(function (h) {
-      return h === 'birthday' || h === 'dob' || h === 'date_of_birth';
-    });
-    if (idx === -1) return {};
-    const d = parseDateApprox(row[idx]);
-    if (!d) return {};
-    const tags = {};
-    const age = calculateAge(d);
-    if (!isNaN(age) && age >= 0) tags.age = String(age);
-    const monthName = d.toLocaleString(undefined, { month: 'long' });
-    if (monthName) tags.birth_month = monthName;
-    return tags;
-  }
-
-  function rowsToLeads(rows) {
-    const headers = (rows[0] || []).map(normaliseHeader);
-    const firstNameIdx = headers.indexOf('first_name');
-    const lastNameIdx = headers.indexOf('last_name');
-    const emailIdx = headers.indexOf('email');
-    const mobileIdx = headers.indexOf('mobile');
-    const optInIdx = headers.indexOf('opt_in');
-
-    if (firstNameIdx === -1 || lastNameIdx === -1 || mobileIdx === -1) {
-      throw new Error('CSV/Excel must have first_name, last_name and mobile columns.');
-    }
-
-    const known = new Set(['first_name', 'last_name', 'email', 'mobile', 'opt_in']);
-    const extraIndexes = headers.map(function (h, i) {
-      return known.has(h) ? -1 : i;
-    }).filter(function (i) { return i !== -1; });
-
-    const leads = [];
-    for (let i = 1; i < rows.length; i++) {
-      const row = rows[i];
-      if (!row || !row.length) continue;
-      const firstName = String(row[firstNameIdx] || '').trim();
-      const lastName = String(row[lastNameIdx] || '').trim();
-      const mobile = String(row[mobileIdx] || '').trim();
-      if (!firstName || !lastName || !mobile) continue;
-
-      const email = emailIdx === -1 ? '' : String(row[emailIdx] || '').trim();
-
-      const seenKeys = new Set();
-      const tags = [];
-      extraIndexes.forEach(function (idx) {
-        const key = headers[idx];
-        const val = String(row[idx] || '').trim();
-        if (val) {
-          tags.push(key + ': ' + val);
-          seenKeys.add(key);
-        }
-      });
-
-      const derived = deriveBirthdayTags(row, headers);
-      Object.keys(derived).forEach(function (key) {
-        if (!seenKeys.has(key)) {
-          tags.push(key + ': ' + derived[key]);
-          seenKeys.add(key);
-        }
-      });
-
-      leads.push({
-        full_name: firstName + ' ' + lastName,
-        email: email || null,
-        phone: mobile,
-        opt_in: optInIdx === -1 ? true : parseOptIn(row[optInIdx]),
-        tags: tags.length ? tags : null
-      });
-    }
-    return leads;
-  }
-
-  function parseCsv(text) {
-    const rows = [];
-    const lines = text.split(/\r?\n/);
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i].trim();
-      if (!line) continue;
-      const cells = [];
-      let cell = '';
-      let inQuotes = false;
-      for (let j = 0; j < line.length; j++) {
-        const ch = line[j];
-        const next = line[j + 1];
-        if (ch === '"') {
-          if (inQuotes && next === '"') {
-            cell += '"';
-            j++;
-          } else {
-            inQuotes = !inQuotes;
-          }
-        } else if (ch === ',' && !inQuotes) {
-          cells.push(cell);
-          cell = '';
-        } else {
-          cell += ch;
-        }
-      }
-      cells.push(cell);
-      rows.push(cells);
-    }
-    return rows;
-  }
-
-  function parseExcel(arrayBuffer) {
-    if (typeof XLSX === 'undefined') {
-      throw new Error('Excel library not loaded. Please refresh and try again.');
-    }
-    const workbook = XLSX.read(arrayBuffer, { type: 'array' });
-    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-    const json = XLSX.utils.sheet_to_json(firstSheet, { header: 1, defval: '' });
-    return json;
-  }
-
-  function renderUploadPreview(leads) {
-    const container = document.getElementById('uploadPreviewRows');
-    let html = '<table style="width:100%;border-collapse:collapse;font-size:13px;">' +
-      '<thead><tr><th style="text-align:left;padding:6px;border-bottom:1px solid var(--line);">Name</th>' +
-      '<th style="text-align:left;padding:6px;border-bottom:1px solid var(--line);">Email</th>' +
-      '<th style="text-align:left;padding:6px;border-bottom:1px solid var(--line);">Mobile</th>' +
-      '<th style="text-align:left;padding:6px;border-bottom:1px solid var(--line);">Extra tags</th></tr></thead><tbody>';
-    leads.slice(0, 10).forEach(function (l) {
-      const extras = (l.tags || []).join(', ');
-      html += '<tr><td style="padding:6px;border-bottom:1px solid var(--paper-2);">' + escapeHtml(l.full_name) + '</td>' +
-        '<td style="padding:6px;border-bottom:1px solid var(--paper-2);">' + escapeHtml(l.email) + '</td>' +
-        '<td style="padding:6px;border-bottom:1px solid var(--paper-2);">' + escapeHtml(l.phone || '-') + '</td>' +
-        '<td style="padding:6px;border-bottom:1px solid var(--paper-2);" title="' + escapeHtml(extras) + '">' + escapeHtml(extras.slice(0, 40) + (extras.length > 40 ? '...' : '')) + '</td></tr>';
-    });
-    if (leads.length > 10) {
-      html += '<tr><td colspan="4" style="padding:6px;color:var(--ink-soft);">... and ' + (leads.length - 10) + ' more</td></tr>';
-    }
-    html += '</tbody></table>';
-    container.innerHTML = html;
-    document.getElementById('uploadCount').textContent = leads.length;
-    document.getElementById('uploadPreview').style.display = 'block';
-    document.getElementById('uploadSubmitBtn').disabled = leads.length === 0;
-  }
-
-  function resetUploadPreview() {
-    pendingUploadRows = [];
-    document.getElementById('uploadPreview').style.display = 'none';
-    document.getElementById('uploadPreviewRows').innerHTML = '';
-    document.getElementById('uploadCount').textContent = '0';
-    document.getElementById('uploadSubmitBtn').disabled = true;
-  }
-
-  async function handleFileUpload() {
-    const input = document.getElementById('uploadFile');
-    const msg = document.getElementById('uploadMsg');
-    msg.className = 'msg';
-    resetUploadPreview();
-
-    const file = input.files[0];
-    if (!file) return;
-
-    try {
-      const ext = file.name.split('.').pop().toLowerCase();
-      let rows = [];
-      if (ext === 'csv') {
-        const text = await file.text();
-        rows = parseCsv(text);
-      } else if (ext === 'xlsx' || ext === 'xls') {
-        const buffer = await file.arrayBuffer();
-        rows = parseExcel(buffer);
-      } else {
-        throw new Error('Please upload a CSV or Excel (.xlsx/.xls) file.');
-      }
-
-      pendingUploadRows = rowsToLeads(rows);
-      renderUploadPreview(pendingUploadRows);
-    } catch (err) {
-      console.error(err);
-      showMsg(msg, err.message || 'Could not read file.', 'error');
-      input.value = '';
-    }
-  }
-
-  async function submitBulkUpload() {
-    const btn = document.getElementById('uploadSubmitBtn');
-    const msg = document.getElementById('uploadMsg');
-    const strategyId = document.getElementById('uploadStrategy').value;
-    const source = document.getElementById('uploadSource').value.trim() || 'bulk_import';
-    msg.className = 'msg';
-
-    if (!strategyId) {
-      showMsg(msg, 'Please select a strategy to assign these leads to.', 'error');
-      return;
-    }
-    if (!pendingUploadRows.length) {
-      showMsg(msg, 'No valid leads to import.', 'error');
-      return;
-    }
-
-    btn.disabled = true;
-    btn.textContent = 'Importing...';
-
-    const rows = pendingUploadRows.map(function (l) {
-      return {
-        strategy_id: strategyId,
-        full_name: l.full_name,
-        email: l.email,
-        phone: l.phone,
-        opt_in: l.opt_in,
-        source: source,
-        tags: l.tags,
-        status: 'entered'
-      };
-    });
-
-    try {
-      const { error } = await client.from('leads').insert(rows);
-      if (error) throw error;
-      showMsg(msg, pendingUploadRows.length + ' leads imported into strategy.', 'success');
-      resetUploadPreview();
-      document.getElementById('uploadFile').value = '';
-      await loadData();
-    } catch (err) {
-      console.error(err);
-      showMsg(msg, err.message || 'Could not import leads.', 'error');
-    } finally {
-      btn.disabled = false;
-      btn.textContent = 'Import Leads';
-    }
-  }
-
-  // Expose functions needed by inline onclick handlers.
-  window.switchTab = switchTab;
-  window.createStrategy = createStrategy;
-  window.updateStrategyStatus = updateStrategyStatus;
-  window.deleteStrategy = deleteStrategy;
-  window.toggleStrategyEditForm = toggleStrategyEditForm;
-  window.saveStrategyEdit = saveStrategyEdit;
-  window.createCompetition = createCompetition;
-  window.updateCompetitionStatus = updateCompetitionStatus;
-  window.deleteCompetition = deleteCompetition;
-  window.toggleEditForm = toggleEditForm;
-  window.saveCompetitionEdit = saveCompetitionEdit;
-  window.updateLeadStatus = updateLeadStatus;
-  window.deleteLead = deleteLead;
-  window.pickRandomWinner = pickRandomWinner;
-  window.markWinnerFromPanel = markWinnerFromPanel;
-  window.exportCsv = exportCsv;
-  window.loadData = loadData;
-  window.saveSettings = saveSettings;
-  window.handleSignOut = handleSignOut;
-  window.handleFileUpload = handleFileUpload;
-  window.submitBulkUpload = submitBulkUpload;
-  window.toggleStrategyDates = toggleStrategyDates;
-  window.toggleSelectAllLeads = toggleSelectAllLeads;
-  window.updateSelectAllState = updateSelectAllState;
-  window.deleteSelectedLeads = deleteSelectedLeads;
-  window.openSmsWithTemplate = openSmsWithTemplate;
-
-  init();
-})();
-</script>
+<script src="js/admin.js"></script>
 
 </body>
 </html>
