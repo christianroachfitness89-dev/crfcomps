@@ -280,7 +280,7 @@
         <div class="form-row">
           <label for="uploadFile">Upload CSV or Excel file</label>
           <input type="file" id="uploadFile" accept=".csv,.xlsx,.xls" onchange="handleFileUpload()">
-          <p style="font-size:13px;color:var(--ink-soft);margin-top:6px;">Columns: <b>name, email, phone</b>. Optional: <b>opt_in</b> (yes/no/true/false). Duplicates are allowed and tagged to the selected strategy.</p>
+          <p style="font-size:13px;color:var(--ink-soft);margin-top:6px;">Required columns: <b>first_name, last_name, email, mobile</b>. Optional: <b>opt_in</b> (yes/no/true/false). Any other headers are captured as tags on the lead.</p>
         </div>
         <div class="form-row" id="uploadPreview" style="display:none;">
           <label>Preview (<span id="uploadCount">0</span> leads ready)</label>
@@ -1176,27 +1176,44 @@
 
   function rowsToLeads(rows) {
     const headers = (rows[0] || []).map(normaliseHeader);
-    const nameIdx = headers.indexOf('name');
+    const firstNameIdx = headers.indexOf('first_name');
+    const lastNameIdx = headers.indexOf('last_name');
     const emailIdx = headers.indexOf('email');
-    const phoneIdx = headers.indexOf('phone');
+    const mobileIdx = headers.indexOf('mobile');
     const optInIdx = headers.indexOf('opt_in');
 
-    if (nameIdx === -1 || emailIdx === -1) {
-      throw new Error('CSV must have at least name and email columns.');
+    if (firstNameIdx === -1 || lastNameIdx === -1 || emailIdx === -1 || mobileIdx === -1) {
+      throw new Error('CSV/Excel must have first_name, last_name, email and mobile columns.');
     }
+
+    const known = new Set(['first_name', 'last_name', 'email', 'mobile', 'opt_in']);
+    const extraIndexes = headers.map(function (h, i) {
+      return known.has(h) ? -1 : i;
+    }).filter(function (i) { return i !== -1; });
 
     const leads = [];
     for (let i = 1; i < rows.length; i++) {
       const row = rows[i];
       if (!row || !row.length) continue;
-      const name = String(row[nameIdx] || '').trim();
+      const firstName = String(row[firstNameIdx] || '').trim();
+      const lastName = String(row[lastNameIdx] || '').trim();
       const email = String(row[emailIdx] || '').trim();
-      if (!name || !email) continue;
+      const mobile = String(row[mobileIdx] || '').trim();
+      if (!firstName || !lastName || !email || !mobile) continue;
+
+      const tags = [];
+      extraIndexes.forEach(function (idx) {
+        const key = headers[idx];
+        const val = String(row[idx] || '').trim();
+        if (val) tags.push(key + ': ' + val);
+      });
+
       leads.push({
-        full_name: name,
+        full_name: firstName + ' ' + lastName,
         email: email,
-        phone: String(row[phoneIdx] || '').trim() || null,
-        opt_in: optInIdx === -1 ? true : parseOptIn(row[optInIdx])
+        phone: mobile,
+        opt_in: optInIdx === -1 ? true : parseOptIn(row[optInIdx]),
+        tags: tags.length ? tags : null
       });
     }
     return leads;
@@ -1249,14 +1266,17 @@
     let html = '<table style="width:100%;border-collapse:collapse;font-size:13px;">' +
       '<thead><tr><th style="text-align:left;padding:6px;border-bottom:1px solid var(--line);">Name</th>' +
       '<th style="text-align:left;padding:6px;border-bottom:1px solid var(--line);">Email</th>' +
-      '<th style="text-align:left;padding:6px;border-bottom:1px solid var(--line);">Phone</th></tr></thead><tbody>';
+      '<th style="text-align:left;padding:6px;border-bottom:1px solid var(--line);">Mobile</th>' +
+      '<th style="text-align:left;padding:6px;border-bottom:1px solid var(--line);">Extra tags</th></tr></thead><tbody>';
     leads.slice(0, 10).forEach(function (l) {
+      const extras = (l.tags || []).join(', ');
       html += '<tr><td style="padding:6px;border-bottom:1px solid var(--paper-2);">' + escapeHtml(l.full_name) + '</td>' +
         '<td style="padding:6px;border-bottom:1px solid var(--paper-2);">' + escapeHtml(l.email) + '</td>' +
-        '<td style="padding:6px;border-bottom:1px solid var(--paper-2);">' + escapeHtml(l.phone || '-') + '</td></tr>';
+        '<td style="padding:6px;border-bottom:1px solid var(--paper-2);">' + escapeHtml(l.phone || '-') + '</td>' +
+        '<td style="padding:6px;border-bottom:1px solid var(--paper-2);" title="' + escapeHtml(extras) + '">' + escapeHtml(extras.slice(0, 40) + (extras.length > 40 ? '...' : '')) + '</td></tr>';
     });
     if (leads.length > 10) {
-      html += '<tr><td colspan="3" style="padding:6px;color:var(--ink-soft);">... and ' + (leads.length - 10) + ' more</td></tr>';
+      html += '<tr><td colspan="4" style="padding:6px;color:var(--ink-soft);">... and ' + (leads.length - 10) + ' more</td></tr>';
     }
     html += '</tbody></table>';
     container.innerHTML = html;
@@ -1331,6 +1351,7 @@
         phone: l.phone,
         opt_in: l.opt_in,
         source: source,
+        tags: l.tags,
         status: 'entered'
       };
     });
