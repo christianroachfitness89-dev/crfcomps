@@ -350,7 +350,8 @@
 
   function poolLabel(pool) {
     const p = POOLS.find(function (x) { return x.key === pool; });
-    return '<span class="tag ' + (pool === 'new_member' ? 'tag-active' : pool === 'non_attendance' ? 'tag-closed' : 'tag-draft') + '">' + (p ? p.label : 'Giveaway') + '</span>';
+    const cls = pool === 'new_member' ? 'tag-active' : pool === 'non_attendance' ? 'tag-closed' : pool === 'birthday' ? 'tag-hot' : 'tag-draft';
+    return '<span class="tag ' + cls + '">' + (p ? p.label : 'Giveaway') + '</span>';
   }
 
   function statusBadge(status) {
