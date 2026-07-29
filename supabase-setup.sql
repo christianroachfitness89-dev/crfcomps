@@ -255,6 +255,10 @@ create index if not exists idx_sessions_scheduled_at on public.sessions(schedule
 create index if not exists idx_sessions_status on public.sessions(status);
 create index if not exists idx_attendance_session_id on public.attendance(session_id);
 create index if not exists idx_attendance_client_id on public.attendance(client_id);
+create index if not exists idx_communications_lead_id on public.communications(lead_id);
+create index if not exists idx_communications_client_id on public.communications(client_id);
+create index if not exists idx_communications_type on public.communications(type);
+create index if not exists idx_communications_created_at on public.communications(created_at);
 
 -- ---------- helper function: is the current user an admin? ----------
 
