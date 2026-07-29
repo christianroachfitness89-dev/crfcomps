@@ -159,14 +159,42 @@
     closeMobileNav();
   }
 
+  function isDesktop() {
+    return window.innerWidth >= 960;
+  }
+
+  function toggleSidebar() {
+    const sidebar = document.getElementById('adminSidebar');
+    const main = document.querySelector('.admin-main');
+    const overlay = document.querySelector('.nav-overlay');
+
+    if (isDesktop()) {
+      sidebar.classList.toggle('collapsed');
+      main.classList.toggle('expanded');
+    } else {
+      sidebar.classList.toggle('open');
+      overlay.classList.toggle('show');
+    }
+  }
+
   function toggleMobileNav() {
-    document.querySelector('.admin-sidebar').classList.toggle('open');
-    document.querySelector('.nav-overlay').classList.toggle('show');
+    toggleSidebar();
   }
 
   function closeMobileNav() {
-    document.querySelector('.admin-sidebar').classList.remove('open');
-    document.querySelector('.nav-overlay').classList.remove('show');
+    if (!isDesktop()) {
+      document.getElementById('adminSidebar').classList.remove('open');
+      document.querySelector('.nav-overlay').classList.remove('show');
+    }
+  }
+
+  function closeSidebar() {
+    if (isDesktop()) {
+      document.getElementById('adminSidebar').classList.add('collapsed');
+      document.querySelector('.admin-main').classList.add('expanded');
+    } else {
+      closeMobileNav();
+    }
   }
 
   // ---------- init / data load ----------
