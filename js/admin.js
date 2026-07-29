@@ -1755,6 +1755,7 @@
 
   window.updateLeadStatus = updateLeadStatus;
   window.deleteLead = deleteLead;
+  window.promoteLeadToClient = promoteLeadToClient;
   window.openSmsWithTemplate = openSmsWithTemplate;
   window.pickRandomWinner = pickRandomWinner;
   window.markWinnerFromPanel = markWinnerFromPanel;
