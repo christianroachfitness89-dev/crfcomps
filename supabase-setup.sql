@@ -13,9 +13,28 @@ create table if not exists public.profiles (
   created_at timestamptz not null default now()
 );
 
--- Competitions / giveaway rounds.
+-- Marketing strategies / lead-generation initiatives.
+create table if not exists public.marketing_strategies (
+  id uuid default gen_random_uuid() primary key,
+  name text not null,
+  type text not null default 'giveaway' check (type in ('giveaway', 'lead_magnet', 'challenge', 'webinar', 'funnel', 'other')),
+  status text not null default 'draft' check (status in ('draft', 'active', 'paused', 'archived')),
+  description text,
+  starts_at timestamptz,
+  ends_at timestamptz,
+  utm_source text,
+  utm_medium text,
+  utm_campaign text,
+  form_headline text,
+  form_subheadline text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+-- Competitions / giveaway rounds. Each belongs to a marketing strategy.
 create table if not exists public.competitions (
   id uuid default gen_random_uuid() primary key,
+  strategy_id uuid references public.marketing_strategies on delete set null,
   name text not null,
   type text not null default 'random_draw' check (type in ('random_draw', 'referral', 'other')),
   status text not null default 'draft' check (status in ('draft', 'active', 'closed', 'archived')),
@@ -38,6 +57,7 @@ create table if not exists public.competitions (
 
 -- Migration: add coaching prize columns if they don't exist and drop old cash columns.
 alter table public.competitions
+  add column if not exists strategy_id uuid references public.marketing_strategies on delete set null,
   add column if not exists prize_value numeric not null default 0,
   add column if not exists prize_main text not null default 'Main giveaway prize',
   add column if not exists prize_runner_up text,
@@ -52,20 +72,31 @@ alter table public.competitions
   drop column if exists prize_second_cash,
   drop column if exists prize_third_cash;
 
--- Leads / entries. One row per person per competition round.
+-- Leads / entries. One row per capture; tagged to a marketing strategy.
 create table if not exists public.leads (
   id uuid default gen_random_uuid() primary key,
-  competition_id uuid references public.competitions on delete cascade not null,
+  strategy_id uuid references public.marketing_strategies on delete set null,
+  competition_id uuid references public.competitions on delete cascade,
   full_name text not null,
   email text not null,
   phone text,
   opt_in boolean not null default true,
+  source text,
+  tags text[],
   referral_code text unique,
   referred_by uuid references public.leads on delete set null,
   status text not null default 'entered' check (status in ('entered', 'winner', 'runner_up', 'runner_up_2', 'contact_later')),
-  created_at timestamptz not null default now(),
-  unique(competition_id, email)
+  created_at timestamptz not null default now()
 );
+
+-- Migration: link leads to strategies and add flexible tagging (run after table exists).
+alter table public.leads
+  add column if not exists strategy_id uuid references public.marketing_strategies on delete set null,
+  add column if not exists source text,
+  add column if not exists tags text[];
+
+-- Remove old per-competition unique constraint (duplicates allowed per user decision).
+alter table public.leads drop constraint if exists leads_competition_id_email_key;
 
 -- Single-row public site settings and fallback content.
 create table if not exists public.site_settings (
@@ -84,10 +115,14 @@ alter table public.site_settings
 
 -- ---------- indexes ----------
 
+create index if not exists idx_leads_strategy_id on public.leads(strategy_id);
 create index if not exists idx_leads_competition_id on public.leads(competition_id);
 create index if not exists idx_leads_email on public.leads(email);
 create index if not exists idx_leads_status on public.leads(status);
+create index if not exists idx_leads_source on public.leads(source);
 create index if not exists idx_competitions_status on public.competitions(status);
+create index if not exists idx_competitions_strategy_id on public.competitions(strategy_id);
+create index if not exists idx_strategies_status on public.marketing_strategies(status);
 
 -- ---------- helper function: is the current user an admin? ----------
 
@@ -103,6 +138,7 @@ $$;
 -- ---------- RLS enablement ----------
 
 alter table public.profiles enable row level security;
+alter table public.marketing_strategies enable row level security;
 alter table public.competitions enable row level security;
 alter table public.leads enable row level security;
 alter table public.site_settings enable row level security;
@@ -120,6 +156,26 @@ create policy "Users can read own profile"
 
 create policy "Admins can manage profiles"
   on public.profiles
+  for all
+  to authenticated
+  using (public.is_admin(auth.uid()))
+  with check (public.is_admin(auth.uid()));
+
+-- ---------- strategy policies ----------
+
+drop policy if exists "Anyone can read active strategies" on public.marketing_strategies;
+drop policy if exists "Admins can manage strategies" on public.marketing_strategies;
+
+-- Public visitors can read active strategies for landing pages and forms.
+create policy "Anyone can read active strategies"
+  on public.marketing_strategies
+  for select
+  to anon
+  using (status = 'active');
+
+-- Authenticated admins can read all strategies and manage them.
+create policy "Admins can manage strategies"
+  on public.marketing_strategies
   for all
   to authenticated
   using (public.is_admin(auth.uid()))
@@ -150,15 +206,23 @@ create policy "Admins can manage competitions"
 drop policy if exists "Anyone can insert a lead" on public.leads;
 drop policy if exists "Admins can manage leads" on public.leads;
 
--- Anonymous visitors can submit an entry into an active competition.
+-- Anonymous visitors can submit an entry into an active strategy.
+-- If a competition is provided, that competition must also be active.
 create policy "Anyone can insert a lead"
   on public.leads
   for insert
   to anon
   with check (
     exists (
-      select 1 from public.competitions c
-      where c.id = competition_id and c.status = 'active'
+      select 1 from public.marketing_strategies s
+      where s.id = strategy_id and s.status = 'active'
+    )
+    and (
+      competition_id is null
+      or exists (
+        select 1 from public.competitions c
+        where c.id = competition_id and c.status = 'active'
+      )
     )
   );
 
@@ -225,6 +289,30 @@ drop trigger if exists on_auth_user_updated on auth.users;
 create or replace trigger on_auth_user_updated
   after update of email on auth.users
   for each row execute function public.handle_user_email_update();
+
+-- ---------- data migration: link existing competitions/leads to a default strategy ----------
+
+-- Create a default strategy for any competitions that don't have one.
+insert into public.marketing_strategies (id, name, type, status, description)
+values (
+  '00000000-0000-0000-0000-000000000001',
+  'Legacy Giveaways',
+  'giveaway',
+  'active',
+  'Default strategy for giveaways created before the marketing portal update.'
+)
+on conflict (id) do nothing;
+
+-- Attach existing competitions to the default strategy if they have none.
+update public.competitions
+set strategy_id = '00000000-0000-0000-0000-000000000001'
+where strategy_id is null;
+
+-- Attach existing leads to the default strategy via their competition.
+update public.leads
+set strategy_id = '00000000-0000-0000-0000-000000000001'
+where strategy_id is null
+  and competition_id is not null;
 
 -- ---------- seed data ----------
 

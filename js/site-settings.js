@@ -50,6 +50,35 @@
     }
   }
 
+  async function loadStrategies() {
+    try {
+      const { data, error } = await client
+        .from('marketing_strategies')
+        .select('*')
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return data || [];
+    } catch (err) {
+      console.error('loadStrategies error:', err);
+      return [];
+    }
+  }
+
+  async function loadActiveStrategies() {
+    try {
+      const { data, error } = await client
+        .from('marketing_strategies')
+        .select('*')
+        .eq('status', 'active')
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return data || [];
+    } catch (err) {
+      console.error('loadActiveStrategies error:', err);
+      return [];
+    }
+  }
+
   function formatCurrency(amount) {
     if (amount === null || amount === undefined || isNaN(amount)) return '$0';
     return '$' + Number(amount).toLocaleString(undefined, { maximumFractionDigits: 0 });
@@ -66,6 +95,8 @@
     loadSiteSettings,
     loadActiveCompetition,
     loadAllCompetitions,
+    loadStrategies,
+    loadActiveStrategies,
     formatCurrency,
     fmtDate
   };

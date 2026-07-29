@@ -431,6 +431,7 @@
       const { error } = await client
         .from('leads')
         .insert({
+          strategy_id: activeCompetition.strategy_id,
           competition_id: activeCompetition.id,
           full_name: name,
           email: email,

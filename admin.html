@@ -51,13 +51,75 @@
     </div>
 
     <div class="admin-tabs">
-      <button type="button" class="admin-tab active" data-tab="competitions" onclick="switchTab('competitions')">Giveaways</button>
+      <button type="button" class="admin-tab active" data-tab="strategies" onclick="switchTab('strategies')">Strategies</button>
+      <button type="button" class="admin-tab" data-tab="competitions" onclick="switchTab('competitions')">Giveaways</button>
       <button type="button" class="admin-tab" data-tab="leads" onclick="switchTab('leads')">Leads</button>
       <button type="button" class="admin-tab" data-tab="settings" onclick="switchTab('settings')">Settings</button>
     </div>
 
+    <!-- STRATEGIES TAB -->
+    <div class="admin-panel active" id="panel-strategies">
+      <div class="card" style="margin-bottom:28px;">
+        <h3 style="font-size:20px;margin-bottom:16px;">Create New Strategy</h3>
+        <div class="two-col">
+          <div class="form-row">
+            <label for="stratName">Strategy name</label>
+            <input type="text" id="stratName" placeholder="e.g. Summer 2026 Challenge">
+          </div>
+          <div class="form-row">
+            <label for="stratType">Type</label>
+            <select id="stratType">
+              <option value="giveaway">Giveaway</option>
+              <option value="lead_magnet">Lead magnet</option>
+              <option value="challenge">Challenge</option>
+              <option value="webinar">Webinar</option>
+              <option value="funnel">Funnel</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+        </div>
+        <div class="two-col">
+          <div class="form-row">
+            <label for="stratStarts">Start date</label>
+            <input type="datetime-local" id="stratStarts">
+          </div>
+          <div class="form-row">
+            <label for="stratEnds">End date</label>
+            <input type="datetime-local" id="stratEnds">
+          </div>
+        </div>
+        <div class="form-row">
+          <label for="stratDesc">Description / notes</label>
+          <textarea id="stratDesc" rows="2" placeholder="What is this strategy trying to achieve?"></textarea>
+        </div>
+        <div class="two-col">
+          <div class="form-row">
+            <label for="stratUtmSource">UTM source (optional)</label>
+            <input type="text" id="stratUtmSource" placeholder="e.g. facebook">
+          </div>
+          <div class="form-row">
+            <label for="stratUtmMedium">UTM medium (optional)</label>
+            <input type="text" id="stratUtmMedium" placeholder="e.g. paid_social">
+          </div>
+        </div>
+        <div class="form-row">
+          <label for="stratUtmCampaign">UTM campaign (optional)</label>
+          <input type="text" id="stratUtmCampaign" placeholder="e.g. summer_challenge_2026">
+        </div>
+        <div class="form-row" style="margin-top:12px;">
+          <button type="button" class="submit-btn" id="createStratBtn" onclick="createStrategy()" style="width:auto;padding:14px 24px;">Create Strategy</button>
+        </div>
+        <div class="msg" id="stratMsg"></div>
+      </div>
+
+      <h3 style="font-size:18px;margin:0 0 16px;">Existing Strategies</h3>
+      <div class="strategy-list" id="strategyList">
+        <div class="loading">Loading strategies...</div>
+      </div>
+    </div>
+
     <!-- COMPETITIONS TAB -->
-    <div class="admin-panel active" id="panel-competitions">
+    <div class="admin-panel" id="panel-competitions">
       <div class="card" style="margin-bottom:28px;">
         <h3 style="font-size:20px;margin-bottom:16px;">Create New Giveaway</h3>
         <div class="two-col">
@@ -66,11 +128,28 @@
             <input type="text" id="compName" placeholder="e.g. Summer 2026 Coaching Giveaway">
           </div>
           <div class="form-row">
-            <label for="compType">Type</label>
+            <label for="compStrategy">Marketing strategy</label>
+            <select id="compStrategy">
+              <option value="">— Select strategy —</option>
+            </select>
+          </div>
+        </div>
+        <div class="two-col">
+          <div class="form-row">
+            <label for="compType">Giveaway type</label>
             <select id="compType">
               <option value="random_draw">Random draw</option>
               <option value="referral">Referral giveaway</option>
               <option value="other">Other / free-text</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <label for="compStatus">Initial status</label>
+            <select id="compStatus">
+              <option value="draft">Draft</option>
+              <option value="active">Active</option>
+              <option value="closed">Closed</option>
+              <option value="archived">Archived</option>
             </select>
           </div>
         </div>
@@ -159,6 +238,9 @@
       <div class="admin-bar">
         <div class="filter-row">
           <input type="text" id="searchInput" placeholder="Search name, email or phone..." oninput="renderLeads()">
+          <select id="filterStrategy" onchange="renderLeads()">
+            <option value="all">All strategies</option>
+          </select>
           <select id="filterComp" onchange="renderLeads()">
             <option value="all">All competitions</option>
           </select>
@@ -243,6 +325,7 @@
 <script>
 (function () {
   const client = window.sb;
+  let allStrategies = [];
   let allCompetitions = [];
   let allLeads = [];
   let currentSettings = null;
@@ -272,6 +355,29 @@
     return 'Draft';
   }
 
+  function fmtStratType(type) {
+    if (type === 'giveaway') return 'Giveaway';
+    if (type === 'lead_magnet') return 'Lead magnet';
+    if (type === 'challenge') return 'Challenge';
+    if (type === 'webinar') return 'Webinar';
+    if (type === 'funnel') return 'Funnel';
+    return 'Other';
+  }
+
+  function fmtStratStatus(status) {
+    if (status === 'active') return 'Active';
+    if (status === 'paused') return 'Paused';
+    if (status === 'archived') return 'Archived';
+    return 'Draft';
+  }
+
+  function stratStatusClass(status) {
+    if (status === 'active') return 'tag tag-active';
+    if (status === 'paused') return 'tag tag-draft';
+    if (status === 'archived') return 'tag tag-archived';
+    return 'tag tag-draft';
+  }
+
   function statusClass(status) {
     if (status === 'active') return 'tag tag-active';
     if (status === 'closed') return 'tag tag-closed';
@@ -291,6 +397,7 @@
     document.querySelectorAll('.admin-panel').forEach(function (p) {
       p.classList.toggle('active', p.id === 'panel-' + tab);
     });
+    if (tab === 'strategies') renderStrategies();
     if (tab === 'competitions') renderCompetitions();
     if (tab === 'leads') renderLeads();
     if (tab === 'settings') loadSettingsPanel();
@@ -305,22 +412,21 @@
   }
 
   async function loadData() {
+    document.getElementById('strategyList').innerHTML = '<div class="loading">Loading strategies...</div>';
     document.getElementById('competitionList').innerHTML = '<div class="loading">Loading competitions...</div>';
     document.getElementById('leadsContent').innerHTML = '<div class="loading">Loading leads...</div>';
 
     try {
-      // Verify the admin function used by RLS is working for this user.
-      const { data: userData } = await client.auth.getUser();
-      if (userData.user) {
-        const { data: adminCheck, error: adminErr } = await client.rpc('is_admin', { user_id: userData.user.id });
-        console.log('RLS is_admin check:', adminCheck, adminErr);
-      }
-
-      const [compsRes, leadsRes] = await Promise.all([
+      const [stratsRes, compsRes, leadsRes] = await Promise.all([
+        client.from('marketing_strategies').select('*').order('created_at', { ascending: false }),
         client.from('competitions').select('*').order('starts_at', { ascending: false }),
         client.from('leads').select('*').order('created_at', { ascending: false })
       ]);
 
+      if (stratsRes.error) {
+        console.error('Strategies error:', stratsRes.error);
+        throw stratsRes.error;
+      }
       if (compsRes.error) {
         console.error('Comps error:', compsRes.error);
         throw compsRes.error;
@@ -330,14 +436,19 @@
         throw leadsRes.error;
       }
 
+      allStrategies = stratsRes.data || [];
       allCompetitions = compsRes.data || [];
       allLeads = leadsRes.data || [];
 
+      populateStrategyFilter();
       populateCompFilter();
+      populateStrategySelect();
+      renderStrategies();
       renderCompetitions();
       renderLeads();
     } catch (err) {
       console.error(err);
+      document.getElementById('strategyList').innerHTML = '<div class="empty">Could not load strategies. ' + escapeHtml(err.message) + '</div>';
       document.getElementById('competitionList').innerHTML = '<div class="empty">Could not load competitions. ' + escapeHtml(err.message) + '</div>';
       document.getElementById('leadsContent').innerHTML = '<div class="empty">Could not load leads. ' + escapeHtml(err.message) + '</div>';
     }
@@ -354,16 +465,163 @@
     });
   }
 
+  function populateStrategyFilter() {
+    const sel = document.getElementById('filterStrategy');
+    sel.innerHTML = '<option value="all">All strategies</option>';
+    allStrategies.forEach(function (s) {
+      const opt = document.createElement('option');
+      opt.value = s.id;
+      opt.textContent = (s.name || 'Unnamed') + ' · ' + fmtStratStatus(s.status);
+      sel.appendChild(opt);
+    });
+  }
+
+  function populateStrategySelect() {
+    const sel = document.getElementById('compStrategy');
+    if (!sel) return;
+    const current = sel.value;
+    sel.innerHTML = '<option value="">— Select strategy —</option>' + renderStrategyOptions(current, false);
+  }
+
+  function renderStrategyOptions(selectedId, includeEmpty) {
+    let html = includeEmpty ? '<option value="">— Select strategy —</option>' : '';
+    allStrategies.forEach(function (s) {
+      const selected = s.id === selectedId ? ' selected' : '';
+      html += '<option value="' + escapeHtml(s.id) + '"' + selected + '>' + escapeHtml((s.name || 'Unnamed') + ' · ' + fmtStratType(s.type)) + '</option>';
+    });
+    return html;
+  }
+
   function getCompName(id) {
     const c = allCompetitions.find(function (x) { return x.id === id; });
     return c ? (c.name || 'Unnamed') : '-';
   }
 
+  function getStrategyName(id) {
+    const s = allStrategies.find(function (x) { return x.id === id; });
+    return s ? (s.name || 'Unnamed') : '-';
+  }
+
+  function gatherStrategyPayload() {
+    return {
+      name: document.getElementById('stratName').value.trim(),
+      type: document.getElementById('stratType').value,
+      status: 'draft',
+      starts_at: document.getElementById('stratStarts').value ? new Date(document.getElementById('stratStarts').value).toISOString() : null,
+      ends_at: document.getElementById('stratEnds').value ? new Date(document.getElementById('stratEnds').value).toISOString() : null,
+      description: document.getElementById('stratDesc').value.trim() || null,
+      utm_source: document.getElementById('stratUtmSource').value.trim() || null,
+      utm_medium: document.getElementById('stratUtmMedium').value.trim() || null,
+      utm_campaign: document.getElementById('stratUtmCampaign').value.trim() || null,
+      updated_at: new Date().toISOString()
+    };
+  }
+
+  async function createStrategy() {
+    const btn = document.getElementById('createStratBtn');
+    const msg = document.getElementById('stratMsg');
+    msg.className = 'msg';
+
+    const payload = gatherStrategyPayload();
+    if (!payload.name) {
+      showMsg(msg, 'Please enter a strategy name.', 'error');
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'Creating...';
+
+    try {
+      const { error } = await client.from('marketing_strategies').insert(payload);
+      if (error) throw error;
+      showMsg(msg, 'Strategy created. Activate it when you are ready to collect leads.', 'success');
+      clearStrategyForm();
+      await loadData();
+    } catch (err) {
+      console.error(err);
+      showMsg(msg, err.message || 'Could not create strategy.', 'error');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Create Strategy';
+    }
+  }
+
+  function clearStrategyForm() {
+    document.getElementById('stratName').value = '';
+    document.getElementById('stratType').value = 'giveaway';
+    document.getElementById('stratStarts').value = '';
+    document.getElementById('stratEnds').value = '';
+    document.getElementById('stratDesc').value = '';
+    document.getElementById('stratUtmSource').value = '';
+    document.getElementById('stratUtmMedium').value = '';
+    document.getElementById('stratUtmCampaign').value = '';
+  }
+
+  async function updateStrategyStatus(id, status) {
+    try {
+      const { error } = await client.from('marketing_strategies').update({ status: status, updated_at: new Date().toISOString() }).eq('id', id);
+      if (error) throw error;
+      await loadData();
+    } catch (err) {
+      alert('Could not update strategy status: ' + err.message);
+    }
+  }
+
+  async function deleteStrategy(id) {
+    const leadCount = allLeads.filter(function (l) { return l.strategy_id === id; }).length;
+    const compCount = allCompetitions.filter(function (c) { return c.strategy_id === id; }).length;
+    let warning = '';
+    if (leadCount) warning += ' It has ' + leadCount + ' lead(s).';
+    if (compCount) warning += ' It has ' + compCount + ' giveaway(s) which will be unlinked.';
+    if (!confirm('Delete this strategy?' + warning)) return;
+    try {
+      const { error } = await client.from('marketing_strategies').delete().eq('id', id);
+      if (error) throw error;
+      await loadData();
+    } catch (err) {
+      alert('Could not delete strategy: ' + err.message);
+    }
+  }
+
+  function renderStrategies() {
+    const container = document.getElementById('strategyList');
+    if (!allStrategies.length) {
+      container.innerHTML = '<p style="color:var(--ink-soft);font-size:14px;">No strategies yet. Create one above.</p>';
+      return;
+    }
+
+    let html = '';
+    allStrategies.forEach(function (s) {
+      const typeLabel = fmtStratType(s.type);
+      const status = fmtStratStatus(s.status);
+      const dates = (s.starts_at || s.ends_at) ? ' · ' + fmtDate(s.starts_at) + ' – ' + fmtDate(s.ends_at) : '';
+
+      html += '<div class="competition-row" data-id="' + escapeHtml(s.id) + '" style="align-items:flex-start;">' +
+        '<div style="flex:1;">' +
+          '<div class="cr-name">' + escapeHtml(s.name || 'Unnamed') + ' <span class="' + stratStatusClass(s.status) + '">' + status + '</span></div>' +
+          '<div class="cr-dates">' + typeLabel + dates + '</div>' +
+          (s.description ? '<div class="cr-dates" style="margin-top:4px;">' + escapeHtml(s.description) + '</div>' : '') +
+        '</div>' +
+        '<div class="cr-actions">' +
+          (s.status === 'active'
+            ? '<button class="admin-btn danger" onclick="updateStrategyStatus(\'' + s.id + '\', \'paused\')">Pause</button>'
+            : '<button class="admin-btn" onclick="updateStrategyStatus(\'' + s.id + '\', \'active\')">' + (s.status === 'archived' ? 'Reopen' : 'Activate') + '</button>') +
+          (s.status !== 'archived' ? '<button class="admin-btn" onclick="updateStrategyStatus(\'' + s.id + '\', \'archived\')">Archive</button>' : '') +
+          '<button class="admin-btn danger" onclick="deleteStrategy(\'' + s.id + '\')">Delete</button>' +
+        '</div>' +
+        '</div>';
+    });
+    container.innerHTML = html;
+  }
+
   function gatherCompetitionPayload() {
     const value = parseFloat(document.getElementById('compValue').value);
+    const strategyId = document.getElementById('compStrategy').value;
 
     return {
       name: document.getElementById('compName').value.trim(),
+      strategy_id: strategyId || null,
+      status: document.getElementById('compStatus').value || 'draft',
       type: document.getElementById('compType').value,
       starts_at: document.getElementById('compStarts').value ? new Date(document.getElementById('compStarts').value).toISOString() : null,
       ends_at: document.getElementById('compEnds').value ? new Date(document.getElementById('compEnds').value).toISOString() : null,
@@ -421,6 +679,8 @@
 
   function clearCompForm() {
     document.getElementById('compName').value = '';
+    document.getElementById('compStrategy').value = '';
+    document.getElementById('compStatus').value = 'draft';
     document.getElementById('compType').value = 'random_draw';
     document.getElementById('compStarts').value = '';
     document.getElementById('compEnds').value = '';
@@ -532,6 +792,9 @@
       '<h4 style="font-size:16px;margin:0 0 14px;">Edit Competition</h4>' +
       '<div class="two-col">' +
         '<div class="form-row"><label>Name</label><input type="text" id="edit-name-' + c.id + '" value="' + escapeHtml(c.name) + '"></div>' +
+        '<div class="form-row"><label>Marketing strategy</label><select id="edit-strategy-' + c.id + '">' + renderStrategyOptions(c.strategy_id) + '</select></div>' +
+      '</div>' +
+      '<div class="two-col">' +
         '<div class="form-row"><label>Type</label><select id="edit-type-' + c.id + '" value="' + escapeHtml(c.type) + '" onchange="this.setAttribute(\'value\', this.value)">' +
           '<option value="random_draw"' + (c.type === 'random_draw' ? ' selected' : '') + '>Random draw</option>' +
           '<option value="referral"' + (c.type === 'referral' ? ' selected' : '') + '>Referral giveaway</option>' +
@@ -570,6 +833,7 @@
 
     const payload = {
       name: document.getElementById('edit-name-' + id).value.trim(),
+      strategy_id: document.getElementById('edit-strategy-' + id).value || null,
       type: document.getElementById('edit-type-' + id).value,
       starts_at: document.getElementById('edit-starts-' + id).value ? new Date(document.getElementById('edit-starts-' + id).value).toISOString() : null,
       ends_at: document.getElementById('edit-ends-' + id).value ? new Date(document.getElementById('edit-ends-' + id).value).toISOString() : null,
@@ -609,6 +873,7 @@
   function renderLeads() {
     const container = document.getElementById('leadsContent');
     const search = document.getElementById('searchInput').value.toLowerCase();
+    const strategyFilter = document.getElementById('filterStrategy').value;
     const compFilter = document.getElementById('filterComp').value;
     const statusFilter = document.getElementById('filterStatus').value;
 
@@ -617,9 +882,10 @@
         (l.full_name || '').toLowerCase().includes(search) ||
         (l.email || '').toLowerCase().includes(search) ||
         (l.phone || '').toLowerCase().includes(search);
+      const matchesStrategy = strategyFilter === 'all' || l.strategy_id === strategyFilter;
       const matchesComp = compFilter === 'all' || l.competition_id === compFilter;
       const matchesStatus = statusFilter === 'all' || l.status === statusFilter;
-      return matchesSearch && matchesComp && matchesStatus;
+      return matchesSearch && matchesStrategy && matchesComp && matchesStatus;
     });
 
     // Stats
@@ -642,6 +908,7 @@
         '<th>Name</th>' +
         '<th>Email</th>' +
         '<th>Phone</th>' +
+        '<th>Strategy</th>' +
         '<th>Competition</th>' +
         '<th>Entered</th>' +
         '<th>Status</th>' +
@@ -653,6 +920,7 @@
         '<td>' + escapeHtml(l.full_name || '-') + '</td>' +
         '<td>' + escapeHtml(l.email || '') + '</td>' +
         '<td>' + escapeHtml(l.phone || '-') + '</td>' +
+        '<td>' + escapeHtml(getStrategyName(l.strategy_id)) + '</td>' +
         '<td>' + escapeHtml(getCompName(l.competition_id)) + '</td>' +
         '<td>' + (l.created_at ? new Date(l.created_at).toLocaleDateString() : '-') + '</td>' +
         '<td><select onchange="updateLeadStatus(\'' + l.id + '\', this.value)" style="font-size:12px;padding:4px 8px;border-radius:var(--radius);border:1.5px solid var(--line);">' +
@@ -695,13 +963,15 @@
   }
 
   function pickRandomWinner() {
+    const strategyFilter = document.getElementById('filterStrategy').value;
     const compFilter = document.getElementById('filterComp').value;
     const statusFilter = document.getElementById('filterStatus').value;
 
     let pool = allLeads.filter(function (l) {
+      const matchesStrategy = strategyFilter === 'all' || l.strategy_id === strategyFilter;
       const matchesComp = compFilter === 'all' || l.competition_id === compFilter;
       const matchesStatus = statusFilter === 'all' || l.status === statusFilter;
-      return matchesComp && matchesStatus;
+      return matchesStrategy && matchesComp && matchesStatus;
     });
 
     if (!pool.length) {
@@ -741,25 +1011,28 @@
 
   function exportCsv() {
     const search = document.getElementById('searchInput').value.toLowerCase();
+    const strategyFilter = document.getElementById('filterStrategy').value;
     const compFilter = document.getElementById('filterComp').value;
     const statusFilter = document.getElementById('filterStatus').value;
 
     const rows = [];
-    rows.push(['Name', 'Email', 'Phone', 'Giveaway', 'Status', 'Opt In', 'Entered At']);
+    rows.push(['Name', 'Email', 'Phone', 'Strategy', 'Giveaway', 'Status', 'Opt In', 'Entered At']);
 
     allLeads.forEach(function (l) {
       const matchesSearch = !search ||
         (l.full_name || '').toLowerCase().includes(search) ||
         (l.email || '').toLowerCase().includes(search) ||
         (l.phone || '').toLowerCase().includes(search);
+      const matchesStrategy = strategyFilter === 'all' || l.strategy_id === strategyFilter;
       const matchesComp = compFilter === 'all' || l.competition_id === compFilter;
       const matchesStatus = statusFilter === 'all' || l.status === statusFilter;
-      if (!matchesSearch || !matchesComp || !matchesStatus) return;
+      if (!matchesSearch || !matchesStrategy || !matchesComp || !matchesStatus) return;
 
       rows.push([
         l.full_name || '',
         l.email || '',
         l.phone || '',
+        getStrategyName(l.strategy_id),
         getCompName(l.competition_id),
         l.status || '',
         l.opt_in ? 'Yes' : 'No',
@@ -836,6 +1109,9 @@
 
   // Expose functions needed by inline onclick handlers.
   window.switchTab = switchTab;
+  window.createStrategy = createStrategy;
+  window.updateStrategyStatus = updateStrategyStatus;
+  window.deleteStrategy = deleteStrategy;
   window.createCompetition = createCompetition;
   window.updateCompetitionStatus = updateCompetitionStatus;
   window.deleteCompetition = deleteCompetition;
