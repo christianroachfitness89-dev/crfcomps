@@ -210,7 +210,12 @@
   }
 
   function populateStrategySelects() {
-    ['compStrategy', 'filterStrategy', 'uploadStrategy', 'dashFilterStrategy'].forEach(function (id) {
+    const ids = ['compStrategy', 'filterStrategy', 'uploadStrategy', 'dashFilterStrategy'];
+    POOLS.forEach(function (p) {
+      ids.push('uploadStrategy-' + p.key);
+    });
+
+    ids.forEach(function (id) {
       const sel = document.getElementById(id);
       if (!sel) return;
       const current = sel.value;
@@ -218,6 +223,24 @@
       sel.innerHTML = (includeEmpty ? '<option value="">— Select strategy —</option>' : '<option value="all">All strategies</option>') +
         allStrategies.map(function (s) {
           return '<option value="' + escapeHtml(s.id) + '"' + (s.id === current ? ' selected' : '') + '>' + escapeHtml((s.name || 'Unnamed') + ' · ' + fmtStratType(s.type)) + '</option>';
+        }).join('');
+    });
+
+    // Populate strategy filters inside each pool page.
+    document.querySelectorAll('.pool-strategy').forEach(function (sel) {
+      const current = sel.value;
+      sel.innerHTML = '<option value="all">All strategies</option>' +
+        allStrategies.map(function (s) {
+          return '<option value="' + escapeHtml(s.id) + '"' + (s.id === current ? ' selected' : '') + '>' + escapeHtml((s.name || 'Unnamed') + ' · ' + fmtStratType(s.type)) + '</option>';
+        }).join('');
+    });
+
+    // Populate competition filters inside each pool page.
+    document.querySelectorAll('.pool-comp').forEach(function (sel) {
+      const current = sel.value;
+      sel.innerHTML = '<option value="all">All giveaways</option>' +
+        allCompetitions.map(function (c) {
+          return '<option value="' + escapeHtml(c.id) + '"' + (c.id === current ? ' selected' : '') + '>' + escapeHtml((c.name || 'Unnamed') + ' · ' + fmtStatus(c.status)) + '</option>';
         }).join('');
     });
   }
