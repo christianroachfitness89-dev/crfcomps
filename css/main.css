@@ -527,23 +527,37 @@ footer{padding:40px 0 60px;border-top:1px solid var(--line);}
 .admin-sidebar{
   width:260px;flex-shrink:0;background:var(--ink);color:var(--paper-3);
   position:fixed;left:0;top:61px;bottom:0;z-index:40;
-  transform:translateX(-100%);transition:transform .25s ease;
-  overflow-y:auto;
+  transform:translateX(-100%);transition:width .25s ease, transform .25s ease;
+  overflow:hidden;
 }
 .admin-sidebar.open{transform:translateX(0);}
-.admin-sidebar-inner{padding:24px 18px;}
+.admin-sidebar.collapsed{width:62px;}
+.admin-sidebar.collapsed .admin-brand span:not(.dot),
+.admin-sidebar.collapsed .admin-nav a span,
+.admin-sidebar.collapsed .admin-nav-divider{display:none;}
+.admin-sidebar.collapsed .admin-nav a{justify-content:center;padding:14px 10px;}
+.admin-sidebar.collapsed .admin-nav a svg{margin:0;}
+.admin-sidebar-inner{padding:24px 18px;height:100%;}
 .admin-brand{
   display:flex;align-items:center;gap:10px;font-family:'Oswald',sans-serif;
   font-size:16px;text-transform:uppercase;letter-spacing:0.04em;
-  margin-bottom:28px;padding:0 8px;
+  margin-bottom:28px;padding:0 8px;position:relative;
 }
 .admin-brand .dot{background:var(--red);}
+.sidebar-close{
+  position:absolute;right:0;top:50%;transform:translateY(-50%);
+  background:none;border:none;color:var(--paper-2);cursor:pointer;padding:4px;
+  opacity:0.6;transition:opacity .2s;
+}
+.sidebar-close:hover{opacity:1;}
+.admin-sidebar.collapsed .sidebar-close{display:none;}
 .admin-nav{display:flex;flex-direction:column;gap:4px;}
 .admin-nav a{
   display:flex;align-items:center;gap:12px;
   padding:12px 10px;border-radius:var(--radius);
   font-size:14px;font-weight:500;color:var(--paper-2);text-decoration:none;
   transition:background .2s,color .2s;
+  white-space:nowrap;
 }
 .admin-nav a:hover{background:rgba(245,242,232,.1);color:#fff;}
 .admin-nav a.active{background:var(--paper-3);color:var(--ink);font-weight:600;}
@@ -560,8 +574,9 @@ footer{padding:40px 0 60px;border-top:1px solid var(--line);}
 
 .admin-main{
   flex:1;margin-left:0;padding:32px 24px 60px;min-width:0;
-  max-width:1200px;width:100%;
+  max-width:1200px;width:100%;transition:margin-left .25s ease;
 }
+.admin-main.expanded{margin-left:62px;}
 
 .admin-page{display:none;animation:fadeIn .25s ease;}
 .admin-page.active{display:block;}
