@@ -37,8 +37,11 @@ This creates:
 - `invoices` table — invoices / billing records
 - `sessions` table — scheduled 1-on-1 coaching appointments
 - `attendance` table — attendance records per session
+- `communications` table — log of calls, SMS, email, WhatsApp, in-person and notes for leads and clients
 - Row Level Security policies (public can submit leads into active giveaways; only admins can manage everything)
 - Triggers that keep the admin profile row in sync with auth.users
+
+> For existing databases, run the phase migration files in `migrations/` in order instead of re-running the full setup script.
 
 ---
 
