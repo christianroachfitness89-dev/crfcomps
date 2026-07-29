@@ -113,6 +113,10 @@ create table if not exists public.site_settings (
 alter table public.site_settings
   drop column if exists fallback_prize_pool;
 
+-- Migration: add fallback_prize_value if site_settings was created before this column.
+alter table public.site_settings
+  add column if not exists fallback_prize_value numeric not null default 0;
+
 -- ---------- indexes ----------
 
 create index if not exists idx_leads_strategy_id on public.leads(strategy_id);
