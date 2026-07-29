@@ -1804,6 +1804,9 @@
   window.deleteLead = deleteLead;
   window.promoteLeadToClient = promoteLeadToClient;
   window.openSmsWithTemplate = openSmsWithTemplate;
+  window.logCall = logCall;
+  window.openLogEmail = openLogEmail;
+  window.logCommunication = logCommunication;
   window.pickRandomWinner = pickRandomWinner;
   window.markWinnerFromPanel = markWinnerFromPanel;
   window.exportCsv = exportCsv;
