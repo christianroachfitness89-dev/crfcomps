@@ -113,7 +113,7 @@
         <div class="form-row">
           <label for="stratSmsTemplate">SMS template (optional)</label>
           <textarea id="stratSmsTemplate" rows="3" placeholder="Hi {first_name}, this is CRF Comps about the {strategy_name}..."></textarea>
-          <p style="font-size:13px;color:var(--ink-soft);margin-top:6px;">Placeholders: <b>{first_name}</b>, <b>{last_name}</b>, <b>{full_name}</b>, <b>{phone}</b>, <b>{email}</b>, <b>{strategy_name}</b>. Filled per lead when you click "Template SMS".</p>
+          <p style="font-size:13px;color:var(--ink-soft);margin-top:6px;">Placeholders: <b>{first_name}</b>, <b>{last_name}</b>, <b>{full_name}</b>, <b>{phone}</b>, <b>{email}</b>, <b>{strategy_name}</b>, plus any extra upload column such as <b>{age}</b> or <b>{birth_month}</b>. A <b>birthday</b>/<b>dob</b> column auto-creates <b>age</b> and <b>birth_month</b> tags.</p>
         </div>
         <div class="form-row" style="margin-top:12px;">
           <button type="button" class="submit-btn" id="createStratBtn" onclick="createStrategy()" style="width:auto;padding:14px 24px;">Create Strategy</button>
@@ -295,7 +295,7 @@
         <div class="form-row">
           <label for="uploadFile">Upload CSV or Excel file</label>
           <input type="file" id="uploadFile" accept=".csv,.xlsx,.xls" onchange="handleFileUpload()">
-          <p style="font-size:13px;color:var(--ink-soft);margin-top:6px;">Required columns: <b>first_name, last_name, mobile</b>. Optional: <b>email</b> and <b>opt_in</b> (yes/no/true/false). Any other headers are captured as tags on the lead.</p>
+          <p style="font-size:13px;color:var(--ink-soft);margin-top:6px;">Required columns: <b>first_name, last_name, mobile</b>. Optional: <b>email</b> and <b>opt_in</b> (yes/no/true/false). Any other headers are captured as tags and become SMS placeholders, e.g. <b>{age}</b> or <b>{birth_month}</b>. A <b>birthday</b>/<b>dob</b> column auto-creates age and birth_month tags.</p>
         </div>
         <div class="form-row" id="uploadPreview" style="display:none;">
           <label>Preview (<span id="uploadCount">0</span> leads ready)</label>
@@ -744,7 +744,7 @@
       '</div>' +
       '<div class="form-row"><label>UTM campaign</label><input type="text" id="edit-strat-utm-campaign-' + id + '" value="' + escapeHtml(s.utm_campaign || '') + '"></div>' +
       '<div class="form-row"><label>SMS template</label><textarea id="edit-strat-sms-' + id + '" rows="3" placeholder="Hi {first_name}, this is CRF Comps about the {strategy_name}...">' + escapeHtml(s.sms_template || '') + '</textarea>' +
-        '<p style="font-size:13px;color:var(--ink-soft);margin-top:6px;">Placeholders: <b>{first_name}</b>, <b>{last_name}</b>, <b>{full_name}</b>, <b>{phone}</b>, <b>{email}</b>, <b>{strategy_name}</b>.</p></div>' +
+        '<p style="font-size:13px;color:var(--ink-soft);margin-top:6px;">Placeholders: <b>{first_name}</b>, <b>{last_name}</b>, <b>{full_name}</b>, <b>{phone}</b>, <b>{email}</b>, <b>{strategy_name}</b>, plus any extra upload column such as <b>{age}</b> or <b>{birth_month}</b>.</p></div>' +
       '<div class="admin-actions">' +
         '<button class="admin-btn" onclick="saveStrategyEdit(\'' + id + '\')">Save Changes</button>' +
         '<button class="admin-btn" onclick="document.getElementById(\'edit-strategy-' + id + '\').classList.remove(\'show\')">Cancel</button>' +
@@ -1130,13 +1130,30 @@
   function fillSmsTemplate(template, lead, strategy) {
     if (!template) return '';
     const { first, last } = splitName(lead.full_name);
-    return template
+    let result = template
       .replace(/\{first_name\}/gi, first)
       .replace(/\{last_name\}/gi, last)
       .replace(/\{full_name\}/gi, lead.full_name || '')
       .replace(/\{phone\}/gi, lead.phone || '')
       .replace(/\{email\}/gi, lead.email || '')
       .replace(/\{strategy_name\}/gi, strategy ? (strategy.name || '') : '');
+
+    // Any upload column captured as a tag can be used as a placeholder, e.g. {age}, {birth_month}.
+    const tagMap = {};
+    (lead.tags || []).forEach(function (tag) {
+      const colon = tag.indexOf(':');
+      if (colon > 0) {
+        const key = tag.slice(0, colon).trim().toLowerCase();
+        const val = tag.slice(colon + 1).trim();
+        if (key && !tagMap.hasOwnProperty(key)) tagMap[key] = val;
+      }
+    });
+
+    result = result.replace(/\{([a-z0-9_]+)\}/gi, function (match, key) {
+      return tagMap.hasOwnProperty(key) ? tagMap[key] : match;
+    });
+
+    return result;
   }
 
   function renderStatusOptions(current) {
@@ -1417,6 +1434,49 @@
     return ['yes', 'true', '1', 'y'].includes(s);
   }
 
+  function parseDateApprox(val) {
+    if (!val) return null;
+    const s = String(val).trim();
+    let d = new Date(s);
+    if (!isNaN(d.getTime())) return d;
+    const parts = s.split(/[\/\-\.]/);
+    if (parts.length === 3) {
+      const nums = parts.map(Number);
+      if (nums.every(function (n) { return !isNaN(n); })) {
+        // Try DD/MM/YYYY.
+        d = new Date(nums[2], nums[1] - 1, nums[0]);
+        if (!isNaN(d.getTime()) && nums[0] <= 31 && nums[1] <= 12) return d;
+        // Try MM/DD/YYYY.
+        d = new Date(nums[2], nums[0] - 1, nums[1]);
+        if (!isNaN(d.getTime()) && nums[1] <= 31 && nums[0] <= 12) return d;
+      }
+    }
+    return null;
+  }
+
+  function calculateAge(birthDate) {
+    const now = new Date();
+    let age = now.getFullYear() - birthDate.getFullYear();
+    const m = now.getMonth() - birthDate.getMonth();
+    if (m < 0 || (m === 0 && now.getDate() < birthDate.getDate())) age--;
+    return age;
+  }
+
+  function deriveBirthdayTags(row, headers) {
+    const idx = headers.findIndex(function (h) {
+      return h === 'birthday' || h === 'dob' || h === 'date_of_birth';
+    });
+    if (idx === -1) return {};
+    const d = parseDateApprox(row[idx]);
+    if (!d) return {};
+    const tags = {};
+    const age = calculateAge(d);
+    if (!isNaN(age) && age >= 0) tags.age = String(age);
+    const monthName = d.toLocaleString(undefined, { month: 'long' });
+    if (monthName) tags.birth_month = monthName;
+    return tags;
+  }
+
   function rowsToLeads(rows) {
     const headers = (rows[0] || []).map(normaliseHeader);
     const firstNameIdx = headers.indexOf('first_name');
@@ -1445,11 +1505,23 @@
 
       const email = emailIdx === -1 ? '' : String(row[emailIdx] || '').trim();
 
+      const seenKeys = new Set();
       const tags = [];
       extraIndexes.forEach(function (idx) {
         const key = headers[idx];
         const val = String(row[idx] || '').trim();
-        if (val) tags.push(key + ': ' + val);
+        if (val) {
+          tags.push(key + ': ' + val);
+          seenKeys.add(key);
+        }
+      });
+
+      const derived = deriveBirthdayTags(row, headers);
+      Object.keys(derived).forEach(function (key) {
+        if (!seenKeys.has(key)) {
+          tags.push(key + ': ' + derived[key]);
+          seenKeys.add(key);
+        }
       });
 
       leads.push({
