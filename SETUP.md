@@ -202,6 +202,20 @@ The **Dashboard** shows:
 
 ---
 
+## Migrations for live databases
+
+If you already have a live database and want to apply the new operations tables incrementally, run the files in `migrations/` in order:
+
+1. `phase1-operations-restructure.sql`
+2. `phase2-clients.sql`
+3. `phase3-payments-invoices.sql`
+4. `phase4-sessions-attendance.sql`
+5. `phase5-communications.sql`
+
+Each file is idempotent and safe to re-run.
+
+---
+
 ## Next steps / future ideas
 
 - Referral links: each lead gets a unique `referral_code`; extra entries for successful referrals.
