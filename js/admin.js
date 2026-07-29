@@ -995,11 +995,28 @@
       if (error) throw error;
       lead.status = 'sms_sent';
       lead.last_contact_at = new Date().toISOString();
+      logCommunication({ lead_id: id, type: 'sms', direction: 'outbound', status: 'completed', body: body });
       refreshLeadViews();
       return { ok: true };
     } catch (err) {
       console.error('Could not update lead status after SMS:', err);
       return { ok: false, reason: 'db_error' };
+    }
+  }
+
+  async function logCommunication(data) {
+    try {
+      await client.from('communications').insert({
+        lead_id: data.lead_id || null,
+        client_id: data.client_id || null,
+        type: data.type || 'note',
+        direction: data.direction || 'outbound',
+        status: data.status || 'completed',
+        body: data.body || null,
+        created_by: window.opsData.user ? window.opsData.user.id : null
+      });
+    } catch (err) {
+      console.warn('Could not log communication:', err);
     }
   }
 
