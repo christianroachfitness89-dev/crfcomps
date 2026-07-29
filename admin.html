@@ -280,7 +280,7 @@
         <div class="form-row">
           <label for="uploadFile">Upload CSV or Excel file</label>
           <input type="file" id="uploadFile" accept=".csv,.xlsx,.xls" onchange="handleFileUpload()">
-          <p style="font-size:13px;color:var(--ink-soft);margin-top:6px;">Required columns: <b>first_name, last_name, email, mobile</b>. Optional: <b>opt_in</b> (yes/no/true/false). Any other headers are captured as tags on the lead.</p>
+          <p style="font-size:13px;color:var(--ink-soft);margin-top:6px;">Required columns: <b>first_name, last_name, mobile</b>. Optional: <b>email</b> and <b>opt_in</b> (yes/no/true/false). Any other headers are captured as tags on the lead.</p>
         </div>
         <div class="form-row" id="uploadPreview" style="display:none;">
           <label>Preview (<span id="uploadCount">0</span> leads ready)</label>
@@ -1182,8 +1182,8 @@
     const mobileIdx = headers.indexOf('mobile');
     const optInIdx = headers.indexOf('opt_in');
 
-    if (firstNameIdx === -1 || lastNameIdx === -1 || emailIdx === -1 || mobileIdx === -1) {
-      throw new Error('CSV/Excel must have first_name, last_name, email and mobile columns.');
+    if (firstNameIdx === -1 || lastNameIdx === -1 || mobileIdx === -1) {
+      throw new Error('CSV/Excel must have first_name, last_name and mobile columns.');
     }
 
     const known = new Set(['first_name', 'last_name', 'email', 'mobile', 'opt_in']);
@@ -1197,9 +1197,10 @@
       if (!row || !row.length) continue;
       const firstName = String(row[firstNameIdx] || '').trim();
       const lastName = String(row[lastNameIdx] || '').trim();
-      const email = String(row[emailIdx] || '').trim();
       const mobile = String(row[mobileIdx] || '').trim();
-      if (!firstName || !lastName || !email || !mobile) continue;
+      if (!firstName || !lastName || !mobile) continue;
+
+      const email = emailIdx === -1 ? '' : String(row[emailIdx] || '').trim();
 
       const tags = [];
       extraIndexes.forEach(function (idx) {
@@ -1210,7 +1211,7 @@
 
       leads.push({
         full_name: firstName + ' ' + lastName,
-        email: email,
+        email: email || null,
         phone: mobile,
         opt_in: optInIdx === -1 ? true : parseOptIn(row[optInIdx]),
         tags: tags.length ? tags : null

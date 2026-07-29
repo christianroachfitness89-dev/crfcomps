@@ -78,7 +78,7 @@ create table if not exists public.leads (
   strategy_id uuid references public.marketing_strategies on delete set null,
   competition_id uuid references public.competitions on delete cascade,
   full_name text not null,
-  email text not null,
+  email text,
   phone text,
   opt_in boolean not null default true,
   source text,
@@ -97,6 +97,9 @@ alter table public.leads
 
 -- Remove old per-competition unique constraint (duplicates allowed per user decision).
 alter table public.leads drop constraint if exists leads_competition_id_email_key;
+
+-- Migration: make email nullable so bulk uploads can include leads without email addresses.
+alter table public.leads alter column email drop not null;
 
 -- Single-row public site settings and fallback content.
 create table if not exists public.site_settings (
