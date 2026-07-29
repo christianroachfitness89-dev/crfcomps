@@ -33,6 +33,8 @@ This creates:
 - `site_settings` table — single-row fallback content and brand name
 - `clients` table — members and prospects promoted from leads or added manually
 - `client_notes` table — notes attached to each client
+- `payments` table — payments received from clients
+- `invoices` table — invoices / billing records
 - Row Level Security policies (public can submit leads into active giveaways; only admins can manage everything)
 - Triggers that keep the admin profile row in sync with auth.users
 
