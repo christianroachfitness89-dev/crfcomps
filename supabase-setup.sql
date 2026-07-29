@@ -117,7 +117,7 @@ alter table public.leads add constraint leads_status_check
 -- Migration: add pool column for separating giveaway, new-member and non-attendance leads.
 alter table public.leads
   add column if not exists pool text not null default 'giveaway'
-  constraint leads_pool_check check (pool in ('giveaway', 'new_member', 'non_attendance'));
+  constraint leads_pool_check check (pool in ('giveaway', 'new_member', 'non_attendance', 'birthday'));
 
 -- Migration: add last_contact_at for speed-to-lead tracking.
 alter table public.leads add column if not exists last_contact_at timestamptz;
