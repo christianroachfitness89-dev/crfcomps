@@ -81,11 +81,12 @@
 
   async function loadData() {
     try {
-      const [leadsRes, stratRes, compRes, clientRes, payRes, invRes, sessRes, attRes, commRes] = await Promise.all([
+      const [leadsRes, stratRes, compRes, clientRes, notesRes, payRes, invRes, sessRes, attRes, commRes] = await Promise.all([
         client.from('leads').select('*').order('created_at', { ascending: false }),
         client.from('marketing_strategies').select('*').order('created_at', { ascending: false }),
         client.from('competitions').select('*').order('starts_at', { ascending: false }),
         safeSelect('clients'),
+        safeSelect('client_notes'),
         safeSelect('payments'),
         safeSelect('invoices'),
         safeSelect('sessions'),
@@ -97,6 +98,7 @@
       window.opsData.strategies = stratRes.data || [];
       window.opsData.competitions = compRes.data || [];
       window.opsData.clients = clientRes.data || [];
+      window.opsData.clientNotes = notesRes.data || [];
       window.opsData.payments = payRes.data || [];
       window.opsData.invoices = invRes.data || [];
       window.opsData.sessions = sessRes.data || [];
