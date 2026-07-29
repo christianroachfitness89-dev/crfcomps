@@ -1506,6 +1506,8 @@
   window.navigate = navigate;
   window.toggleMobileNav = toggleMobileNav;
   window.closeMobileNav = closeMobileNav;
+  window.toggleSidebar = toggleSidebar;
+  window.closeSidebar = closeSidebar;
 
   window.createStrategy = createStrategy;
   window.updateStrategyStatus = updateStrategyStatus;
