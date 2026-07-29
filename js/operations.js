@@ -19,7 +19,8 @@
     invoices: [],
     sessions: [],
     attendance: [],
-    communications: []
+    communications: [],
+    clientNotes: []
   };
 
   function fmtDateShort(iso) {
