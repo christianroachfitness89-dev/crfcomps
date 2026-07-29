@@ -1302,7 +1302,8 @@
     return ['yes', 'true', '1', 'y'].includes(s);
   }
 
-  function rowsToLeads(rows) {
+  function rowsToLeads(rows, options) {
+    options = options || {};
     const headers = (rows[0] || []).map(normaliseHeader);
     const firstNameIdx = headers.indexOf('first_name');
     const lastNameIdx = headers.indexOf('last_name');
@@ -1314,7 +1315,7 @@
       throw new Error('CSV/Excel must have first_name, last_name and mobile columns.');
     }
 
-    const known = new Set(['first_name', 'last_name', 'email', 'mobile', 'opt_in']);
+    const known = new Set(['first_name', 'last_name', 'email', 'mobile', 'opt_in', 'birthday_day']);
     const extraIndexes = headers.map(function (h, i) {
       return known.has(h) ? -1 : i;
     }).filter(function (i) { return i !== -1; });
@@ -1341,7 +1342,7 @@
         }
       });
 
-      const derived = deriveBirthdayTags(row, headers);
+      const derived = deriveBirthdayTags(row, headers, options.birthMonth);
       Object.keys(derived).forEach(function (key) {
         if (!seenKeys.has(key)) {
           tags.push(key + ': ' + derived[key]);
