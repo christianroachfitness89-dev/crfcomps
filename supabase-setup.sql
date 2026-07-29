@@ -144,6 +144,29 @@ alter table public.site_settings
 alter table public.site_settings
   add column if not exists fallback_prize_value numeric not null default 0;
 
+-- Clients / members. Many are promoted from a converted lead, but can also be added manually.
+create table if not exists public.clients (
+  id uuid default gen_random_uuid() primary key,
+  lead_id uuid references public.leads on delete set null,
+  full_name text not null,
+  email text,
+  phone text,
+  status text not null default 'prospect' check (status in ('prospect', 'active_member', 'paused', 'inactive_member', 'churned', 'former_client')),
+  source text,
+  notes text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+-- Client notes (one-to-many).
+create table if not exists public.client_notes (
+  id uuid default gen_random_uuid() primary key,
+  client_id uuid references public.clients on delete cascade not null,
+  note text not null,
+  created_by uuid references auth.users on delete set null,
+  created_at timestamptz not null default now()
+);
+
 -- ---------- indexes ----------
 
 create index if not exists idx_leads_strategy_id on public.leads(strategy_id);
