@@ -1480,10 +1480,17 @@
     msg.className = 'msg';
 
     // Strategy is required for giveaway leads (public entry flow), but optional for
-    // new-member and non-attendance pools to keep speed-to-lead uploads frictionless.
+    // new-member, non-attendance and birthday pools to keep speed-to-lead uploads frictionless.
     if (!strategyId && pool === 'giveaway') {
       showMsg(msg, 'Please select a strategy for giveaway leads.', 'error');
       return;
+    }
+    if (pool === 'birthday') {
+      const monthSelect = document.getElementById('uploadBirthMonth-birthday');
+      if (!monthSelect || !monthSelect.value) {
+        showMsg(msg, 'Please select a birth month for birthday leads.', 'error');
+        return;
+      }
     }
     if (!pendingUploadRows.length) {
       showMsg(msg, 'No valid leads to import.', 'error');
