@@ -142,13 +142,14 @@ Create a giveaway and set its status to **active**. Only one giveaway can be act
 
 ## Lead pools
 
-The admin panel now separates leads into three pools so you can move fast on different types of prospects:
+The admin panel now separates leads into four pools so you can move fast on different types of prospects:
 
 | Pool | Use case | How to add leads |
 |------|----------|------------------|
 | **Giveaway Leads** | Free entries from the public giveaway form. | Public homepage form. |
 | **New Member Leads** | Prospects who have not yet joined. | Bulk upload CSV/Excel. |
 | **Non-Attendance Leads** | Members who have not attended for ~30 days. | Bulk upload CSV/Excel. |
+| **Birthday Leads** | Members with birthdays in a given month. | Bulk upload CSV/Excel and pick the month from the dropdown. |
 
 Each pool has its own page, filters, call/SMS actions and status pipeline. Uploading on a pool page sends the leads to that pool automatically.
 
