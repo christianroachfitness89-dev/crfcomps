@@ -98,7 +98,8 @@ alter table public.leads
 -- Remove old per-competition unique constraint (duplicates allowed per user decision).
 alter table public.leads drop constraint if exists leads_competition_id_email_key;
 
--- Migration: make email nullable so bulk uploads can include leads without email addresses.
+-- Migration: make competition_id and email nullable for strategy-only / bulk-imported leads.
+alter table public.leads alter column competition_id drop not null;
 alter table public.leads alter column email drop not null;
 
 -- Single-row public site settings and fallback content.
