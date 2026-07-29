@@ -151,6 +151,8 @@ create index if not exists idx_leads_competition_id on public.leads(competition_
 create index if not exists idx_leads_email on public.leads(email);
 create index if not exists idx_leads_status on public.leads(status);
 create index if not exists idx_leads_source on public.leads(source);
+create index if not exists idx_leads_pool on public.leads(pool);
+create index if not exists idx_leads_pool_status on public.leads(pool, status);
 create index if not exists idx_competitions_status on public.competitions(status);
 create index if not exists idx_competitions_strategy_id on public.competitions(strategy_id);
 create index if not exists idx_strategies_status on public.marketing_strategies(status);
