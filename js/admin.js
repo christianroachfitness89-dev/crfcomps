@@ -915,6 +915,8 @@
         '<td><select onchange="updateLeadStatus(\'' + l.id + '\', this.value)" style="font-size:12px;padding:4px 8px;border-radius:var(--radius);border:1.5px solid var(--line);">' + renderStatusOptions(l.status) + '</select></td>' +
         '<td class="lead-actions">' +
           '<button class="admin-btn" onclick="openSmsWithTemplate(\'' + l.id + '\')" style="padding:6px 12px;font-size:11px;margin-right:6px;">Template SMS</button>' +
+          '<button class="admin-btn" onclick="logCall(\'' + l.id + '\')" style="padding:6px 12px;font-size:11px;margin-right:6px;">Log call</button>' +
+          '<button class="admin-btn" onclick="openLogEmail(\'' + l.id + '\')" style="padding:6px 12px;font-size:11px;margin-right:6px;">Log email</button>' +
           (l.status !== 'converted' ? '<button class="admin-btn" onclick="promoteLeadToClient(\'' + l.id + '\')" style="padding:6px 12px;font-size:11px;margin-right:6px;">Promote to client</button>' : '') +
           '<button class="admin-btn danger" onclick="deleteLead(\'' + l.id + '\')" style="padding:6px 12px;font-size:11px;">Delete</button>' +
         '</td>' +
