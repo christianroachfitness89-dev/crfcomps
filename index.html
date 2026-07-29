@@ -84,7 +84,7 @@
       <h2 id="prizeHeadline">Prize pool</h2>
     </div>
     <div class="pricing-grid reveal" id="prizeCards">
-      <div class="price-card featured">
+      <div class="price-card featured" id="mainPrizeCard">
         <div class="price-tag">Main winner</div>
         <div class="price-name">Giveaway prize</div>
         <div class="price-num prize-value" id="prizeMainCard" style="font-size:30px;line-height:1.1;">Main prize</div>
@@ -94,15 +94,15 @@
           <li>Coaching prize arranged after the close</li>
         </ul>
       </div>
-      <div class="price-card">
+      <div class="price-card runner-up-card hidden" id="runnerUpCard">
         <div class="price-name">Runner-up</div>
         <div class="price-num prize-value" id="prizeRunnerUp" style="font-size:24px;line-height:1.2;">Optional</div>
-        <div class="price-total prize-sub" id="prizeRunnerUpSub">Set in admin if used</div>
+        <div class="price-total prize-sub" id="prizeRunnerUpSub">Runner-up prize</div>
       </div>
-      <div class="price-card">
+      <div class="price-card runner-up-card hidden" id="runnerUp2Card">
         <div class="price-name">Second runner-up</div>
         <div class="price-num prize-value" id="prizeRunnerUp2" style="font-size:24px;line-height:1.2;">Optional</div>
-        <div class="price-total prize-sub" id="prizeRunnerUp2Sub">Set in admin if used</div>
+        <div class="price-total prize-sub" id="prizeRunnerUp2Sub">Second runner-up prize</div>
       </div>
     </div>
   </div>
@@ -294,9 +294,17 @@
 
     setText('prizeHeadline', 'Giveaway prizes' + (value ? ' · Total value ' + formatCurrency(value) : ''));
     setText('prizeMainCard', main);
+
+    const runnerUpCard = document.getElementById('runnerUpCard');
+    const runnerUp2Card = document.getElementById('runnerUp2Card');
+    const mainPrizeCard = document.getElementById('mainPrizeCard');
+    if (runnerUpCard) runnerUpCard.classList.toggle('hidden', !runnerUp);
+    if (runnerUp2Card) runnerUp2Card.classList.toggle('hidden', !runnerUp2);
+    if (mainPrizeCard) mainPrizeCard.classList.toggle('only-card', !runnerUp && !runnerUp2);
+
     setText('prizeRunnerUp', runnerUp || 'Optional');
-    setText('prizeRunnerUpSub', runnerUp ? 'Runner-up prize' : 'Set in admin if used');
     setText('prizeRunnerUp2', runnerUp2 || 'Optional');
+    setText('prizeRunnerUpSub', runnerUp ? 'Runner-up prize' : 'Set in admin if used');
     setText('prizeRunnerUp2Sub', runnerUp2 ? 'Second runner-up prize' : 'Set in admin if used');
 
     setText('formPrizeMain', main);
