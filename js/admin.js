@@ -248,10 +248,8 @@
   // ---------- dashboard ----------
 
   function renderDashboard() {
-    const strategyFilter = document.getElementById('dashFilterStrategy').value;
-    const filtered = allLeads.filter(function (l) {
-      return strategyFilter === 'all' || l.strategy_id === strategyFilter;
-    });
+    // Dashboard always shows every lead across all strategies and pools.
+    const filtered = allLeads;
 
     const now = new Date();
     const todayStart = startOfDay(0);
