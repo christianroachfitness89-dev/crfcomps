@@ -90,6 +90,10 @@
           <label for="compMain">Main giveaway prize</label>
           <input type="text" id="compMain" placeholder="e.g. 8 weeks of 1:1 coaching">
         </div>
+        <div class="form-row">
+          <label for="compMainBullets">Main prize bullet points (one per line)</label>
+          <textarea id="compMainBullets" rows="3" placeholder="8 weeks of personalised coaching&#10;Weekly check-ins and programming&#10;Nutrition guidance included"></textarea>
+        </div>
 
         <div class="two-col">
           <div class="form-row">
@@ -99,6 +103,16 @@
           <div class="form-row">
             <label for="compRunnerUp2">Second runner-up prize (optional)</label>
             <input type="text" id="compRunnerUp2" placeholder="e.g. 2 weeks of online programming">
+          </div>
+        </div>
+        <div class="two-col">
+          <div class="form-row">
+            <label for="compRunnerUpBullets">Runner-up bullets (optional)</label>
+            <textarea id="compRunnerUpBullets" rows="3" placeholder="4 weeks of group coaching&#10;Access to private community"></textarea>
+          </div>
+          <div class="form-row">
+            <label for="compRunnerUp2Bullets">Second runner-up bullets (optional)</label>
+            <textarea id="compRunnerUp2Bullets" rows="3" placeholder="2 weeks of online programming&#10;Custom training plan"></textarea>
           </div>
         </div>
 
@@ -342,8 +356,11 @@
       ends_at: document.getElementById('compEnds').value ? new Date(document.getElementById('compEnds').value).toISOString() : null,
       prize_value: isNaN(value) ? 0 : value,
       prize_main: document.getElementById('compMain').value.trim() || 'Main giveaway prize',
+      prize_main_bullets: document.getElementById('compMainBullets').value.trim() || null,
       prize_runner_up: document.getElementById('compRunnerUp').value.trim() || null,
+      prize_runner_up_bullets: document.getElementById('compRunnerUpBullets').value.trim() || null,
       prize_runner_up_2: document.getElementById('compRunnerUp2').value.trim() || null,
+      prize_runner_up_2_bullets: document.getElementById('compRunnerUp2Bullets').value.trim() || null,
       prize_description: document.getElementById('compPrizeDesc').value.trim() || null,
       hero_headline: document.getElementById('compHeadline').value.trim() || 'Enter for free.<br><em>Win coaching.</em>',
       hero_subheadline: document.getElementById('compSub').value.trim() || 'Join the current giveaway for a chance to win coaching prizes. No purchase needed.',
@@ -395,8 +412,11 @@
     document.getElementById('compStarts').value = '';
     document.getElementById('compEnds').value = '';
     document.getElementById('compMain').value = '';
+    document.getElementById('compMainBullets').value = '';
     document.getElementById('compRunnerUp').value = '';
+    document.getElementById('compRunnerUpBullets').value = '';
     document.getElementById('compRunnerUp2').value = '';
+    document.getElementById('compRunnerUp2Bullets').value = '';
     document.getElementById('compValue').value = '';
     document.getElementById('compPrizeDesc').value = '';
     document.getElementById('compHeadline').value = '';
@@ -510,9 +530,14 @@
         '<div class="form-row"><label>End</label><input type="datetime-local" id="edit-ends-' + c.id + '" value="' + toDatetimeLocal(c.ends_at) + '"></div>' +
       '</div>' +
       '<div class="form-row"><label>Main giveaway prize</label><input type="text" id="edit-main-' + c.id + '" value="' + escapeHtml(c.prize_main || '') + '"></div>' +
+      '<div class="form-row"><label>Main prize bullet points (one per line)</label><textarea id="edit-main-bullets-' + c.id + '" rows="3">' + escapeHtml(c.prize_main_bullets || '') + '</textarea></div>' +
       '<div class="two-col">' +
         '<div class="form-row"><label>Runner-up prize (optional)</label><input type="text" id="edit-runnerup-' + c.id + '" value="' + escapeHtml(c.prize_runner_up || '') + '"></div>' +
         '<div class="form-row"><label>Second runner-up (optional)</label><input type="text" id="edit-runnerup2-' + c.id + '" value="' + escapeHtml(c.prize_runner_up_2 || '') + '"></div>' +
+      '</div>' +
+      '<div class="two-col">' +
+        '<div class="form-row"><label>Runner-up bullets (optional)</label><textarea id="edit-runnerup-bullets-' + c.id + '" rows="3">' + escapeHtml(c.prize_runner_up_bullets || '') + '</textarea></div>' +
+        '<div class="form-row"><label>Second runner-up bullets (optional)</label><textarea id="edit-runnerup2-bullets-' + c.id + '" rows="3">' + escapeHtml(c.prize_runner_up_2_bullets || '') + '</textarea></div>' +
       '</div>' +
       '<div class="two-col">' +
         '<div class="form-row"><label>Total value ($) — optional</label><input type="number" id="edit-value-' + c.id + '" value="' + (c.prize_value || '') + '"></div>' +
@@ -537,8 +562,11 @@
       ends_at: document.getElementById('edit-ends-' + id).value ? new Date(document.getElementById('edit-ends-' + id).value).toISOString() : null,
       prize_value: isNaN(value) ? 0 : value,
       prize_main: document.getElementById('edit-main-' + id).value.trim() || 'Main giveaway prize',
+      prize_main_bullets: document.getElementById('edit-main-bullets-' + id).value.trim() || null,
       prize_runner_up: document.getElementById('edit-runnerup-' + id).value.trim() || null,
+      prize_runner_up_bullets: document.getElementById('edit-runnerup-bullets-' + id).value.trim() || null,
       prize_runner_up_2: document.getElementById('edit-runnerup2-' + id).value.trim() || null,
+      prize_runner_up_2_bullets: document.getElementById('edit-runnerup2-bullets-' + id).value.trim() || null,
       prize_description: document.getElementById('edit-desc-' + id).value.trim() || null,
       hero_headline: document.getElementById('edit-headline-' + id).value.trim() || 'Enter for free.<br><em>Win coaching.</em>',
       hero_subheadline: document.getElementById('edit-sub-' + id).value.trim() || 'Join the current giveaway for a chance to win coaching prizes. No purchase needed.',

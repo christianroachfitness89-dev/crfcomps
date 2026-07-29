@@ -88,7 +88,7 @@
         <div class="price-tag">Main winner</div>
         <div class="price-name">Giveaway prize</div>
         <div class="price-num prize-value" id="prizeMainCard" style="font-size:30px;line-height:1.1;">Main prize</div>
-        <ul class="price-list">
+        <ul class="price-list" id="prizeMainList">
           <li>One main winner selected</li>
           <li>Contacted by phone &amp; email</li>
           <li>Coaching prize arranged after the close</li>
@@ -97,12 +97,16 @@
       <div class="price-card runner-up-card hidden" id="runnerUpCard">
         <div class="price-name">Runner-up</div>
         <div class="price-num prize-value" id="prizeRunnerUp" style="font-size:24px;line-height:1.2;">Optional</div>
-        <div class="price-total prize-sub" id="prizeRunnerUpSub">Runner-up prize</div>
+        <ul class="price-list" id="prizeRunnerUpList">
+          <li>Runner-up prize selected</li>
+        </ul>
       </div>
       <div class="price-card runner-up-card hidden" id="runnerUp2Card">
         <div class="price-name">Second runner-up</div>
         <div class="price-num prize-value" id="prizeRunnerUp2" style="font-size:24px;line-height:1.2;">Optional</div>
-        <div class="price-total prize-sub" id="prizeRunnerUp2Sub">Second runner-up prize</div>
+        <ul class="price-list" id="prizeRunnerUp2List">
+          <li>Second runner-up prize selected</li>
+        </ul>
       </div>
     </div>
   </div>
@@ -295,6 +299,10 @@
     setText('prizeHeadline', 'Giveaway prizes' + (value ? ' · Total value ' + formatCurrency(value) : ''));
     setText('prizeMainCard', main);
 
+    const defaultMainBullets = ['One main winner selected', 'Contacted by phone & email', 'Coaching prize arranged after the close'];
+    const mainBullets = c ? parseBullets(c.prize_main_bullets) : defaultMainBullets;
+    renderBulletList('prizeMainList', mainBullets.length ? mainBullets : defaultMainBullets);
+
     const runnerUpCard = document.getElementById('runnerUpCard');
     const runnerUp2Card = document.getElementById('runnerUp2Card');
     const mainPrizeCard = document.getElementById('mainPrizeCard');
@@ -304,8 +312,11 @@
 
     setText('prizeRunnerUp', runnerUp || 'Optional');
     setText('prizeRunnerUp2', runnerUp2 || 'Optional');
-    setText('prizeRunnerUpSub', runnerUp ? 'Runner-up prize' : 'Set in admin if used');
-    setText('prizeRunnerUp2Sub', runnerUp2 ? 'Second runner-up prize' : 'Set in admin if used');
+
+    const runnerUpBullets = c ? parseBullets(c.prize_runner_up_bullets) : [];
+    const runnerUp2Bullets = c ? parseBullets(c.prize_runner_up_2_bullets) : [];
+    renderBulletList('prizeRunnerUpList', runnerUpBullets.length ? runnerUpBullets : ['Runner-up prize selected']);
+    renderBulletList('prizeRunnerUp2List', runnerUp2Bullets.length ? runnerUp2Bullets : ['Second runner-up prize selected']);
 
     setText('formPrizeMain', main);
     setText('formCloses', c ? ('Closes ' + fmtDateShort(ends)) : 'No active round');
@@ -345,6 +356,21 @@
     const d = document.createElement('div');
     d.textContent = String(str || '');
     return d.innerHTML;
+  }
+
+  function parseBullets(text) {
+    if (!text) return [];
+    return text.split('\n').map(function (l) { return l.trim(); }).filter(function (l) { return l; });
+  }
+
+  function renderBulletList(listId, items) {
+    const list = document.getElementById(listId);
+    if (!list) return;
+    let html = '';
+    items.forEach(function (item) {
+      html += '<li>' + escapeHtml(item) + '</li>';
+    });
+    list.innerHTML = html;
   }
 
   function showMsg(el, text, type) {

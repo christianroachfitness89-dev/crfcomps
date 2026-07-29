@@ -26,6 +26,9 @@ create table if not exists public.competitions (
   prize_runner_up text,
   prize_runner_up_2 text,
   prize_description text,
+  prize_main_bullets text,
+  prize_runner_up_bullets text,
+  prize_runner_up_2_bullets text,
   hero_headline text not null default 'Enter for free.<br><em>Win coaching.</em>',
   hero_subheadline text not null default 'Join the current giveaway for a chance to win coaching prizes. No purchase needed.',
   rules_text text,
@@ -38,7 +41,10 @@ alter table public.competitions
   add column if not exists prize_value numeric not null default 0,
   add column if not exists prize_main text not null default 'Main giveaway prize',
   add column if not exists prize_runner_up text,
-  add column if not exists prize_runner_up_2 text;
+  add column if not exists prize_runner_up_2 text,
+  add column if not exists prize_main_bullets text,
+  add column if not exists prize_runner_up_bullets text,
+  add column if not exists prize_runner_up_2_bullets text;
 
 alter table public.competitions
   drop column if exists prize_pool,
