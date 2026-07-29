@@ -179,6 +179,10 @@ create index if not exists idx_leads_pool_status on public.leads(pool, status);
 create index if not exists idx_competitions_status on public.competitions(status);
 create index if not exists idx_competitions_strategy_id on public.competitions(strategy_id);
 create index if not exists idx_strategies_status on public.marketing_strategies(status);
+create index if not exists idx_clients_lead_id on public.clients(lead_id);
+create index if not exists idx_clients_status on public.clients(status);
+create index if not exists idx_clients_email on public.clients(email);
+create index if not exists idx_client_notes_client_id on public.client_notes(client_id);
 
 -- ---------- helper function: is the current user an admin? ----------
 
