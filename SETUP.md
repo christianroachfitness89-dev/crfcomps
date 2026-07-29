@@ -138,6 +138,32 @@ Create a giveaway and set its status to **active**. Only one giveaway can be act
 
 ---
 
+## Lead pools
+
+The admin panel now separates leads into three pools so you can move fast on different types of prospects:
+
+| Pool | Use case | How to add leads |
+|------|----------|------------------|
+| **Giveaway Leads** | Free entries from the public giveaway form. | Public homepage form. |
+| **New Member Leads** | Prospects who have not yet joined. | Bulk upload CSV/Excel. |
+| **Non-Attendance Leads** | Members who have not attended for ~30 days. | Bulk upload CSV/Excel. |
+
+Each pool has its own page, filters, call/SMS actions and status pipeline. Uploading on a pool page sends the leads to that pool automatically.
+
+---
+
+## Dashboard insights
+
+The **Dashboard** shows:
+- **Open leads** — not yet converted or closed.
+- **Converted** — total plus how many today.
+- **Cold leads** — entered 7+ days ago and still untouched.
+- **Hot leads** — entered today and still active.
+- Pool split and status breakdown.
+- Newest leads and leads needing attention.
+
+---
+
 ## Custom domains (optional)
 
 1. In Vercel, go to your project **Settings > Domains**.
