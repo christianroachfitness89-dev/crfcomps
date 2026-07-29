@@ -162,7 +162,7 @@ The **Dashboard** shows:
 - **Converted** — total plus how many today.
 - **Cold leads** — entered 7+ days ago and still untouched.
 - **Hot leads** — entered today and still active.
-- Pool split and status breakdown.
+- Pool split and status breakdown across all four lead pools.
 - Newest leads and leads needing attention.
 
 ---
