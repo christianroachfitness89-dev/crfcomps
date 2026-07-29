@@ -164,15 +164,33 @@ Each pool has its own page, filters, call/SMS actions and status pipeline. Uploa
 
 ---
 
+## Operations platform
+
+`admin.html` is the Operations Overview dashboard. Each department now has its own page:
+
+| Page | What it covers |
+|------|----------------|
+| `admin.html` | Operations dashboard with KPIs across all departments |
+| `marketing.html` | Lead pools, strategies, giveaways, settings |
+| `crm.html` | Clients, prospects, pipeline, notes |
+| `finance.html` | Payments, invoices, revenue, outstanding balances |
+| `sessions.html` | 1-on-1 schedule and attendance |
+
+All department pages share the same grouped sidebar and auth via `js/operations.js`.
+
+---
+
 ## Dashboard insights
 
 The **Dashboard** shows:
-- **Open leads** — not yet converted or closed.
-- **Converted** — total plus how many today.
-- **Cold leads** — entered 7+ days ago and still untouched.
-- **Hot leads** — entered today and still active.
-- Pool split and status breakdown across all four lead pools.
-- Newest leads and leads needing attention.
+- **Total leads** and new leads this week
+- **Converted leads**
+- **Active clients**
+- **Revenue this month**
+- **Outstanding** invoices
+- **Upcoming sessions** and sessions this week
+- **Attendance this week**
+- **Communications this week**
 
 ---
 
