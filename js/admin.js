@@ -1426,8 +1426,10 @@
     const source = document.getElementById('uploadSource-' + pool).value.trim() || 'bulk_import';
     msg.className = 'msg';
 
-    if (!strategyId) {
-      showMsg(msg, 'Please select a strategy to assign these leads to.', 'error');
+    // Strategy is required for giveaway leads (public entry flow), but optional for
+    // new-member and non-attendance pools to keep speed-to-lead uploads frictionless.
+    if (!strategyId && pool === 'giveaway') {
+      showMsg(msg, 'Please select a strategy for giveaway leads.', 'error');
       return;
     }
     if (!pendingUploadRows.length) {
@@ -1440,7 +1442,7 @@
 
     const rows = pendingUploadRows.map(function (l) {
       return {
-        strategy_id: strategyId,
+        strategy_id: strategyId || null,
         full_name: l.full_name,
         email: l.email,
         phone: l.phone,
