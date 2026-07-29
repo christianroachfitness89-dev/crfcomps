@@ -746,6 +746,18 @@ footer{padding:40px 0 60px;border-top:1px solid var(--line);}
 .lead-actions{display:flex;gap:6px;flex-wrap:wrap;}
 .phone-link{color:var(--ink);text-decoration:underline;}
 
+.tag-warm{background:rgba(184,134,11,0.14);color:#8a6508;}
+
+.finance-tabs{display:flex;gap:8px;margin-bottom:18px;}
+.finance-tab{
+  font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.04em;
+  background:var(--paper-3);border:1.5px solid var(--line);border-radius:var(--radius);padding:8px 16px;cursor:pointer;
+  transition:background .2s, border-color .2s;
+}
+.finance-tab.active{background:var(--ink);color:var(--paper-3);border-color:var(--ink);}
+.finance-table td,.finance-table th{padding:10px 8px;}
+.finance-actions{display:flex;gap:6px;flex-wrap:wrap;}
+
 @media(min-width:960px){
   .admin-sidebar{position:fixed;transform:translateX(0);}
   .admin-main{margin-left:260px;}
