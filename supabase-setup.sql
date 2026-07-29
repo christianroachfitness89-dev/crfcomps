@@ -216,6 +216,19 @@ create table if not exists public.attendance (
   created_at timestamptz not null default now()
 );
 
+-- Communications log for leads and clients.
+create table if not exists public.communications (
+  id uuid default gen_random_uuid() primary key,
+  lead_id uuid references public.leads on delete cascade,
+  client_id uuid references public.clients on delete cascade,
+  type text not null default 'sms' check (type in ('sms', 'call', 'email', 'whatsapp', 'in_person', 'note')),
+  direction text not null default 'outbound' check (direction in ('inbound', 'outbound')),
+  status text not null default 'completed' check (status in ('completed', 'pending', 'failed', 'no_answer')),
+  body text,
+  created_by uuid references auth.users on delete set null,
+  created_at timestamptz not null default now()
+);
+
 -- ---------- indexes ----------
 
 create index if not exists idx_leads_strategy_id on public.leads(strategy_id);
