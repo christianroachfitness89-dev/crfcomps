@@ -309,6 +309,10 @@
     document.getElementById('leadsContent').innerHTML = '<div class="loading">Loading leads...</div>';
 
     try {
+      // Verify the admin function used by RLS is working for this user.
+      const { data: adminCheck, error: adminErr } = await client.rpc('is_admin', { user_id: client.auth.getUser().data.user.id });
+      console.log('RLS is_admin check:', adminCheck, adminErr);
+
       const [compsRes, leadsRes] = await Promise.all([
         client.from('competitions').select('*').order('starts_at', { ascending: false }),
         client.from('leads').select('*').order('created_at', { ascending: false })
