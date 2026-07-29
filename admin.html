@@ -212,9 +212,48 @@
           <button class="admin-btn" onclick="renderLeadPool('giveaway')">Refresh</button>
           <button class="admin-btn" onclick="exportCsv('giveaway')">Export CSV</button>
           <button class="admin-btn" onclick="pickRandomWinner('giveaway')">Pick Winner</button>
+          <button class="admin-btn" onclick="openBulkSmsPanel('giveaway')">Bulk SMS</button>
           <button class="admin-btn danger" onclick="deleteSelectedLeads('giveaway')">Delete Selected</button>
         </div>
       </div>
+
+      <div class="bulk-sms-panel" id="bulkSmsPanel-giveaway" style="display:none;">
+        <div class="card" style="margin-bottom:28px;">
+          <h3 style="font-size:18px;margin-bottom:16px;">Bulk SMS Queue</h3>
+          <div class="three-col">
+            <div class="form-row">
+              <label for="bulkSmsTemplate-giveaway">SMS template</label>
+              <select id="bulkSmsTemplate-giveaway">
+                <option value="">— Select strategy / template —</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <label for="bulkSmsDelay-giveaway">Delay between sends (seconds)</label>
+              <input type="number" id="bulkSmsDelay-giveaway" value="3" min="1" max="300">
+            </div>
+            <div class="form-row">
+              <label for="bulkSmsScope-giveaway">Scope</label>
+              <select id="bulkSmsScope-giveaway">
+                <option value="selected">Selected leads only</option>
+                <option value="filtered">All currently filtered leads</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <label for="bulkSmsBody-giveaway">Message preview (editable)</label>
+            <textarea id="bulkSmsBody-giveaway" rows="3" placeholder="Pick a strategy template to populate this, or type your own message..."></textarea>
+            <p style="font-size:13px;color:var(--ink-soft);margin-top:6px;">Placeholders: <b>{first_name}</b>, <b>{last_name}</b>, <b>{full_name}</b>, <b>{phone}</b>, <b>{email}</b>, <b>{strategy_name}</b>, plus any tags such as <b>{age}</b> or <b>{birth_month}</b>. The message is filled per lead when sent.</p>
+          </div>
+          <div class="admin-actions">
+            <button class="submit-btn" id="bulkSmsStartBtn-giveaway" onclick="startBulkSms('giveaway')" style="width:auto;padding:12px 22px;">Start Queue</button>
+            <button class="admin-btn" id="bulkSmsPauseBtn-giveaway" onclick="pauseBulkSms('giveaway')" style="display:none;">Pause</button>
+            <button class="admin-btn" onclick="closeBulkSmsPanel('giveaway')">Close</button>
+          </div>
+          <div class="bulk-sms-status" id="bulkSmsStatus-giveaway">Ready.</div>
+          <div class="bulk-sms-log" id="bulkSmsLog-giveaway"></div>
+        </div>
+      </div>
+
       <div class="pool-table-wrap">
         <div class="loading">Loading leads...</div>
       </div>
