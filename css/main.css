@@ -758,6 +758,19 @@ footer{padding:40px 0 60px;border-top:1px solid var(--line);}
 .finance-table td,.finance-table th{padding:10px 8px;}
 .finance-actions{display:flex;gap:6px;flex-wrap:wrap;}
 
+/* ---------- sessions ---------- */
+.sessions-table td,.sessions-table th{padding:10px 8px;vertical-align:top;}
+.sessions-actions{display:flex;gap:6px;flex-wrap:wrap;}
+.attendance-current{margin-bottom:18px;}
+.attendance-empty{color:var(--ink-soft);font-size:13px;padding:8px 0;}
+.attendance-list{display:flex;flex-direction:column;gap:8px;}
+.attendance-row{
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  padding:10px;border:1px solid var(--line);border-radius:var(--radius);background:#fff;
+}
+.attendance-name{font-weight:600;}
+.attendance-note{width:100%;font-size:13px;color:var(--ink-soft);margin-top:4px;}
+
 @media(min-width:960px){
   .admin-sidebar{position:fixed;transform:translateX(0);}
   .admin-main{margin-left:260px;}
