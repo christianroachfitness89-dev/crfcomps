@@ -33,6 +33,19 @@ create table if not exists public.competitions (
   updated_at timestamptz not null default now()
 );
 
+-- Migration: add coaching prize columns if they don't exist and drop old cash columns.
+alter table public.competitions
+  add column if not exists prize_value numeric not null default 0,
+  add column if not exists prize_main text not null default 'Main giveaway prize',
+  add column if not exists prize_runner_up text,
+  add column if not exists prize_runner_up_2 text;
+
+alter table public.competitions
+  drop column if exists prize_pool,
+  drop column if exists prize_first_cash,
+  drop column if exists prize_second_cash,
+  drop column if exists prize_third_cash;
+
 -- Leads / entries. One row per person per competition round.
 create table if not exists public.leads (
   id uuid default gen_random_uuid() primary key,
@@ -58,6 +71,10 @@ create table if not exists public.site_settings (
   fallback_prize_value numeric not null default 0,
   admin_contact_email text
 );
+
+-- Migration: rename old fallback prize pool column if it exists.
+alter table public.site_settings
+  drop column if exists fallback_prize_pool;
 
 -- ---------- indexes ----------
 
