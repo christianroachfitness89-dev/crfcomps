@@ -193,6 +193,29 @@ create table if not exists public.invoices (
   updated_at timestamptz not null default now()
 );
 
+-- Sessions / scheduled appointments (default: 1-on-1 coaching).
+create table if not exists public.sessions (
+  id uuid default gen_random_uuid() primary key,
+  client_id uuid references public.clients on delete set null,
+  title text not null default '1-on-1 coaching',
+  scheduled_at timestamptz not null,
+  duration_minutes integer not null default 60,
+  status text not null default 'scheduled' check (status in ('scheduled', 'completed', 'cancelled', 'no_show')),
+  notes text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+-- Attendance records per session.
+create table if not exists public.attendance (
+  id uuid default gen_random_uuid() primary key,
+  session_id uuid references public.sessions on delete cascade not null,
+  client_id uuid references public.clients on delete cascade not null,
+  status text not null default 'attended' check (status in ('attended', 'late', 'excused', 'absent')),
+  notes text,
+  created_at timestamptz not null default now()
+);
+
 -- ---------- indexes ----------
 
 create index if not exists idx_leads_strategy_id on public.leads(strategy_id);
