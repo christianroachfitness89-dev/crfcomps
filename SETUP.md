@@ -112,9 +112,10 @@ This creates:
 | Open a new round | Create a giveaway and click **Activate**. |
 | Close entries | Click **Close** on the active giveaway. |
 | Archive | Click **Archive** once a giveaway is fully finished. |
-| Pick a winner | Filter leads by giveaway, then click **Pick Winner**. |
-| Export leads | Use **Export CSV** in the Leads tab. |
-| Update brand/copy | Use the **Settings** tab. |
+| Pick a winner | Go to **Giveaway Leads**, filter, then click **Pick Winner**. |
+| Export leads | Use **Export CSV** on any lead pool page. |
+| Update brand/copy | Use the **Settings** page. |
+| Manage prospects | Use **New Member Leads** or **Non-Attendance Leads**. |
 
 ---
 
