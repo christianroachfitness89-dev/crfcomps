@@ -31,6 +31,8 @@ This creates:
 - `leads` table — free entries linked to a giveaway
 - `profiles` table — admin users only
 - `site_settings` table — single-row fallback content and brand name
+- `clients` table — members and prospects promoted from leads or added manually
+- `client_notes` table — notes attached to each client
 - Row Level Security policies (public can submit leads into active giveaways; only admins can manage everything)
 - Triggers that keep the admin profile row in sync with auth.users
 
