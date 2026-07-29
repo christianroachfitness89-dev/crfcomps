@@ -199,6 +199,10 @@
       return session && session.scheduled_at && new Date(session.scheduled_at) >= weekAgo && a.status === 'attended';
     }).length;
 
+    const commsWeek = d.communications.filter(function (c) {
+      return c.created_at && new Date(c.created_at) >= weekAgo;
+    }).length;
+
     container.innerHTML =
       '<div class="ops-kpi-grid">' +
         kpiCard('Total leads', totalLeads, '+' + newLeadsWeek + ' this week') +
@@ -208,6 +212,7 @@
         kpiCard('Outstanding', formatCurrency(outstanding)) +
         kpiCard('Upcoming sessions', upcomingSessions, sessionsWeek + ' this week') +
         kpiCard('Attendance this week', attendedWeek) +
+        kpiCard('Communications this week', commsWeek) +
       '</div>' +
       '<div class="ops-department-grid" style="margin-top:32px;">' +
         deptCard('marketing.html', 'Marketing', 'Lead pools, strategies & giveaways', '#c73e2a') +
