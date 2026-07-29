@@ -153,7 +153,7 @@
     setActiveNav(key);
     window.scrollTo({ top: 0, behavior: 'smooth' });
     if (key === 'dashboard') renderDashboard();
-    if (key === 'giveaway' || key === 'new_member' || key === 'non_attendance') renderLeadPool(key);
+    if (key === 'giveaway' || key === 'new_member' || key === 'non_attendance' || key === 'birthday') renderLeadPool(key);
     if (key === 'strategies') renderStrategies();
     if (key === 'competitions') renderCompetitions();
     if (key === 'settings') loadSettingsPanel();
