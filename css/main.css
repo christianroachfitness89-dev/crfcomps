@@ -699,6 +699,53 @@ footer{padding:40px 0 60px;border-top:1px solid var(--line);}
 .bulk-sms-log .success{color:#2c5c2c;}
 .bulk-sms-log .error{color:var(--red-dark);}
 
+/* ---------- modals ---------- */
+.modal-overlay{
+  display:none;position:fixed;inset:0;background:rgba(20,22,18,.55);
+  z-index:50;align-items:center;justify-content:center;padding:20px;
+  backdrop-filter:blur(2px);
+}
+.modal-overlay.show{display:flex;}
+.modal-card{
+  background:#fff;border:1px solid var(--line);border-radius:var(--radius);
+  width:100%;max-width:520px;max-height:calc(100vh - 40px);overflow:auto;
+  box-shadow:0 20px 60px rgba(0,0,0,.25);animation:modalIn .2s ease;
+}
+.modal-card-wide{max-width:720px;}
+@keyframes modalIn{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+.modal-head{
+  display:flex;justify-content:space-between;align-items:center;padding:18px 20px;border-bottom:1px solid var(--line);
+}
+.modal-head h3{margin:0;font-family:'Oswald',sans-serif;text-transform:uppercase;}
+.modal-close{
+  background:none;border:none;cursor:pointer;padding:4px;color:var(--ink-soft);
+  transition:color .2s;
+}
+.modal-close:hover{color:var(--red);}
+.modal-card form{padding:20px;}
+
+/* ---------- crm / clients ---------- */
+.crm-table td,.crm-table th{padding:10px 8px;}
+.crm-actions{display:flex;gap:6px;flex-wrap:wrap;}
+.crm-actions .admin-btn{margin:0;}
+
+.client-detail-meta{margin-bottom:20px;}
+.client-detail-row{padding:6px 0;border-bottom:1px solid var(--line);font-size:14px;}
+.client-detail-row .label{font-family:'IBM Plex Mono',monospace;font-size:11px;text-transform:uppercase;color:var(--ink-soft);margin-right:8px;}
+
+.client-notes h4{margin:0 0 14px;font-family:'Oswald',sans-serif;text-transform:uppercase;}
+.client-notes-list{max-height:240px;overflow:auto;margin-bottom:16px;}
+.client-note{padding:12px;border-bottom:1px solid var(--line);}
+.client-note-text{font-size:14px;white-space:pre-wrap;margin-bottom:4px;}
+.client-note-date{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink-soft);}
+.client-notes-empty{color:var(--ink-soft);font-size:13px;padding:8px 0;}
+.client-note-form{display:flex;gap:10px;align-items:flex-start;}
+.client-note-form textarea{flex:1;min-width:0;}
+.client-note-form .submit-btn{align-self:flex-end;}
+
+.lead-actions{display:flex;gap:6px;flex-wrap:wrap;}
+.phone-link{color:var(--ink);text-decoration:underline;}
+
 @media(min-width:960px){
   .admin-sidebar{position:fixed;transform:translateX(0);}
   .admin-main{margin-left:260px;}
