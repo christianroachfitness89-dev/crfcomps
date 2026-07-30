@@ -749,10 +749,13 @@ header{
 
 .calendar-event-row{
   border-radius:var(--radius-md);
-  border:none;
-  box-shadow:var(--shadow-1);
+  border:1px solid var(--glass-border);
+  box-shadow:var(--shadow-1), inset 0 1px 0 rgba(255,255,255,.5);
   padding:14px;
   border-left:4px solid var(--line);
+  background:var(--glass-bg-strong);
+  backdrop-filter:saturate(140%) blur(10px);
+  -webkit-backdrop-filter:saturate(140%) blur(10px);
 }
 
 /* ---------- mobile ---------- */
