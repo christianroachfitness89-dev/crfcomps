@@ -374,6 +374,26 @@
       d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
   }
 
+  function calendarColorClass(colorId) {
+    // Google Calendar default color IDs mapped to CSS classes.
+    if (!colorId) return '';
+    const id = String(colorId);
+    const map = {
+      '1': 'cal-cocoa',
+      '2': 'cal-sage',
+      '3': 'cal-grape',
+      '4': 'cal-flamingo',
+      '5': 'cal-banana',
+      '6': 'cal-tangerine',
+      '7': 'cal-peacock',
+      '8': 'cal-graphite',
+      '9': 'cal-blueberry',
+      '10': 'cal-basil',
+      '11': 'cal-tomato'
+    };
+    return map[id] || '';
+  }
+
   function renderCalendarEvents(events, limit) {
     if (!events || !events.length) {
       return '<div class="dash-empty">No upcoming events found.</div>';
@@ -383,7 +403,8 @@
     events.slice(0, limit || events.length).forEach(function (ev) {
       const isAllDay = ev.start && ev.start.indexOf('T') === -1;
       const timeLabel = isAllDay ? 'All day' : fmtDateTimeShort(ev.start);
-      html += '<div class="calendar-event-row">' +
+      const colorClass = calendarColorClass(ev.color_id);
+      html += '<div class="calendar-event-row ' + escapeHtml(colorClass) + '">' +
         '<div class="calendar-event-time">' + escapeHtml(timeLabel) + '</div>' +
         '<div class="calendar-event-title">' + escapeHtml(ev.summary || '(No title)') + '</div>' +
         (ev.location ? '<div class="calendar-event-location">📍 ' + escapeHtml(ev.location) + '</div>' : '') +
