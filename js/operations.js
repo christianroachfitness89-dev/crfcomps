@@ -35,7 +35,8 @@
   }
 
   function setActiveNav() {
-    const page = document.body.dataset.page || 'dashboard';
+    let page = document.body.dataset.page || 'dashboard';
+    if (page === 'admin-premium') page = 'admin';
     document.querySelectorAll('.admin-nav a').forEach(function (a) {
       const href = a.getAttribute('href');
       let active = false;
