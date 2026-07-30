@@ -459,8 +459,10 @@
     fmtDateShort,
     statusBadge,
     renderDashboardStripe,
+    renderDashboardCalendar,
     renderFinanceStripe,
     renderIntegrationsPage,
-    renderPaymentsTable
+    renderPaymentsTable,
+    renderCalendarEvents
   };
 })();
