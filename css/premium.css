@@ -303,10 +303,12 @@ header{
   width:260px;
   top:var(--header-height);
   background:
-    linear-gradient(180deg, rgba(30,28,24,.98) 0%, rgba(20,22,18,.98) 100%),
+    linear-gradient(180deg, rgba(30,28,24,.86) 0%, rgba(20,22,18,.86) 100%),
     var(--ink);
-  border-right:1px solid rgba(255,255,255,.06);
-  box-shadow:4px 0 30px rgba(0,0,0,.18);
+  border-right:1px solid rgba(255,255,255,.10);
+  box-shadow:4px 0 30px rgba(0,0,0,.22);
+  backdrop-filter:saturate(140%) blur(24px);
+  -webkit-backdrop-filter:saturate(140%) blur(24px);
 }
 
 .admin-sidebar.collapsed{
