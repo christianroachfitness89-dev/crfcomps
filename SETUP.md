@@ -255,7 +255,7 @@ vercel --prod
 
 ### 4. Check the dashboard
 
-- Open `admin.html` — a **Live integrations** section shows Stripe revenue and recent payments.
+- Open `admin.html` — a **Live integrations** section shows Stripe revenue and recent payments, plus an **Upcoming schedule** section from Google Calendar.
 - Open `finance.html` — a **Stripe live revenue** card appears above the payments table. It shows a toggle for **All Stripe payments** vs **Outstanding only**, so you can see which Stripe charges have not been matched to a local payment record yet.
 - Open `integrations.html` — see status and controls for every connected app.
 
