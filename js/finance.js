@@ -201,6 +201,7 @@
         '</select></td>' +
         '<td>' + ops.fmtDateShort(i.issued_at) + '</td>' +
         '<td>' + ops.fmtDateShort(i.due_at) + '</td>' +
+        '<td>' + ops.escapeHtml(i.reference || i.stripe_invoice_id || '-') + '</td>' +
         '<td>' + ops.escapeHtml(i.description || '-') + '</td>' +
         '<td class="finance-actions">' +
           '<button class="admin-btn" onclick="finance.editInvoice(\'' + ops.escapeHtml(i.id) + '\')" style="padding:6px 12px;font-size:11px;">Edit</button>' +
