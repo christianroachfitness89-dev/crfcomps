@@ -77,9 +77,10 @@
       '<span class="status-dot">' + dot + '</span> ' + escapeHtml(text) + '</span>';
   }
 
-  function renderPaymentsTable(payments, limit) {
+  function renderPaymentsTable(payments, limit, options) {
+    options = options || {};
     if (!payments || !payments.length) {
-      return '<div class="dash-empty">No recent payments found in Stripe.</div>';
+      return '<div class="dash-empty">No ' + (options.outstandingOnly ? 'outstanding ' : '') + 'payments found in Stripe.</div>';
     }
 
     let html = '<table class="data-table integration-table">' +
@@ -88,18 +89,33 @@
         '<th>Customer</th>' +
         '<th>Description</th>' +
         '<th class="text-right">Amount</th>' +
-        '<th>Status</th>' +
+        '<th>Stripe status</th>' +
+        '<th>Matched</th>' +
       '</tr></thead><tbody>';
 
     payments.slice(0, limit || payments.length).forEach(function (p) {
-      const statusClass = p.status === 'succeeded' ? 'tag-active' : (p.paid ? 'tag-warm' : 'tag-hot');
-      const statusLabel = p.status === 'succeeded' ? 'Paid' : (p.paid ? 'Paid' : p.status);
+      let statusClass, statusLabel;
+      if (p.refunded) {
+        statusClass = 'tag-hot';
+        statusLabel = 'Refunded';
+      } else if (p.paid) {
+        statusClass = 'tag-active';
+        statusLabel = 'Paid';
+      } else {
+        statusClass = 'tag-draft';
+        statusLabel = p.label || p.status || 'Unknown';
+      }
+
+      const matchedClass = p.matched ? 'tag-active' : 'tag-warm';
+      const matchedLabel = p.matched ? 'Matched' : 'Outstanding';
+
       html += '<tr>' +
         '<td>' + escapeHtml(fmtDateShort(p.created_at)) + '</td>' +
         '<td>' + escapeHtml(p.customer || '-') + '</td>' +
         '<td>' + escapeHtml(p.description || '-') + '</td>' +
         '<td class="text-right font-mono">' + escapeHtml(formatCurrency(p.amount)) + '</td>' +
         '<td><span class="tag ' + statusClass + '">' + escapeHtml(statusLabel) + '</span></td>' +
+        '<td><span class="tag ' + matchedClass + '">' + escapeHtml(matchedLabel) + '</span></td>' +
       '</tr>';
     });
 
