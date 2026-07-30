@@ -17,7 +17,8 @@ function adminClient() {
       autoRefreshToken: false,
       persistSession: false,
       detectSessionInUrl: false
-    }
+    },
+    realtime: { enabled: false }
   });
 }
 
