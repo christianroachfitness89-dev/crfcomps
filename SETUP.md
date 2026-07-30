@@ -255,13 +255,21 @@ vercel --prod
 
 ### 4. Check the dashboard
 
-- Open `admin.html` — a **Live integrations** section shows Stripe revenue and recent payments, plus an **Upcoming schedule** section from Google Calendar.
-- Open `finance.html` — a **Stripe live revenue** card appears above the payments table. It shows a toggle for **All Stripe payments** vs **Outstanding only**, so you can see which Stripe charges have not been matched to a local payment record yet.
-- Open `integrations.html` — see status and controls for every connected app.
+- Open `admin.html` — a **Live integrations** section shows Stripe revenue/outstanding totals and recent invoices, plus an **Upcoming schedule** section from Google Calendar.
+- Open `finance.html` — a **Stripe invoices** card appears above the payments table. Use the month/year filters to pull the period you want, and switch between **All invoices** and **Outstanding only**.
+- Open `integrations.html` — see status, totals and controls for every connected app.
 
-### 5. Match Stripe charges to local payments
+### 5. Match Stripe invoices to local records
 
-When you manually record a Stripe payment on `finance.html`, paste the Stripe charge ID (starts with `ch_`) into the **Reference** field. The integration will then mark that charge as matched and remove it from the **Outstanding only** list.
+Stripe invoices now link to your Supabase `invoices` and `payments` tables automatically:
+
+- If a Stripe invoice ID (starts with `in_`) is stored in a local invoice's `stripe_invoice_id` or `reference` field, it is shown as **Matched in Supabase**.
+- If a Stripe payment intent is stored in a local payment's `stripe_payment_intent_id` field, it is shown as matched against that payment.
+- Everything else appears as **Outstanding**.
+
+To manually match an outstanding Stripe invoice, go to `finance.html` → **Invoices** → **Add invoice**, set the amount and issued date to match the Stripe invoice, and paste the Stripe invoice ID (starts with `in_`) into the **Reference** field. The next refresh will mark it as matched.
+
+Likewise, when manually recording a Stripe payment, paste the Stripe charge ID (starts with `ch_`) into the **Reference** field to mark the associated charge as matched.
 
 ---
 
