@@ -264,11 +264,13 @@ header{
 .ops-kpi,
 .ops-dept-card,
 .stat-box{
-  background:#fff;
-  border:none;
+  background:var(--glass-bg);
+  border:1px solid var(--glass-border);
   border-radius:var(--radius-lg);
-  box-shadow:var(--shadow-2);
-  transition:transform .25s cubic-bezier(.25,.1,.25,1), box-shadow .25s;
+  box-shadow:var(--shadow-2), inset 0 1px 0 rgba(255,255,255,.55);
+  backdrop-filter:saturate(160%) blur(18px);
+  -webkit-backdrop-filter:saturate(160%) blur(18px);
+  transition:transform .25s cubic-bezier(.25,.1,.25,1), box-shadow .25s, background .25s;
 }
 
 .card:hover,
@@ -276,7 +278,8 @@ header{
 .ops-dept-card:hover,
 .stat-box:hover{
   transform:translateY(-2px);
-  box-shadow:var(--shadow-3);
+  box-shadow:var(--shadow-3), inset 0 1px 0 rgba(255,255,255,.65);
+  background:var(--glass-bg-strong);
 }
 
 .card{
@@ -284,9 +287,11 @@ header{
 }
 
 .card-muted{
-  background:var(--paper-3);
-  border:1px solid var(--line);
+  background:var(--glass-bg);
+  border:1px solid var(--glass-border);
   border-radius:var(--radius-lg);
+  backdrop-filter:saturate(160%) blur(14px);
+  -webkit-backdrop-filter:saturate(160%) blur(14px);
 }
 
 /* ---------- admin layout ---------- */
