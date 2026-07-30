@@ -214,8 +214,8 @@
           '<div class="stat-box"><div class="stat-label">Outstanding Stripe count</div><div class="stat-value">' + escapeHtml(String(stripe.outstanding_count || 0)) + '</div></div>' +
         '</div>' +
         '<div class="filter-row" style="margin-bottom:14px;">' +
-          '<button class="admin-btn ' + (outstandingOnly ? '' : 'active') + '" id="stripeAllBtn" style="font-size:11px;">All Stripe payments</button>' +
-          '<button class="admin-btn ' + (outstandingOnly ? 'active' : '') + '" id="stripeOutstandingBtn" style="font-size:11px;">Outstanding only (' + (stripe.outstanding_count || 0) + ')</button>' +
+          '<button class="admin-btn ' + (outstandingOnly ? '' : 'active') + '" id="stripeAllBtn" style="font-size:11px;">All Stripe payments (' + allCount + ')</button>' +
+          '<button class="admin-btn ' + (outstandingOnly ? 'active' : '') + '" id="stripeOutstandingBtn" style="font-size:11px;">Outstanding only (' + outCount + ')</button>' +
         '</div>' +
         '<div id="stripeTableWrap">' + renderPaymentsTable(tablePayments, 50, { outstandingOnly: outstandingOnly }) + '</div>';
 
