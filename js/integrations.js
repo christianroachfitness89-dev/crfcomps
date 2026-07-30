@@ -211,7 +211,7 @@
           '<div class="stat-box"><div class="stat-label">This month</div><div class="stat-value">' + escapeHtml(formatCurrency(stripe.revenue_month)) + '</div></div>' +
           '<div class="stat-box"><div class="stat-label">Last 30 days</div><div class="stat-value">' + escapeHtml(formatCurrency(stripe.revenue_30d)) + '</div></div>' +
           '<div class="stat-box"><div class="stat-label">Outstanding Stripe total</div><div class="stat-value">' + escapeHtml(formatCurrency(stripe.outstanding_total)) + '</div></div>' +
-          '<div class="stat-box"><div class="stat-label">Outstanding Stripe count</div><div class="stat-value">' + escapeHtml(String(stripe.outstanding_count || 0)) + '</div></div>' +
+          '<div class="stat-box"><div class="stat-label">Outstanding Stripe count</div><div class="stat-value">' + escapeHtml(String(outCount)) + '</div></div>' +
         '</div>' +
         '<div class="filter-row" style="margin-bottom:14px;">' +
           '<button class="admin-btn ' + (outstandingOnly ? '' : 'active') + '" id="stripeAllBtn" style="font-size:11px;">All Stripe payments (' + allCount + ')</button>' +
