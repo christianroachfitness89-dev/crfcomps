@@ -255,6 +255,7 @@ create index if not exists idx_payments_stripe_charge_id on public.payments(stri
 create index if not exists idx_invoices_client_id on public.invoices(client_id);
 create index if not exists idx_invoices_status on public.invoices(status);
 create index if not exists idx_invoices_due_at on public.invoices(due_at);
+create index if not exists idx_invoices_stripe_invoice_id on public.invoices(stripe_invoice_id);
 create index if not exists idx_sessions_client_id on public.sessions(client_id);
 create index if not exists idx_sessions_scheduled_at on public.sessions(scheduled_at);
 create index if not exists idx_sessions_status on public.sessions(status);
