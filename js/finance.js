@@ -185,6 +185,7 @@
         '<th>Status</th>' +
         '<th>Issued</th>' +
         '<th>Due</th>' +
+        '<th>Reference</th>' +
         '<th>Description</th>' +
         '<th>Actions</th>' +
       '</tr></thead><tbody>';
