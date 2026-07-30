@@ -80,10 +80,11 @@ p, .admin-nav a, .data-table td{
 /* ---------- header ---------- */
 header{
   height:var(--header-height);
-  background:rgba(250,248,241,.82);
-  backdrop-filter:saturate(180%) blur(20px);
-  -webkit-backdrop-filter:saturate(180%) blur(20px);
-  border-bottom:1px solid rgba(200,194,176,.45);
+  background:linear-gradient(180deg, rgba(250,248,241,.88) 0%, rgba(250,248,241,.72) 100%);
+  backdrop-filter:saturate(200%) blur(24px);
+  -webkit-backdrop-filter:saturate(200%) blur(24px);
+  border-bottom:1px solid rgba(255,255,255,.65);
+  box-shadow:0 1px 0 rgba(200,194,176,.35), var(--shadow-1);
 }
 
 .nav{
