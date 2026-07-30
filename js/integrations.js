@@ -1,0 +1,309 @@
+/**
+ * CRF Comps — External platform integrations frontend
+ *
+ * Loads live data from Vercel serverless functions:
+ *   /api/integrations/status
+ *   /api/stripe/payments
+ *   /api/calendly/events
+ *
+ * No API keys are stored or exposed in the browser.
+ */
+
+(function () {
+  const client = window.sb;
+
+  function escapeHtml(str) {
+    const d = document.createElement('div');
+    d.textContent = String(str || '');
+    return d.innerHTML;
+  }
+
+  function formatCurrency(amount) {
+    if (window.operations && window.operations.formatCurrency) {
+      return window.operations.formatCurrency(amount);
+    }
+    if (amount === null || amount === undefined || isNaN(amount)) return '$0';
+    return '$' + Number(amount).toLocaleString(undefined, { maximumFractionDigits: 0 });
+  }
+
+  function fmtDateShort(iso) {
+    if (window.operations && window.operations.fmtDateShort) {
+      return window.operations.fmtDateShort(iso);
+    }
+    if (!iso) return '-';
+    return new Date(iso).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  }
+
+  async function getToken() {
+    if (window.auth && window.auth.getSession) {
+      const session = await window.auth.getSession();
+      return session ? session.access_token : null;
+    }
+    const { data } = await client.auth.getSession();
+    return data && data.session ? data.session.access_token : null;
+  }
+
+  async function api(path) {
+    const token = await getToken();
+    if (!token) throw new Error('You must be signed in.');
+
+    const res = await fetch(path, {
+      method: 'GET',
+      headers: {
+        'Authorization': 'Bearer ' + token,
+        'Accept': 'application/json'
+      }
+    });
+
+    const text = await res.text();
+    let json = null;
+    try {
+      json = text ? JSON.parse(text) : {};
+    } catch (err) {
+      throw new Error('Unexpected response from ' + path);
+    }
+
+    if (!res.ok) {
+      throw new Error(json.error || ('Server error ' + res.status));
+    }
+    return json;
+  }
+
+  function statusBadge(healthy, label) {
+    const color = healthy ? 'status-ok' : 'status-bad';
+    const dot = healthy ? '●' : '●';
+    const text = healthy ? (label || 'Connected') : (label || 'Not connected');
+    return '<span class="integration-status ' + color + '" title="' + escapeHtml(text) + '" aria-label="' + escapeHtml(text) + '" aria-live="polite">' +
+      '<span class="status-dot">' + dot + '</span> ' + escapeHtml(text) + '</span>';
+  }
+
+  function renderPaymentsTable(payments, limit) {
+    if (!payments || !payments.length) {
+      return '<div class="dash-empty">No recent payments found in Stripe.</div>';
+    }
+
+    let html = '<table class="data-table integration-table">' +
+      '<thead><tr>' +
+        '<th>Date</th>' +
+        '<th>Customer</th>' +
+        '<th>Description</th>' +
+        '<th class="text-right">Amount</th>' +
+        '<th>Status</th>' +
+      '</tr></thead><tbody>';
+
+    payments.slice(0, limit || payments.length).forEach(function (p) {
+      const statusClass = p.status === 'succeeded' ? 'tag-active' : (p.paid ? 'tag-warm' : 'tag-hot');
+      const statusLabel = p.status === 'succeeded' ? 'Paid' : (p.paid ? 'Paid' : p.status);
+      html += '<tr>' +
+        '<td>' + escapeHtml(fmtDateShort(p.created_at)) + '</td>' +
+        '<td>' + escapeHtml(p.customer || '-') + '</td>' +
+        '<td>' + escapeHtml(p.description || '-') + '</td>' +
+        '<td class="text-right font-mono">' + escapeHtml(formatCurrency(p.amount)) + '</td>' +
+        '<td><span class="tag ' + statusClass + '">' + escapeHtml(statusLabel) + '</span></td>' +
+      '</tr>';
+    });
+
+    html += '</tbody></table>';
+    return html;
+  }
+
+  async function renderDashboardStripe() {
+    const container = document.getElementById('ops-dashboard');
+    if (!container) return;
+
+    const section = document.createElement('div');
+    section.className = 'integration-section';
+    section.innerHTML =
+      '<div class="ops-section-title">Live integrations</div>' +
+      '<div class="integration-loading">Loading Stripe data...</div>';
+    container.appendChild(section);
+
+    try {
+      const [status, stripe] = await Promise.all([
+        api('/api/integrations/status'),
+        api('/api/stripe/payments?limit=5')
+      ]);
+
+      const stripeStatus = status.status && status.status.stripe ? status.status.stripe.healthy : false;
+
+      section.innerHTML =
+        '<div class="ops-section-title">Live integrations</div>' +
+        '<div class="ops-kpi-grid integration-grid">' +
+          '<div class="ops-kpi integration-kpi">' +
+            '<div class="stat-label">Stripe revenue this month</div>' +
+            '<div class="stat-value">' + escapeHtml(formatCurrency(stripe.revenue_month)) + '</div>' +
+            statusBadge(stripeStatus, stripeStatus ? 'Connected' : 'Not connected') +
+          '</div>' +
+          '<div class="ops-kpi integration-kpi">' +
+            '<div class="stat-label">Stripe revenue last 30 days</div>' +
+            '<div class="stat-value">' + escapeHtml(formatCurrency(stripe.revenue_30d)) + '</div>' +
+            '<div class="stat-sub">' + (stripe.payments ? stripe.payments.length : 0) + ' recent payments</div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="card integration-card" style="margin-top:16px;">' +
+          '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">' +
+            '<strong>Recent Stripe payments</strong>' +
+            '<a href="integrations.html" class="btn-ghost" style="font-size:12px;">View integrations →</a>' +
+          '</div>' +
+          renderPaymentsTable(stripe.payments, 5) +
+        '</div>';
+    } catch (err) {
+      section.innerHTML =
+        '<div class="ops-section-title">Live integrations</div>' +
+        '<div class="card integration-card" style="border-color:var(--red);">' +
+          '<strong>Integrations unavailable</strong>' +
+          '<p class="hint" style="margin:6px 0 0;">' + escapeHtml(err.message) + '</p>' +
+        '</div>';
+      console.error('renderDashboardStripe error:', err);
+    }
+  }
+
+  async function renderFinanceStripe() {
+    const container = document.getElementById('stripeWidget');
+    if (!container) return;
+    container.innerHTML = '<div class="loading">Loading Stripe data...</div>';
+
+    try {
+      const [status, stripe] = await Promise.all([
+        api('/api/integrations/status'),
+        api('/api/stripe/payments?limit=10')
+      ]);
+
+      const stripeStatus = status.status && status.status.stripe ? status.status.stripe.healthy : false;
+
+      container.innerHTML =
+        '<div class="page-head" style="margin-bottom:18px;">' +
+          '<div>' +
+            '<div class="sec-eyebrow">Live data</div>' +
+            '<h3 style="margin:0;">Stripe revenue</h3>' +
+          '</div>' +
+          statusBadge(stripeStatus) +
+        '</div>' +
+        '<div class="stat-grid" style="margin-bottom:20px;">' +
+          '<div class="stat-box"><div class="stat-label">This month</div><div class="stat-value">' + escapeHtml(formatCurrency(stripe.revenue_month)) + '</div></div>' +
+          '<div class="stat-box"><div class="stat-label">Last 30 days</div><div class="stat-value">' + escapeHtml(formatCurrency(stripe.revenue_30d)) + '</div></div>' +
+        '</div>' +
+        renderPaymentsTable(stripe.payments, 10);
+    } catch (err) {
+      container.innerHTML =
+        '<div class="card integration-card" style="border-color:var(--red);">' +
+          '<strong>Stripe data unavailable</strong>' +
+          '<p class="hint" style="margin:6px 0 0;">' + escapeHtml(err.message) + '</p>' +
+        '</div>';
+      console.error('renderFinanceStripe error:', err);
+    }
+  }
+
+  async function renderIntegrationsPage() {
+    const container = document.getElementById('integrationsContent');
+    if (!container) return;
+    container.innerHTML = '<div class="loading">Loading integration status...</div>';
+
+    try {
+      const status = await api('/api/integrations/status');
+      const s = status.status || {};
+
+      let html = '<div class="integration-page-grid">';
+
+      // Stripe card
+      html += '<div class="card integration-card" id="stripeIntegrationCard">' +
+        '<div class="integration-card-head">' +
+          '<div class="integration-card-title">Stripe</div>' +
+          statusBadge(s.stripe && s.stripe.healthy, s.stripe && s.stripe.configured ? 'Connected' : 'Not connected') +
+        '</div>' +
+        '<p class="hint">Live payments and revenue.</p>' +
+        '<div id="stripeIntegrationDetails"><div class="loading">Loading details...</div></div>' +
+      '</div>';
+
+      // Calendly card
+      const calendlyOk = s.calendly && s.calendly.healthy;
+      html += '<div class="card integration-card" id="calendlyIntegrationCard">' +
+        '<div class="integration-card-head">' +
+          '<div class="integration-card-title">Calendly</div>' +
+          statusBadge(calendlyOk, calendlyOk ? 'Connected' : 'Not connected') +
+        '</div>' +
+        '<p class="hint">Upcoming bookings will appear here once CALENDLY_PERSONAL_TOKEN is configured.</p>' +
+        '<div id="calendlyIntegrationDetails"></div>' +
+      '</div>';
+
+      html += '</div>';
+      container.innerHTML = html;
+
+      // Load Stripe details after rendering
+      if (s.stripe && s.stripe.healthy) {
+        renderStripeDetails('stripeIntegrationDetails');
+      } else {
+        document.getElementById('stripeIntegrationDetails').innerHTML =
+          '<div class="dash-empty">Add STRIPE_SECRET_KEY in Vercel to enable live payment data.</div>';
+      }
+
+      if (calendlyOk) {
+        renderCalendlyDetails('calendlyIntegrationDetails');
+      } else {
+        document.getElementById('calendlyIntegrationDetails').innerHTML =
+          '<div class="dash-empty">Add CALENDLY_PERSONAL_TOKEN in Vercel to enable Calendly bookings.</div>';
+      }
+    } catch (err) {
+      container.innerHTML =
+        '<div class="card integration-card" style="border-color:var(--red);">' +
+          '<strong>Could not load integrations</strong>' +
+          '<p class="hint" style="margin:6px 0 0;">' + escapeHtml(err.message) + '</p>' +
+        '</div>';
+      console.error('renderIntegrationsPage error:', err);
+    }
+  }
+
+  async function renderStripeDetails(elementId) {
+    const el = document.getElementById(elementId);
+    if (!el) return;
+    try {
+      const stripe = await api('/api/stripe/payments?limit=10');
+      el.innerHTML =
+        '<div class="stat-grid" style="margin-bottom:16px;">' +
+          '<div class="stat-box"><div class="stat-label">This month</div><div class="stat-value">' + escapeHtml(formatCurrency(stripe.revenue_month)) + '</div></div>' +
+          '<div class="stat-box"><div class="stat-label">Last 30 days</div><div class="stat-value">' + escapeHtml(formatCurrency(stripe.revenue_30d)) + '</div></div>' +
+        '</div>' +
+        '<strong style="display:block;margin-bottom:8px;">Recent payments</strong>' +
+        renderPaymentsTable(stripe.payments, 10);
+    } catch (err) {
+      el.innerHTML = '<div class="dash-empty" style="color:var(--red-dark);">' + escapeHtml(err.message) + '</div>';
+    }
+  }
+
+  async function renderCalendlyDetails(elementId) {
+    const el = document.getElementById(elementId);
+    if (!el) return;
+    try {
+      const cal = await api('/api/calendly/events');
+      el.innerHTML =
+        '<strong style="display:block;margin-bottom:8px;">Upcoming events</strong>' +
+        '<div class="dash-empty">' + escapeHtml(cal.message || 'Calendly integration active.') + '</div>';
+    } catch (err) {
+      el.innerHTML = '<div class="dash-empty" style="color:var(--red-dark);">' + escapeHtml(err.message) + '</div>';
+    }
+  }
+
+  async function init(page) {
+    if (!page) page = document.body.dataset.page || 'integrations';
+
+    if (page === 'admin') {
+      await renderDashboardStripe();
+    } else if (page === 'finance') {
+      await renderFinanceStripe();
+    } else if (page === 'integrations') {
+      await renderIntegrationsPage();
+    }
+  }
+
+  window.integrations = {
+    init,
+    api,
+    formatCurrency,
+    fmtDateShort,
+    statusBadge,
+    renderDashboardStripe,
+    renderFinanceStripe,
+    renderIntegrationsPage,
+    renderPaymentsTable
+  };
+})();
