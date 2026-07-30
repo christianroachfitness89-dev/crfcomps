@@ -444,6 +444,7 @@
 
     if (page === 'admin') {
       await renderDashboardStripe();
+      await renderDashboardCalendar();
     } else if (page === 'finance') {
       await renderFinanceStripe();
     } else if (page === 'integrations') {
