@@ -196,6 +196,8 @@
       }) : [];
 
       const tablePayments = outstandingOnly ? widgetState.outstandingPayments : widgetState.allPayments;
+      const allCount = widgetState.allPayments.length;
+      const outCount = widgetState.outstandingPayments.length;
 
       container.innerHTML =
         '<div class="page-head" style="margin-bottom:18px;">' +
