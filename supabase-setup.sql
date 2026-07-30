@@ -174,6 +174,7 @@ create table if not exists public.payments (
   amount numeric not null default 0,
   method text not null default 'other' check (method in ('cash', 'card', 'transfer', 'stripe', 'paypal', 'other')),
   reference text,
+  stripe_charge_id text,
   paid_at timestamptz not null default now(),
   notes text,
   created_at timestamptz not null default now()
@@ -247,6 +248,7 @@ create index if not exists idx_clients_email on public.clients(email);
 create index if not exists idx_client_notes_client_id on public.client_notes(client_id);
 create index if not exists idx_payments_client_id on public.payments(client_id);
 create index if not exists idx_payments_paid_at on public.payments(paid_at);
+create index if not exists idx_payments_stripe_charge_id on public.payments(stripe_charge_id);
 create index if not exists idx_invoices_client_id on public.invoices(client_id);
 create index if not exists idx_invoices_status on public.invoices(status);
 create index if not exists idx_invoices_due_at on public.invoices(due_at);
