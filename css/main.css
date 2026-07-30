@@ -798,3 +798,39 @@ footer{padding:40px 0 60px;border-top:1px solid var(--line);}
   .admin-actions{justify-content:flex-start;}
   .page-head{flex-direction:column;align-items:flex-start;}
 }
+
+/* ---------- integrations ---------- */
+.integration-section{margin-top:24px;}
+.integration-grid{grid-template-columns:repeat(2,1fr);}
+.integration-kpi{position:relative;}
+.integration-kpi .integration-status{position:absolute;top:16px;right:16px;}
+
+.integration-card{margin-top:0;}
+.integration-card-head{
+  display:flex;justify-content:space-between;align-items:center;
+  margin-bottom:12px;flex-wrap:wrap;gap:10px;
+}
+.integration-card-title{
+  font-family:'Oswald',sans-serif;font-size:18px;text-transform:uppercase;
+}
+.integration-status{
+  display:inline-flex;align-items:center;gap:6px;
+  font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;
+  text-transform:uppercase;letter-spacing:0.04em;
+  padding:4px 10px;border-radius:100px;border:1.5px solid var(--line);
+}
+.status-dot{width:7px;height:7px;border-radius:50%;display:inline-block;}
+.integration-status.status-ok{color:#2c5c2c;border-color:rgba(60,120,60,.3);background:rgba(60,120,60,.08);}
+.integration-status.status-ok .status-dot{background:#3cb371;}
+.integration-status.status-bad{color:var(--red-dark);border-color:rgba(199,62,42,.25);background:rgba(199,62,42,.08);}
+.integration-status.status-bad .status-dot{background:var(--red);}
+
+.integration-page-grid{
+  display:grid;grid-template-columns:1fr;gap:20px;
+}
+.integration-table td,.integration-table th{padding:10px 8px;}
+.integration-table .text-right{text-align:right;}
+
+@media(min-width:960px){
+  .integration-page-grid{grid-template-columns:repeat(2,1fr);}
+}
