@@ -147,7 +147,9 @@ header{
 /* ---------- buttons ---------- */
 .btn-primary,
 .submit-btn{
-  background:var(--ink);
+  background:
+    linear-gradient(180deg, rgba(20,22,18,.92) 0%, rgba(20,22,18,1) 100%),
+    var(--ink);
   color:var(--paper-3);
   padding:13px 24px;
   font-size:13.5px;
@@ -155,7 +157,8 @@ header{
   letter-spacing:0.01em;
   text-transform:none;
   border-radius:var(--radius-pill);
-  box-shadow:var(--shadow-2);
+  border:1px solid rgba(255,255,255,.12);
+  box-shadow:var(--shadow-2), inset 0 1px 0 rgba(255,255,255,.12);
   transition:all .2s cubic-bezier(.25,.1,.25,1);
 }
 
@@ -163,17 +166,20 @@ header{
 .submit-btn:hover{
   background:var(--red-dark);
   transform:translateY(-1px);
-  box-shadow:var(--shadow-3);
+  box-shadow:var(--shadow-3), inset 0 1px 0 rgba(255,255,255,.15);
 }
 
 .btn-secondary{
-  background:var(--paper-3);
+  background:var(--glass-bg-strong);
   color:var(--ink);
-  border:1px solid var(--line);
+  border:1px solid var(--glass-border);
   padding:12px 22px;
   font-size:13.5px;
   font-weight:600;
   border-radius:var(--radius-pill);
+  backdrop-filter:saturate(160%) blur(12px);
+  -webkit-backdrop-filter:saturate(160%) blur(12px);
+  box-shadow:var(--shadow-1), inset 0 1px 0 rgba(255,255,255,.55);
   transition:all .2s;
 }
 
@@ -188,12 +194,14 @@ header{
   font-weight:600;
   text-transform:none;
   letter-spacing:0;
-  background:#fff;
-  border:1px solid var(--line);
+  background:var(--glass-bg-strong);
+  border:1px solid var(--glass-border);
   color:var(--ink);
   border-radius:var(--radius-pill);
   padding:8px 16px;
-  box-shadow:var(--shadow-1);
+  backdrop-filter:saturate(160%) blur(10px);
+  -webkit-backdrop-filter:saturate(160%) blur(10px);
+  box-shadow:var(--shadow-1), inset 0 1px 0 rgba(255,255,255,.5);
   transition:all .2s;
 }
 
@@ -208,7 +216,7 @@ header{
 .admin-btn.danger{
   border-color:rgba(199,62,42,.35);
   color:var(--red-dark);
-  background:rgba(199,62,42,.04);
+  background:rgba(199,62,42,.06);
 }
 
 .admin-btn.danger:hover{
