@@ -429,17 +429,22 @@ header{
   padding:22px;
   position:relative;
   overflow:hidden;
-  border-top:3px solid transparent;
+  border-top:none;
 }
 
 .ops-kpi::before{
-  display:none;
+  content:'';
+  position:absolute;
+  top:0;left:0;right:0;
+  height:3px;
+  background:linear-gradient(90deg, transparent, var(--gold), transparent);
+  opacity:.7;
 }
 
-.ops-kpi:nth-child(4n+1){ border-top-color:var(--red); }
-.ops-kpi:nth-child(4n+2){ border-top-color:var(--gold); }
-.ops-kpi:nth-child(4n+3){ border-top-color:#3c783c; }
-.ops-kpi:nth-child(4n+4){ border-top-color:#2146af; }
+.ops-kpi:nth-child(4n+1)::before{ background:linear-gradient(90deg, transparent, var(--red), transparent); }
+.ops-kpi:nth-child(4n+2)::before{ background:linear-gradient(90deg, transparent, var(--gold), transparent); }
+.ops-kpi:nth-child(4n+3)::before{ background:linear-gradient(90deg, transparent, #3c783c, transparent); }
+.ops-kpi:nth-child(4n+4)::before{ background:linear-gradient(90deg, transparent, #2146af, transparent); }
 
 .ops-kpi .stat-label{
   font-size:11px;
