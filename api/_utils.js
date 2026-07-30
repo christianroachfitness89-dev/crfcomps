@@ -53,13 +53,19 @@ async function verifyAdmin(req) {
       .from('profiles')
       .select('is_admin')
       .eq('id', data.user.id)
-      .single();
+      .maybeSingle();
 
     if (profileError) {
       console.error('verifyAdmin profile lookup error:', profileError);
       return { error: 'Could not verify admin status', status: 500 };
     }
-    if (!profile || !profile.is_admin) {
+    if (!profile) {
+      return {
+        error: 'No profile row found for this user. Check SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY in Vercel, and ensure the profiles table has a row for user ' + data.user.id,
+        status: 500
+      };
+    }
+    if (!profile.is_admin) {
       return { error: 'Admin access required', status: 403 };
     }
 
