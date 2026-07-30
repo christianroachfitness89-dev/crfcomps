@@ -194,6 +194,47 @@ The **Dashboard** shows:
 
 ---
 
+## External integrations
+
+Connect platforms you already use so live data appears on the Operations dashboard and Finance page.
+
+### 1. Add environment variables in Vercel
+
+Go to your project **Settings > Environment Variables** and add:
+
+| Variable | Where to get it | Required for |
+|---|---|---|
+| `SUPABASE_URL` | Same value used in `js/supabase-client.js` | Verifying admin sessions in API functions |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase dashboard **Project Settings > API > service_role key** | Server-side admin auth |
+| `STRIPE_SECRET_KEY` | Stripe dashboard **Developers > API keys > Secret key** | Live payments and revenue |
+| `CALENDLY_PERSONAL_TOKEN` | Calendly **Integrations > API 6 Webhooks > Personal Access Token** | Upcoming bookings (future) |
+
+**Security:** These keys live only in Vercel. They are never sent to the browser or committed to the repo.
+
+### 2. Install server dependencies
+
+Run once after pulling the repo:
+
+```bash
+npm install
+```
+
+This installs the small set of Node packages used by the Vercel functions in `api/`.
+
+### 3. Redeploy
+
+```bash
+vercel --prod
+```
+
+### 4. Check the dashboard
+
+- Open `admin.html` — a **Live integrations** section shows Stripe revenue and recent payments.
+- Open `finance.html` — a **Stripe live revenue** card appears above the payments table.
+- Open `integrations.html` — see status and controls for every connected app.
+
+---
+
 ## Custom domains (optional)
 
 1. In Vercel, go to your project **Settings > Domains**.
