@@ -229,19 +229,22 @@ header{
 .form-row input,
 .form-row select,
 .form-row textarea{
-  border:1px solid var(--line);
+  border:1px solid var(--glass-border);
   border-radius:var(--radius-md);
   padding:12px 14px;
   font-size:14px;
-  background:#fff;
-  box-shadow:var(--shadow-1) inset;
-  transition:border-color .2s, box-shadow .2s;
+  background:var(--glass-bg-strong);
+  box-shadow:var(--shadow-1) inset, inset 0 1px 0 rgba(255,255,255,.55);
+  backdrop-filter:saturate(140%) blur(8px);
+  -webkit-backdrop-filter:saturate(140%) blur(8px);
+  transition:border-color .2s, box-shadow .2s, background .2s;
 }
 
 .form-row input:focus,
 .form-row select:focus,
 .form-row textarea:focus{
   border-color:var(--red);
+  background:#fff;
   box-shadow:0 0 0 3px rgba(199,62,42,.08), var(--shadow-1) inset;
 }
 
