@@ -175,6 +175,7 @@ Each pool has its own page, filters, call/SMS actions and status pipeline. Uploa
 | `crm.html` | Clients, prospects, pipeline, notes |
 | `finance.html` | Payments, invoices, revenue, outstanding balances |
 | `sessions.html` | 1-on-1 schedule and attendance |
+| `integrations.html` | Connected platforms (Stripe, Calendly, etc.) |
 
 All department pages share the same grouped sidebar and auth via `js/operations.js`.
 
