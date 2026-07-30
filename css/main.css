@@ -740,8 +740,8 @@ footer{padding:40px 0 60px;border-top:1px solid var(--line);}
 .client-note-date{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink-soft);}
 .client-notes-empty{color:var(--ink-soft);font-size:13px;padding:8px 0;}
 .client-note-form{display:flex;gap:10px;align-items:flex-start;}
-.client-note-form textarea{flex:1;min-width:0;}
-.client-note-form .submit-btn{align-self:flex-end;}
+.client-note-form textarea{flex:1;min-width:200px;}
+.client-note-form .submit-btn{align-self:flex-end;white-space:nowrap;}
 
 .lead-actions{display:flex;gap:6px;flex-wrap:wrap;}
 .phone-link{color:var(--ink);text-decoration:underline;}
