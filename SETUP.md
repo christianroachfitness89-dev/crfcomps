@@ -290,6 +290,8 @@ If you already have a live database and want to apply the new operations tables 
 3. `phase3-payments-invoices.sql`
 4. `phase4-sessions-attendance.sql`
 5. `phase5-communications.sql`
+6. `phase6-stripe-integration.sql`
+7. `phase7-stripe-invoices.sql`
 
 Each file is idempotent and safe to re-run.
 
