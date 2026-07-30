@@ -235,7 +235,7 @@
     document.getElementById('paymentId').value = p.id;
     document.getElementById('paymentAmount').value = p.amount;
     document.getElementById('paymentMethod').value = p.method || 'other';
-    document.getElementById('paymentReference').value = p.reference || '';
+    document.getElementById('paymentReference').value = p.reference || p.stripe_charge_id || '';
     document.getElementById('paymentPaidAt').value = fmtDateTimeLocal(p.paid_at);
     document.getElementById('paymentNotes').value = p.notes || '';
     document.getElementById('paymentModalTitle').textContent = 'Edit payment';
