@@ -36,6 +36,7 @@ alter table public.invoices
 
 create index if not exists idx_payments_client_id on public.payments(client_id);
 create index if not exists idx_payments_paid_at on public.payments(paid_at);
+create index if not exists idx_payments_stripe_charge_id on public.payments(stripe_charge_id);
 create index if not exists idx_invoices_client_id on public.invoices(client_id);
 create index if not exists idx_invoices_status on public.invoices(status);
 create index if not exists idx_invoices_due_at on public.invoices(due_at);
