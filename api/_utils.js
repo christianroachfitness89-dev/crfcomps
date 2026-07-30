@@ -8,6 +8,17 @@
 
 const { createClient } = require('@supabase/supabase-js');
 
+// Supabase's realtime client checks for a global WebSocket at module load time.
+// Node 20 doesn't expose one natively, so provide the `ws` package on the server.
+if (typeof globalThis.WebSocket === 'undefined') {
+  try {
+    const WebSocket = require('ws');
+    globalThis.WebSocket = WebSocket;
+  } catch (err) {
+    // If `ws` isn't installed, we'll fall through and let Supabase report the error.
+  }
+}
+
 function adminClient() {
   if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
     throw new Error('Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY environment variables');
