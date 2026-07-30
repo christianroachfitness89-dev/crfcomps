@@ -367,6 +367,78 @@
     }
   }
 
+  function fmtDateTimeShort(iso) {
+    if (!iso) return '-';
+    const d = new Date(iso);
+    return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) + ' ' +
+      d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+  }
+
+  function renderCalendarEvents(events, limit) {
+    if (!events || !events.length) {
+      return '<div class="dash-empty">No upcoming events found.</div>';
+    }
+
+    let html = '<div class="calendar-event-list">';
+    events.slice(0, limit || events.length).forEach(function (ev) {
+      const isAllDay = ev.start && ev.start.indexOf('T') === -1;
+      const timeLabel = isAllDay ? 'All day' : fmtDateTimeShort(ev.start);
+      html += '<div class="calendar-event-row">' +
+        '<div class="calendar-event-time">' + escapeHtml(timeLabel) + '</div>' +
+        '<div class="calendar-event-title">' + escapeHtml(ev.summary || '(No title)') + '</div>' +
+        (ev.location ? '<div class="calendar-event-location">📍 ' + escapeHtml(ev.location) + '</div>' : '') +
+      '</div>';
+    });
+    html += '</div>';
+    return html;
+  }
+
+  async function renderGoogleCalendarDetails(elementId) {
+    const el = document.getElementById(elementId);
+    if (!el) return;
+    try {
+      const cal = await api('/api/google/calendar');
+      el.innerHTML =
+        '<strong style="display:block;margin-bottom:8px;">Upcoming events</strong>' +
+        renderCalendarEvents(cal.events, 10);
+    } catch (err) {
+      el.innerHTML = '<div class="dash-empty" style="color:var(--red-dark);">' + escapeHtml(err.message) + '</div>';
+    }
+  }
+
+  async function renderDashboardCalendar() {
+    const container = document.getElementById('ops-dashboard');
+    if (!container) return;
+
+    const section = document.createElement('div');
+    section.className = 'integration-section';
+    section.innerHTML =
+      '<div class="ops-section-title">Upcoming schedule</div>' +
+      '<div class="integration-loading">Loading Google Calendar...</div>';
+    container.appendChild(section);
+
+    try {
+      const cal = await api('/api/google/calendar');
+      section.innerHTML =
+        '<div class="ops-section-title">Upcoming schedule</div>' +
+        '<div class="card integration-card">' +
+          '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">' +
+            '<strong>Google Calendar — next ' + Math.min(cal.events.length, 5) + ' events</strong>' +
+            '<a href="integrations.html" class="btn-ghost" style="font-size:12px;">View integrations →</a>' +
+          '</div>' +
+          renderCalendarEvents(cal.events, 5) +
+        '</div>';
+    } catch (err) {
+      section.innerHTML =
+        '<div class="ops-section-title">Upcoming schedule</div>' +
+        '<div class="card integration-card" style="border-color:var(--red);">' +
+          '<strong>Google Calendar unavailable</strong>' +
+          '<p class="hint" style="margin:6px 0 0;">' + escapeHtml(err.message) + '</p>' +
+        '</div>';
+      console.error('renderDashboardCalendar error:', err);
+    }
+  }
+
   async function init(page) {
     if (!page) page = document.body.dataset.page || 'integrations';
 
