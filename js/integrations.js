@@ -5,6 +5,7 @@
  *   /api/integrations/status
  *   /api/stripe/payments
  *   /api/calendly/events
+ *   /api/google/calendar
  *
  * No API keys are stored or exposed in the browser.
  */
@@ -77,49 +78,72 @@
       '<span class="status-dot">' + dot + '</span> ' + escapeHtml(text) + '</span>';
   }
 
-  function renderPaymentsTable(payments, limit, options) {
-    options = options || {};
-    if (!payments || !payments.length) {
-      return '<div class="dash-empty">No ' + (options.outstandingOnly ? 'outstanding ' : '') + 'payments found in Stripe.</div>';
+  function invoiceStatusClass(inv) {
+    if (inv.status === 'paid') return 'tag-active';
+    if (inv.status === 'open') return 'tag-warm';
+    if (inv.status === 'void' || inv.status === 'uncollectible') return 'tag-archived';
+    return 'tag-draft';
+  }
+
+  function matchedBadge(inv) {
+    if (inv.matched) return '<span class="tag tag-active">Matched in Supabase</span>';
+    if (inv.status === 'paid') return '<span class="tag tag-warm">Unmatched payment</span>';
+    return '<span class="tag tag-hot">Outstanding</span>';
+  }
+
+  function renderInvoiceTable(invoices, limit) {
+    if (!invoices || !invoices.length) {
+      return '<div class="dash-empty">No Stripe invoices found for this period.</div>';
     }
 
     let html = '<table class="data-table integration-table">' +
       '<thead><tr>' +
         '<th>Date</th>' +
+        '<th>Invoice #</th>' +
         '<th>Customer</th>' +
         '<th>Description</th>' +
         '<th class="text-right">Amount</th>' +
-        '<th>Stripe status</th>' +
-        '<th>Matched</th>' +
+        '<th>Status</th>' +
+        '<th>Supabase</th>' +
       '</tr></thead><tbody>';
 
-    payments.slice(0, limit || payments.length).forEach(function (p) {
-      let statusClass, statusLabel;
-      if (p.refunded) {
-        statusClass = 'tag-hot';
-        statusLabel = 'Refunded';
-      } else if (p.paid) {
-        statusClass = 'tag-active';
-        statusLabel = 'Paid';
-      } else {
-        statusClass = 'tag-draft';
-        statusLabel = p.label || p.status || 'Unknown';
-      }
-
-      const matchedClass = p.matched ? 'tag-active' : 'tag-warm';
-      const matchedLabel = p.matched ? 'Matched' : 'Outstanding';
-
+    invoices.slice(0, limit || invoices.length).forEach(function (inv) {
+      const customerName = inv.customer || '-';
+      const date = inv.paid_at || inv.created_at;
       html += '<tr>' +
-        '<td>' + escapeHtml(fmtDateShort(p.created_at)) + '</td>' +
-        '<td>' + escapeHtml(p.customer || '-') + '</td>' +
-        '<td>' + escapeHtml(p.description || '-') + '</td>' +
-        '<td class="text-right font-mono">' + escapeHtml(formatCurrency(p.amount)) + '</td>' +
-        '<td><span class="tag ' + statusClass + '">' + escapeHtml(statusLabel) + '</span></td>' +
-        '<td><span class="tag ' + matchedClass + '">' + escapeHtml(matchedLabel) + '</span></td>' +
+        '<td>' + escapeHtml(fmtDateShort(date)) + '</td>' +
+        '<td>' + escapeHtml(inv.number || inv.id) + '</td>' +
+        '<td>' + escapeHtml(customerName) + '</td>' +
+        '<td>' + escapeHtml(inv.description || '-') + '</td>' +
+        '<td class="text-right font-mono">' + escapeHtml(formatCurrency(inv.amount)) + '</td>' +
+        '<td><span class="tag ' + invoiceStatusClass(inv) + '">' + escapeHtml(inv.label || inv.status) + '</span></td>' +
+        '<td>' + matchedBadge(inv) + '</td>' +
       '</tr>';
     });
 
     html += '</tbody></table>';
+    return html;
+  }
+
+  function buildMonthFilter(selectedMonth, selectedYear) {
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    let html = '<div class="filter-row" style="margin-bottom:14px;">';
+
+    html += '<select id="stripeMonth" style="font-size:13px;">';
+    for (let i = 1; i <= 12; i++) {
+      html += '<option value="' + i + '"' + (i === selectedMonth ? ' selected' : '') + '>' + months[i - 1] + '</option>';
+    }
+    html += '</select>';
+
+    html += '<select id="stripeYear" style="font-size:13px;">';
+    const currentYear = new Date().getFullYear();
+    for (let y = currentYear - 2; y <= currentYear + 1; y++) {
+      html += '<option value="' + y + '"' + (y === selectedYear ? ' selected' : '') + '>' + y + '</option>';
+    }
+    html += '</select>';
+
+    html += '<button class="admin-btn" id="stripeApplyFilter" style="font-size:11px;">Apply</button>';
+    html += '</div>';
     return html;
   }
 
@@ -135,9 +159,10 @@
     container.appendChild(section);
 
     try {
+      const now = new Date();
       const [status, stripe] = await Promise.all([
         api('/api/integrations/status'),
-        api('/api/stripe/payments?limit=5')
+        api('/api/stripe/payments?month=' + (now.getMonth() + 1) + '&year=' + now.getFullYear() + '&limit=5')
       ]);
 
       const stripeStatus = status.status && status.status.stripe ? status.status.stripe.healthy : false;
@@ -146,22 +171,22 @@
         '<div class="ops-section-title">Live integrations</div>' +
         '<div class="ops-kpi-grid integration-grid">' +
           '<div class="ops-kpi integration-kpi">' +
-            '<div class="stat-label">Stripe revenue this month</div>' +
+            '<div class="stat-label">Stripe revenue (' + escapeHtml(stripe.month_label || '') + ')</div>' +
             '<div class="stat-value">' + escapeHtml(formatCurrency(stripe.revenue_month)) + '</div>' +
             statusBadge(stripeStatus, stripeStatus ? 'Connected' : 'Not connected') +
           '</div>' +
           '<div class="ops-kpi integration-kpi">' +
-            '<div class="stat-label">Stripe revenue last 30 days</div>' +
-            '<div class="stat-value">' + escapeHtml(formatCurrency(stripe.revenue_30d)) + '</div>' +
-            '<div class="stat-sub">' + (stripe.payments ? stripe.payments.length : 0) + ' recent payments</div>' +
+            '<div class="stat-label">Stripe outstanding (' + escapeHtml(stripe.month_label || '') + ')</div>' +
+            '<div class="stat-value">' + escapeHtml(formatCurrency(stripe.outstanding_month)) + '</div>' +
+            '<div class="stat-sub">' + (stripe.outstanding_count || 0) + ' open invoices</div>' +
           '</div>' +
         '</div>' +
         '<div class="card integration-card" style="margin-top:16px;">' +
           '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">' +
-            '<strong>Recent Stripe payments</strong>' +
+            '<strong>Recent Stripe invoices</strong>' +
             '<a href="integrations.html" class="btn-ghost" style="font-size:12px;">View integrations →</a>' +
           '</div>' +
-          renderPaymentsTable(stripe.payments, 5) +
+          renderInvoiceTable(stripe.invoices, 5) +
         '</div>';
     } catch (err) {
       section.innerHTML =
@@ -179,77 +204,69 @@
     if (!container) return;
     container.innerHTML = '<div class="loading">Loading Stripe data...</div>';
 
-    const widgetState = { outstandingOnly: false, allPayments: [], outstandingPayments: [] };
+    const widgetState = {
+      month: new Date().getMonth() + 1,
+      year: new Date().getFullYear(),
+      outstandingOnly: false,
+      data: null
+    };
 
-    async function loadData(outstandingOnly) {
-      const path = '/api/stripe/payments?limit=50' + (outstandingOnly ? '&outstanding=true' : '');
+    async function loadData() {
+      const path = '/api/stripe/payments?month=' + widgetState.month +
+        '&year=' + widgetState.year +
+        '&limit=100' +
+        (widgetState.outstandingOnly ? '&outstanding=true' : '');
+
       const [status, stripe] = await Promise.all([
         api('/api/integrations/status'),
         api(path)
       ]);
 
+      widgetState.data = stripe;
       const stripeStatus = status.status && status.status.stripe ? status.status.stripe.healthy : false;
-
-      widgetState.allPayments = stripe.payments || [];
-      widgetState.outstandingPayments = stripe.payments ? stripe.payments.filter(function (p) {
-        return !p.matched && p.paid && !p.refunded;
-      }) : [];
-
-      const tablePayments = outstandingOnly ? widgetState.outstandingPayments : widgetState.allPayments;
-      const allCount = widgetState.allPayments.length;
-      const outCount = widgetState.outstandingPayments.length;
+      const invoices = stripe.invoices || [];
+      const allCount = invoices.length;
+      const outCount = stripe.outstanding_count || 0;
 
       container.innerHTML =
         '<div class="page-head" style="margin-bottom:18px;">' +
           '<div>' +
             '<div class="sec-eyebrow">Live data</div>' +
-            '<h3 style="margin:0;">Stripe revenue</h3>' +
+            '<h3 style="margin:0;">Stripe invoices</h3>' +
           '</div>' +
           statusBadge(stripeStatus) +
         '</div>' +
         '<div class="stat-grid" style="margin-bottom:20px;">' +
-          '<div class="stat-box"><div class="stat-label">This month</div><div class="stat-value">' + escapeHtml(formatCurrency(stripe.revenue_month)) + '</div></div>' +
-          '<div class="stat-box"><div class="stat-label">Last 30 days</div><div class="stat-value">' + escapeHtml(formatCurrency(stripe.revenue_30d)) + '</div></div>' +
-          '<div class="stat-box"><div class="stat-label">Outstanding Stripe total</div><div class="stat-value">' + escapeHtml(formatCurrency(stripe.outstanding_total)) + '</div></div>' +
-          '<div class="stat-box"><div class="stat-label">Outstanding Stripe count</div><div class="stat-value">' + escapeHtml(String(outCount)) + '</div></div>' +
+          '<div class="stat-box"><div class="stat-label">Revenue (' + escapeHtml(stripe.month_label || '') + ')</div><div class="stat-value">' + escapeHtml(formatCurrency(stripe.revenue_month)) + '</div></div>' +
+          '<div class="stat-box"><div class="stat-label">Outstanding (' + escapeHtml(stripe.month_label || '') + ')</div><div class="stat-value">' + escapeHtml(formatCurrency(stripe.outstanding_month)) + '</div></div>' +
+          '<div class="stat-box"><div class="stat-label">Open invoice count</div><div class="stat-value">' + escapeHtml(String(outCount)) + '</div></div>' +
+          '<div class="stat-box"><div class="stat-label">Invoices shown</div><div class="stat-value">' + escapeHtml(String(allCount)) + '</div></div>' +
         '</div>' +
+        buildMonthFilter(widgetState.month, widgetState.year) +
         '<div class="filter-row" style="margin-bottom:14px;">' +
-          '<button class="admin-btn ' + (outstandingOnly ? '' : 'active') + '" id="stripeAllBtn" style="font-size:11px;">All Stripe payments (' + allCount + ')</button>' +
-          '<button class="admin-btn ' + (outstandingOnly ? 'active' : '') + '" id="stripeOutstandingBtn" style="font-size:11px;">Outstanding only (' + outCount + ')</button>' +
+          '<button class="admin-btn ' + (widgetState.outstandingOnly ? '' : 'active') + '" id="stripeAllBtn" style="font-size:11px;">All invoices</button>' +
+          '<button class="admin-btn ' + (widgetState.outstandingOnly ? 'active' : '') + '" id="stripeOutstandingBtn" style="font-size:11px;">Outstanding only (' + outCount + ')</button>' +
         '</div>' +
-        '<div id="stripeTableWrap">' + renderPaymentsTable(tablePayments, 50, { outstandingOnly: outstandingOnly }) + '</div>';
+        '<div id="stripeTableWrap">' + renderInvoiceTable(invoices, 100) + '</div>';
 
-      const allBtn = document.getElementById('stripeAllBtn');
-      const outBtn = document.getElementById('stripeOutstandingBtn');
-      if (allBtn) {
-        allBtn.addEventListener('click', function () {
-          widgetState.outstandingOnly = false;
-          renderTable();
-        });
-      }
-      if (outBtn) {
-        outBtn.addEventListener('click', function () {
-          widgetState.outstandingOnly = true;
-          renderTable();
-        });
-      }
-    }
+      document.getElementById('stripeApplyFilter').addEventListener('click', function () {
+        widgetState.month = parseInt(document.getElementById('stripeMonth').value, 10);
+        widgetState.year = parseInt(document.getElementById('stripeYear').value, 10);
+        loadData();
+      });
 
-    function renderTable() {
-      const outstandingOnly = widgetState.outstandingOnly;
-      const tablePayments = outstandingOnly ? widgetState.outstandingPayments : widgetState.allPayments;
-      const wrap = document.getElementById('stripeTableWrap');
-      if (wrap) {
-        wrap.innerHTML = renderPaymentsTable(tablePayments, 50, { outstandingOnly: outstandingOnly });
-      }
-      const allBtn = document.getElementById('stripeAllBtn');
-      const outBtn = document.getElementById('stripeOutstandingBtn');
-      if (allBtn) allBtn.classList.toggle('active', !outstandingOnly);
-      if (outBtn) outBtn.classList.toggle('active', outstandingOnly);
+      document.getElementById('stripeAllBtn').addEventListener('click', function () {
+        widgetState.outstandingOnly = false;
+        loadData();
+      });
+      document.getElementById('stripeOutstandingBtn').addEventListener('click', function () {
+        widgetState.outstandingOnly = true;
+        loadData();
+      });
     }
 
     try {
-      await loadData(false);
+      await loadData();
     } catch (err) {
       container.innerHTML =
         '<div class="card integration-card" style="border-color:var(--red);">' +
@@ -277,7 +294,7 @@
           '<div class="integration-card-title">Stripe</div>' +
           statusBadge(s.stripe && s.stripe.healthy, s.stripe && s.stripe.configured ? 'Connected' : 'Not connected') +
         '</div>' +
-        '<p class="hint">Live payments and revenue.</p>' +
+        '<p class="hint">Live invoices, revenue and outstanding amounts.</p>' +
         '<div id="stripeIntegrationDetails"><div class="loading">Loading details...</div></div>' +
       '</div>';
 
@@ -306,12 +323,11 @@
       html += '</div>';
       container.innerHTML = html;
 
-      // Load Stripe details after rendering
       if (s.stripe && s.stripe.healthy) {
         renderStripeDetails('stripeIntegrationDetails');
       } else {
         document.getElementById('stripeIntegrationDetails').innerHTML =
-          '<div class="dash-empty">Add STRIPE_SECRET_KEY in Vercel to enable live payment data.</div>';
+          '<div class="dash-empty">Add STRIPE_SECRET_KEY in Vercel to enable live invoice data.</div>';
       }
 
       if (calendlyOk) {
@@ -341,14 +357,15 @@
     const el = document.getElementById(elementId);
     if (!el) return;
     try {
-      const stripe = await api('/api/stripe/payments?limit=10');
+      const now = new Date();
+      const stripe = await api('/api/stripe/payments?month=' + (now.getMonth() + 1) + '&year=' + now.getFullYear() + '&limit=10');
       el.innerHTML =
         '<div class="stat-grid" style="margin-bottom:16px;">' +
-          '<div class="stat-box"><div class="stat-label">This month</div><div class="stat-value">' + escapeHtml(formatCurrency(stripe.revenue_month)) + '</div></div>' +
-          '<div class="stat-box"><div class="stat-label">Last 30 days</div><div class="stat-value">' + escapeHtml(formatCurrency(stripe.revenue_30d)) + '</div></div>' +
+          '<div class="stat-box"><div class="stat-label">Revenue (' + escapeHtml(stripe.month_label || '') + ')</div><div class="stat-value">' + escapeHtml(formatCurrency(stripe.revenue_month)) + '</div></div>' +
+          '<div class="stat-box"><div class="stat-label">Outstanding (' + escapeHtml(stripe.month_label || '') + ')</div><div class="stat-value">' + escapeHtml(formatCurrency(stripe.outstanding_month)) + '</div></div>' +
         '</div>' +
-        '<strong style="display:block;margin-bottom:8px;">Recent payments</strong>' +
-        renderPaymentsTable(stripe.payments, 10);
+        '<strong style="display:block;margin-bottom:8px;">Recent invoices</strong>' +
+        renderInvoiceTable(stripe.invoices, 10);
     } catch (err) {
       el.innerHTML = '<div class="dash-empty" style="color:var(--red-dark);">' + escapeHtml(err.message) + '</div>';
     }
@@ -375,7 +392,6 @@
   }
 
   function calendarColorClass(colorId) {
-    // Google Calendar default color IDs mapped to CSS classes.
     if (!colorId) return '';
     const id = String(colorId);
     const map = {
@@ -483,7 +499,7 @@
     renderDashboardCalendar,
     renderFinanceStripe,
     renderIntegrationsPage,
-    renderPaymentsTable,
+    renderInvoiceTable,
     renderCalendarEvents
   };
 })();
