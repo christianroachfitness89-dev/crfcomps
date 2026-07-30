@@ -39,6 +39,7 @@ module.exports = allowCors(async function (req, res) {
 
   const stripeConfigured = isStripeKeyConfigured();
   const calendlyConfigured = isCalendlyConfigured();
+  const googleConfigured = isGoogleCalendarConfigured();
 
   res.statusCode = 200;
   res.setHeader('Content-Type', 'application/json');
@@ -53,6 +54,11 @@ module.exports = allowCors(async function (req, res) {
         configured: calendlyConfigured,
         healthy: calendlyConfigured,
         label: 'Calendly bookings'
+      },
+      googleCalendar: {
+        configured: googleConfigured,
+        healthy: googleConfigured,
+        label: 'Google Calendar'
       }
     }
   }));
