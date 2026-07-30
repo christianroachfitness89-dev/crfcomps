@@ -834,13 +834,27 @@ footer{padding:40px 0 60px;border-top:1px solid var(--line);}
 .calendar-event-list{display:flex;flex-direction:column;gap:10px;}
 .calendar-event-row{
   padding:12px;border:1px solid var(--line);border-radius:var(--radius);background:#fff;
+  border-left:4px solid var(--line);
 }
 .calendar-event-time{
   font-family:'IBM Plex Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:0.04em;
-  color:var(--red-dark);margin-bottom:4px;
+  color:var(--ink-soft);margin-bottom:4px;
 }
 .calendar-event-title{font-weight:600;font-size:15px;}
 .calendar-event-location{font-size:12px;color:var(--ink-soft);margin-top:4px;}
+
+/* Google Calendar default color accents */
+.calendar-event-row.cal-cocoa   { border-left-color:#795548; }
+.calendar-event-row.cal-sage    { border-left-color:#33b679; }
+.calendar-event-row.cal-grape   { border-left-color:#8e24aa; }
+.calendar-event-row.cal-flamingo{ border-left-color:#e67c73; }
+.calendar-event-row.cal-banana  { border-left-color:#f6c026; }
+.calendar-event-row.cal-tangerine{ border-left-color:#f5511d; }
+.calendar-event-row.cal-peacock { border-left-color:#039be5; }
+.calendar-event-row.cal-graphite{ border-left-color:#616161; }
+.calendar-event-row.cal-blueberry{ border-left-color:#3f51b5; }
+.calendar-event-row.cal-basil   { border-left-color:#0b8043; }
+.calendar-event-row.cal-tomato  { border-left-color:#d50000; }
 
 @media(min-width:960px){
   .integration-page-grid{grid-template-columns:repeat(2,1fr);}
