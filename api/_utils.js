@@ -45,6 +45,7 @@ async function verifyAdmin(req) {
     const supabase = adminClient();
     const { data, error } = await supabase.auth.getUser(token);
     if (error || !data || !data.user) {
+      console.error('verifyAdmin getUser error:', error);
       return { error: 'Invalid or expired session', status: 401 };
     }
 
