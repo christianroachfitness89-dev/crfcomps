@@ -292,6 +292,17 @@
         '<div id="calendlyIntegrationDetails"></div>' +
       '</div>';
 
+      // Google Calendar card
+      const googleOk = s.googleCalendar && s.googleCalendar.healthy;
+      html += '<div class="card integration-card" id="googleCalendarIntegrationCard">' +
+        '<div class="integration-card-head">' +
+          '<div class="integration-card-title">Google Calendar</div>' +
+          statusBadge(googleOk, googleOk ? 'Connected' : 'Not connected') +
+        '</div>' +
+        '<p class="hint">Upcoming events from your connected Google Calendar.</p>' +
+        '<div id="googleCalendarIntegrationDetails"></div>' +
+      '</div>';
+
       html += '</div>';
       container.innerHTML = html;
 
