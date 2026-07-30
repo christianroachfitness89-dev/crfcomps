@@ -232,8 +232,12 @@ vercel --prod
 ### 4. Check the dashboard
 
 - Open `admin.html` — a **Live integrations** section shows Stripe revenue and recent payments.
-- Open `finance.html` — a **Stripe live revenue** card appears above the payments table.
+- Open `finance.html` — a **Stripe live revenue** card appears above the payments table. It shows a toggle for **All Stripe payments** vs **Outstanding only**, so you can see which Stripe charges have not been matched to a local payment record yet.
 - Open `integrations.html` — see status and controls for every connected app.
+
+### 5. Match Stripe charges to local payments
+
+When you manually record a Stripe payment on `finance.html`, paste the Stripe charge ID (starts with `ch_`) into the **Reference** field. The integration will then mark that charge as matched and remove it from the **Outstanding only** list.
 
 ---
 
