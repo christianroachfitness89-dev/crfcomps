@@ -7,6 +7,7 @@ create table if not exists public.payments (
   amount numeric not null default 0,
   method text not null default 'other',
   reference text,
+  stripe_charge_id text,
   paid_at timestamptz not null default now(),
   notes text,
   created_at timestamptz not null default now()
