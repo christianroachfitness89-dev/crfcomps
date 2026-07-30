@@ -831,6 +831,17 @@ footer{padding:40px 0 60px;border-top:1px solid var(--line);}
 .integration-table td,.integration-table th{padding:10px 8px;}
 .integration-table .text-right{text-align:right;}
 
+.calendar-event-list{display:flex;flex-direction:column;gap:10px;}
+.calendar-event-row{
+  padding:12px;border:1px solid var(--line);border-radius:var(--radius);background:#fff;
+}
+.calendar-event-time{
+  font-family:'IBM Plex Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:0.04em;
+  color:var(--red-dark);margin-bottom:4px;
+}
+.calendar-event-title{font-weight:600;font-size:15px;}
+.calendar-event-location{font-size:12px;color:var(--ink-soft);margin-top:4px;}
+
 @media(min-width:960px){
   .integration-page-grid{grid-template-columns:repeat(2,1fr);}
 }
