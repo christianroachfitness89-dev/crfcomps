@@ -134,6 +134,14 @@ header{
   width:34px;
   height:34px;
   border-radius:var(--radius-sm);
+  background:rgba(20,22,18,.04);
+  border:1px solid rgba(20,22,18,.08);
+  backdrop-filter:blur(4px);
+  -webkit-backdrop-filter:blur(4px);
+}
+
+.nav-menu-toggle:hover{
+  background:rgba(20,22,18,.08);
 }
 
 /* ---------- buttons ---------- */
