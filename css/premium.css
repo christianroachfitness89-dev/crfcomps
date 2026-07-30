@@ -1,7 +1,7 @@
 /*
  * CRF Comps — Premium design layer
- * Apple-inspired polish: softer surfaces, larger radii, layered shadows,
- * refined typography and smooth micro-interactions.
+ * Apple-inspired polish with a glassy feel: frosted translucent surfaces,
+ * larger radii, layered shadows, refined typography and smooth micro-interactions.
  * Loaded after css/main.css so these overrides win.
  */
 
@@ -17,6 +17,12 @@
   --shadow-3:0 12px 32px rgba(20,22,18,.08);
   --shadow-4:0 24px 60px rgba(20,22,18,.10);
   --shadow-glow:0 0 0 1px rgba(199,62,42,.08);
+
+  --glass-bg:rgba(255,255,255,.55);
+  --glass-bg-strong:rgba(255,255,255,.78);
+  --glass-border:rgba(255,255,255,.55);
+  --glass-dark-bg:rgba(20,22,18,.72);
+  --glass-dark-border:rgba(255,255,255,.10);
 
   --header-height:56px;
 }
