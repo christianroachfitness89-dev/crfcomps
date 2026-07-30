@@ -26,6 +26,9 @@ create table if not exists public.invoices (
   due_at timestamptz,
   paid_at timestamptz,
   description text,
+  reference text,
+  stripe_invoice_id text,
+  stripe_payment_intent_id text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
