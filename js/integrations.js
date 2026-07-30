@@ -179,13 +179,23 @@
     if (!container) return;
     container.innerHTML = '<div class="loading">Loading Stripe data...</div>';
 
-    try {
+    const widgetState = { outstandingOnly: false, allPayments: [], outstandingPayments: [] };
+
+    async function loadData(outstandingOnly) {
+      const path = '/api/stripe/payments?limit=50' + (outstandingOnly ? '&outstanding=true' : '');
       const [status, stripe] = await Promise.all([
         api('/api/integrations/status'),
-        api('/api/stripe/payments?limit=10')
+        api(path)
       ]);
 
       const stripeStatus = status.status && status.status.stripe ? status.status.stripe.healthy : false;
+
+      widgetState.allPayments = stripe.payments || [];
+      widgetState.outstandingPayments = stripe.payments ? stripe.payments.filter(function (p) {
+        return !p.matched && p.paid && !p.refunded;
+      }) : [];
+
+      const tablePayments = outstandingOnly ? widgetState.outstandingPayments : widgetState.allPayments;
 
       container.innerHTML =
         '<div class="page-head" style="margin-bottom:18px;">' +
@@ -198,8 +208,46 @@
         '<div class="stat-grid" style="margin-bottom:20px;">' +
           '<div class="stat-box"><div class="stat-label">This month</div><div class="stat-value">' + escapeHtml(formatCurrency(stripe.revenue_month)) + '</div></div>' +
           '<div class="stat-box"><div class="stat-label">Last 30 days</div><div class="stat-value">' + escapeHtml(formatCurrency(stripe.revenue_30d)) + '</div></div>' +
+          '<div class="stat-box"><div class="stat-label">Outstanding Stripe total</div><div class="stat-value">' + escapeHtml(formatCurrency(stripe.outstanding_total)) + '</div></div>' +
+          '<div class="stat-box"><div class="stat-label">Outstanding Stripe count</div><div class="stat-value">' + escapeHtml(String(stripe.outstanding_count || 0)) + '</div></div>' +
         '</div>' +
-        renderPaymentsTable(stripe.payments, 10);
+        '<div class="filter-row" style="margin-bottom:14px;">' +
+          '<button class="admin-btn ' + (outstandingOnly ? '' : 'active') + '" id="stripeAllBtn" style="font-size:11px;">All Stripe payments</button>' +
+          '<button class="admin-btn ' + (outstandingOnly ? 'active' : '') + '" id="stripeOutstandingBtn" style="font-size:11px;">Outstanding only (' + (stripe.outstanding_count || 0) + ')</button>' +
+        '</div>' +
+        '<div id="stripeTableWrap">' + renderPaymentsTable(tablePayments, 50, { outstandingOnly: outstandingOnly }) + '</div>';
+
+      const allBtn = document.getElementById('stripeAllBtn');
+      const outBtn = document.getElementById('stripeOutstandingBtn');
+      if (allBtn) {
+        allBtn.addEventListener('click', function () {
+          widgetState.outstandingOnly = false;
+          renderTable();
+        });
+      }
+      if (outBtn) {
+        outBtn.addEventListener('click', function () {
+          widgetState.outstandingOnly = true;
+          renderTable();
+        });
+      }
+    }
+
+    function renderTable() {
+      const outstandingOnly = widgetState.outstandingOnly;
+      const tablePayments = outstandingOnly ? widgetState.outstandingPayments : widgetState.allPayments;
+      const wrap = document.getElementById('stripeTableWrap');
+      if (wrap) {
+        wrap.innerHTML = renderPaymentsTable(tablePayments, 50, { outstandingOnly: outstandingOnly });
+      }
+      const allBtn = document.getElementById('stripeAllBtn');
+      const outBtn = document.getElementById('stripeOutstandingBtn');
+      if (allBtn) allBtn.classList.toggle('active', !outstandingOnly);
+      if (outBtn) outBtn.classList.toggle('active', outstandingOnly);
+    }
+
+    try {
+      await loadData(false);
     } catch (err) {
       container.innerHTML =
         '<div class="card integration-card" style="border-color:var(--red);">' +
