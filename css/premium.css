@@ -696,6 +696,11 @@ header{
   color:var(--ink-soft);
   font-size:14px;
   padding:48px 20px;
+  background:var(--glass-bg);
+  border:1px solid var(--glass-border);
+  border-radius:var(--radius-lg);
+  backdrop-filter:saturate(140%) blur(10px);
+  -webkit-backdrop-filter:saturate(140%) blur(10px);
 }
 
 /* ---------- reveal animations ---------- */
