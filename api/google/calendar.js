@@ -103,12 +103,19 @@ module.exports = allowCors(async function (req, res) {
     }));
   } catch (err) {
     console.error('Google Calendar error for calendarId=' + getCalendarId() + ':', err);
+    const creds = getServiceAccountCredentials() || {};
     let message = err.message || 'Google Calendar request failed';
+
     if (message.includes('Not Found') || (err.response && err.response.status === 404)) {
       message = 'Calendar not found (ID: ' + getCalendarId() + '). Check GOOGLE_CALENDAR_ID and make sure the service account (' +
-        (getServiceAccountCredentials().client_email || 'unknown') +
+        (creds.client_email || 'unknown') +
         ') has been shared on this calendar with "See all event details" permission.';
+    } else if (message.includes('invalid_grant') || message.includes('JWT')) {
+      message = 'Google rejected the service account key. Delete all keys for ' +
+        (creds.client_email || 'this service account') +
+        ' in Google Cloud, create a fresh JSON key, paste it into Vercel as GOOGLE_SERVICE_ACCOUNT_JSON, and redeploy.';
     }
+
     res.statusCode = 500;
     res.setHeader('Content-Type', 'application/json');
     res.end(JSON.stringify({ error: message }));
