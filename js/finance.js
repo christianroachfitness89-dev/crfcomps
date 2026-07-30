@@ -309,6 +309,7 @@
     const due = new Date();
     due.setDate(due.getDate() + 7);
     document.getElementById('invoiceDue').value = fmtDateTimeLocal(due);
+    document.getElementById('invoiceReference').value = '';
     renderClientOptions('invoiceClient', '');
     document.getElementById('invoiceModal').classList.add('show');
   }
@@ -321,6 +322,7 @@
     document.getElementById('invoiceStatus').value = i.status || 'draft';
     document.getElementById('invoiceIssued').value = fmtDateTimeLocal(i.issued_at);
     document.getElementById('invoiceDue').value = fmtDateTimeLocal(i.due_at);
+    document.getElementById('invoiceReference').value = i.reference || i.stripe_invoice_id || '';
     document.getElementById('invoiceDescription').value = i.description || '';
     document.getElementById('invoiceModalTitle').textContent = 'Edit invoice';
     document.getElementById('invoiceSaveBtn').textContent = 'Update invoice';
