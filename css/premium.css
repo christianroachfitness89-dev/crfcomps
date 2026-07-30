@@ -643,15 +643,18 @@ header{
 
 /* ---------- modals ---------- */
 .modal-overlay{
-  background:rgba(20,22,18,.45);
-  backdrop-filter:blur(4px);
-  -webkit-backdrop-filter:blur(4px);
+  background:rgba(20,22,18,.35);
+  backdrop-filter:saturate(140%) blur(8px);
+  -webkit-backdrop-filter:saturate(140%) blur(8px);
 }
 
 .modal-card{
   border-radius:var(--radius-xl);
-  box-shadow:var(--shadow-4);
-  border:1px solid rgba(255,255,255,.6);
+  box-shadow:var(--shadow-4), inset 0 1px 0 rgba(255,255,255,.65);
+  border:1px solid rgba(255,255,255,.65);
+  background:var(--glass-bg-strong);
+  backdrop-filter:saturate(180%) blur(24px);
+  -webkit-backdrop-filter:saturate(180%) blur(24px);
 }
 
 .modal-head{
