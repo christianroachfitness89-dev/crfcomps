@@ -192,6 +192,7 @@ The **Dashboard** shows:
 - **Upcoming sessions** and sessions this week
 - **Attendance this week**
 - **Communications this week**
+- **Live integrations** — Stripe revenue and recent payments
 
 ---
 
