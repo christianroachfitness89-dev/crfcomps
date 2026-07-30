@@ -342,16 +342,22 @@
 
     const id = document.getElementById('invoiceId').value;
     const status = document.getElementById('invoiceStatus').value;
+    const reference = document.getElementById('invoiceReference').value.trim() || null;
     const payload = {
       client_id: document.getElementById('invoiceClient').value || null,
       amount: Number(document.getElementById('invoiceAmount').value),
       status: status,
       issued_at: document.getElementById('invoiceIssued').value ? new Date(document.getElementById('invoiceIssued').value).toISOString() : new Date().toISOString(),
       due_at: document.getElementById('invoiceDue').value ? new Date(document.getElementById('invoiceDue').value).toISOString() : null,
+      reference: reference,
       description: document.getElementById('invoiceDescription').value.trim() || null,
       paid_at: status === 'paid' ? new Date().toISOString() : null,
       updated_at: new Date().toISOString()
     };
+
+    if (reference && reference.indexOf('in_') === 0) {
+      payload.stripe_invoice_id = reference;
+    }
 
     try {
       let result;
