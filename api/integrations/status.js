@@ -17,6 +17,17 @@ function isCalendlyConfigured() {
   return token.length > 20;
 }
 
+function isGoogleCalendarConfigured() {
+  const raw = process.env.GOOGLE_SERVICE_ACCOUNT_JSON || '';
+  if (!raw) return false;
+  try {
+    const creds = JSON.parse(raw);
+    return !!(creds.client_email && creds.private_key);
+  } catch (err) {
+    return false;
+  }
+}
+
 module.exports = allowCors(async function (req, res) {
   const auth = await verifyAdmin(req);
   if (auth.error) {
