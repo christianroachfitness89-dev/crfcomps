@@ -320,6 +320,13 @@
         document.getElementById('calendlyIntegrationDetails').innerHTML =
           '<div class="dash-empty">Add CALENDLY_PERSONAL_TOKEN in Vercel to enable Calendly bookings.</div>';
       }
+
+      if (googleOk) {
+        renderGoogleCalendarDetails('googleCalendarIntegrationDetails');
+      } else {
+        document.getElementById('googleCalendarIntegrationDetails').innerHTML =
+          '<div class="dash-empty">Add GOOGLE_SERVICE_ACCOUNT_JSON in Vercel to enable Google Calendar events.</div>';
+      }
     } catch (err) {
       container.innerHTML =
         '<div class="card integration-card" style="border-color:var(--red);">' +
