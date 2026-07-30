@@ -209,9 +209,33 @@ Go to your project **Settings > Environment Variables** and add:
 | `SUPABASE_URL` | Same value used in `js/supabase-client.js` | Verifying admin sessions in API functions |
 | `SUPABASE_SERVICE_ROLE_KEY` | Supabase dashboard **Project Settings > API > service_role key** | Server-side admin auth |
 | `STRIPE_SECRET_KEY` | Stripe dashboard **Developers > API keys > Secret key** | Live payments and revenue |
-| `CALENDLY_PERSONAL_TOKEN` | Calendly **Integrations > API 6 Webhooks > Personal Access Token** | Upcoming bookings (future) |
+| `CALENDLY_PERSONAL_TOKEN` | Calendly **Integrations > API & Webhooks > Personal Access Token** | Upcoming bookings (future) |
+| `GOOGLE_SERVICE_ACCOUNT_JSON` | Google Cloud service account key JSON (see below) | Google Calendar upcoming events |
+| `GOOGLE_CALENDAR_ID` | Calendar ID to read (defaults to `primary`) | Google Calendar target calendar |
 
 **Security:** These keys live only in Vercel. They are never sent to the browser or committed to the repo.
+
+### Google Calendar setup
+
+1. Go to the [Google Cloud Console](https://console.cloud.google.com/).
+2. Create a new project (or select an existing one).
+3. Enable the **Google Calendar API**:
+   - **APIs & Services > Library > Google Calendar API > Enable**.
+4. Create a service account:
+   - **IAM & Admin & Service Accounts > Create**
+   - Give it any name, e.g. `crf-comps-calendar`.
+   - Create a key for it and download the JSON file.
+5. Open the downloaded JSON file and copy the entire contents.
+6. In Vercel, add an environment variable:
+   - Name: `GOOGLE_SERVICE_ACCOUNT_JSON`
+   - Value: the full JSON contents from the downloaded file.
+7. Share your Google Calendar with the service account email:
+   - Find `client_email` inside the JSON (it looks like `crf-comps-calendar@your-project.iam.gserviceaccount.com`).
+   - In Google Calendar, click the **three dots** next to your calendar → **Settings and sharing**.
+   - Under **Share with specific people**, add the service account email.
+   - Give it **Make changes to events** permission (or at least **See all event details**).
+8. (Optional) Add `GOOGLE_CALENDAR_ID` if you want to read a specific calendar instead of your primary one.
+   - Use the calendar ID shown in Google Calendar settings (e.g. `your.email@gmail.com` or a long string for shared calendars).
 
 ### 2. Install server dependencies
 
