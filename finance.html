@@ -260,9 +260,11 @@
 <script src="js/site-settings.js"></script>
 <script src="js/operations.js"></script>
 <script src="js/finance.js"></script>
+<script src="js/integrations.js"></script>
 <script>
   window.operations.init().then(function () {
     finance.init();
+    window.integrations.init('finance');
   });
 </script>
 
