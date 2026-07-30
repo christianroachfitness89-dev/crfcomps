@@ -503,21 +503,23 @@ header{
   top:0;
   bottom:0;
   width:4px;
-  background:var(--gold);
-  opacity:.8;
+  background:linear-gradient(180deg, var(--gold), transparent);
+  opacity:.85;
 }
 
-.ops-dept-card[href*="marketing"]::after{ background:var(--red); }
-.ops-dept-card[href*="crm"]::after{ background:#3c783c; }
-.ops-dept-card[href*="finance"]::after{ background:var(--gold); }
-.ops-dept-card[href*="sessions"]::after{ background:#2146af; }
+.ops-dept-card[href*="marketing"]::after{ background:linear-gradient(180deg, var(--red), transparent); }
+.ops-dept-card[href*="crm"]::after{ background:linear-gradient(180deg, #3c783c, transparent); }
+.ops-dept-card[href*="finance"]::after{ background:linear-gradient(180deg, var(--gold), transparent); }
+.ops-dept-card[href*="sessions"]::after{ background:linear-gradient(180deg, #2146af, transparent); }
 
 .ops-dept-icon{
   width:48px;
   height:48px;
   border-radius:var(--radius-md);
-  background:var(--paper-3);
-  box-shadow:var(--shadow-1);
+  background:var(--glass-bg-strong);
+  box-shadow:var(--shadow-1), inset 0 1px 0 rgba(255,255,255,.55);
+  backdrop-filter:saturate(160%) blur(10px);
+  -webkit-backdrop-filter:saturate(160%) blur(10px);
 }
 
 .ops-dept-icon svg{
