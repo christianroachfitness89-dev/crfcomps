@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.45.0",
+    "googleapis": "^140.0.1",
     "stripe": "^16.5.0",
     "ws": "^8.18.0"
   },
