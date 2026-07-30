@@ -479,7 +479,7 @@
   async function init(page) {
     if (!page) page = document.body.dataset.page || 'integrations';
 
-    if (page === 'admin') {
+    if (page === 'admin' || page === 'admin-premium') {
       await renderDashboardStripe();
       await renderDashboardCalendar();
     } else if (page === 'finance') {
