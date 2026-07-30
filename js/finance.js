@@ -255,14 +255,20 @@
     btn.disabled = true;
 
     const id = document.getElementById('paymentId').value;
+    const reference = document.getElementById('paymentReference').value.trim() || null;
+    const method = document.getElementById('paymentMethod').value;
     const payload = {
       client_id: document.getElementById('paymentClient').value || null,
       amount: Number(document.getElementById('paymentAmount').value),
-      method: document.getElementById('paymentMethod').value,
-      reference: document.getElementById('paymentReference').value.trim() || null,
+      method: method,
+      reference: reference,
       paid_at: document.getElementById('paymentPaidAt').value ? new Date(document.getElementById('paymentPaidAt').value).toISOString() : new Date().toISOString(),
       notes: document.getElementById('paymentNotes').value.trim() || null
     };
+
+    if (method === 'stripe' && reference && reference.indexOf('ch_') === 0) {
+      payload.stripe_charge_id = reference;
+    }
 
     try {
       let result;
