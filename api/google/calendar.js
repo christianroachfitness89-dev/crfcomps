@@ -67,7 +67,8 @@ async function listEvents() {
       start: event.start ? (event.start.dateTime || event.start.date) : null,
       end: event.end ? (event.end.dateTime || event.end.date) : null,
       html_link: event.htmlLink || null,
-      status: event.status || null
+      status: event.status || null,
+      color_id: event.colorId || null
     };
   });
 }
