@@ -34,6 +34,18 @@
     return date.toLocaleDateString(undefined, { month: 'short', year: 'numeric' });
   }
 
+  function fmtWeekLabel(date) {
+    return 'w/c ' + date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  }
+
+  function startOfWeek(d) {
+    const day = d.getDay();
+    const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+    const mon = new Date(d.getFullYear(), d.getMonth(), diff);
+    mon.setHours(0, 0, 0, 0);
+    return mon;
+  }
+
   async function getToken() {
     if (window.auth && window.auth.getSession) {
       const session = await window.auth.getSession();
@@ -80,6 +92,7 @@
       const d = new Date(p.paid_at);
       const match = period === 'year' ? d.getFullYear() === now.getFullYear()
         : period === 'quarter' ? (d.getFullYear() === now.getFullYear() && Math.floor(d.getMonth() / 3) === Math.floor(now.getMonth() / 3))
+        : period === 'week' ? (d >= startOfWeek(now) && d < new Date(startOfWeek(now).getTime() + 7 * 24 * 60 * 60 * 1000))
         : d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
       return sum + (match ? Number(p.amount) || 0 : 0);
     }, 0);
@@ -101,23 +114,40 @@
     // Convert current period revenue to an annual run-rate.
     if (period === 'year') return baseline;
     if (period === 'quarter') return baseline * 4;
+    if (period === 'week') return baseline * 52;
     return baseline * 12;
   }
 
-  function projectMonthly(runRateAnnual, growthRate, months) {
-    const monthsOut = months || 12;
-    const startingMonthly = runRateAnnual / 12;
-    const monthlyGrowth = Math.pow(1 + growthRate, 1 / 12) - 1;
-    const rows = [];
-    const start = new Date();
-    start.setDate(1);
-    start.setMonth(start.getMonth() + 1);
+  function periodGrowthRate(growthRate, interval) {
+    const periodsPerYear = interval === 'week' ? 52 : 12;
+    return Math.pow(1 + growthRate, 1 / periodsPerYear) - 1;
+  }
 
-    for (let i = 0; i < monthsOut; i++) {
-      const d = new Date(start);
-      d.setMonth(d.getMonth() + i);
-      const amount = startingMonthly * Math.pow(1 + monthlyGrowth, i);
-      rows.push({ month: d, label: fmtMonthLabel(d), amount: amount });
+  function projectForward(runRateAnnual, growthRate, count, interval) {
+    const periodsPerYear = interval === 'week' ? 52 : 12;
+    const startingAmount = runRateAnnual / periodsPerYear;
+    const periodGrowth = periodGrowthRate(growthRate, interval);
+    const rows = [];
+
+    if (interval === 'week') {
+      const start = startOfWeek(new Date());
+      start.setDate(start.getDate() + 7);
+      for (let i = 0; i < count; i++) {
+        const d = new Date(start);
+        d.setDate(d.getDate() + i * 7);
+        const amount = startingAmount * Math.pow(1 + periodGrowth, i);
+        rows.push({ date: d, label: fmtWeekLabel(d), amount: amount });
+      }
+    } else {
+      const start = new Date();
+      start.setDate(1);
+      start.setMonth(start.getMonth() + 1);
+      for (let i = 0; i < count; i++) {
+        const d = new Date(start);
+        d.setMonth(d.getMonth() + i);
+        const amount = startingAmount * Math.pow(1 + periodGrowth, i);
+        rows.push({ date: d, label: fmtMonthLabel(d), amount: amount });
+      }
     }
     return rows;
   }
@@ -139,7 +169,8 @@
     }
     return {
       period: document.getElementById('forecastPeriod') ? document.getElementById('forecastPeriod').value : 'month',
-      months: document.getElementById('forecastMonths') ? parseInt(document.getElementById('forecastMonths').value, 10) : 12,
+      interval: document.getElementById('forecastInterval') ? document.getElementById('forecastInterval').value : 'month',
+      periods: document.getElementById('forecastPeriods') ? parseInt(document.getElementById('forecastPeriods').value, 10) : 12,
       scenarios: {
         conservative: { growth: getVal('forecastGrowthConservative') / 100, churn: getVal('forecastChurnConservative') / 100, label: 'Conservative' },
         moderate: { growth: getVal('forecastGrowthModerate') / 100, churn: getVal('forecastChurnModerate') / 100, label: 'Moderate' },
@@ -149,13 +180,17 @@
   }
 
   function renderInputs(state) {
-    const months = [3, 6, 9, 12, 18, 24];
+    const monthOptions = [3, 6, 9, 12, 18, 24];
+    const weekOptions = [4, 8, 13, 26, 52];
     const scenarios = state.inputs || defaultScenarios();
     const map = {
       conservative: 'Conservative',
       moderate: 'Moderate',
       aggressive: 'Aggressive'
     };
+    const isWeekly = state.interval === 'week';
+    const periodCountOptions = isWeekly ? weekOptions : monthOptions;
+    const periodLabel = isWeekly ? 'weeks' : 'months';
 
     let html = '<div class="forecast-inputs card" style="margin-bottom:22px;">' +
       '<h3 style="margin:0 0 18px;">Forecast inputs</h3>' +
@@ -164,6 +199,7 @@
     html += '<div class="forecast-field">' +
       '<label class="field-label" for="forecastPeriod">Baseline period</label>' +
       '<select id="forecastPeriod" class="field-input">' +
+        '<option value="week"' + (state.period === 'week' ? ' selected' : '') + '>This week</option>' +
         '<option value="month"' + (state.period === 'month' ? ' selected' : '') + '>This month</option>' +
         '<option value="quarter"' + (state.period === 'quarter' ? ' selected' : '') + '>This quarter</option>' +
         '<option value="year"' + (state.period === 'year' ? ' selected' : '') + '>This year</option>' +
@@ -171,10 +207,18 @@
     '</div>';
 
     html += '<div class="forecast-field">' +
-      '<label class="field-label" for="forecastMonths">Project months</label>' +
-      '<select id="forecastMonths" class="field-input">';
-    months.forEach(function (m) {
-      html += '<option value="' + m + '"' + (state.months === m ? ' selected' : '') + '>' + m + ' months</option>';
+      '<label class="field-label" for="forecastInterval">Forecast by</label>' +
+      '<select id="forecastInterval" class="field-input">' +
+        '<option value="month"' + (state.interval === 'month' ? ' selected' : '') + '>Month</option>' +
+        '<option value="week"' + (state.interval === 'week' ? ' selected' : '') + '>Week</option>' +
+      '</select>' +
+    '</div>';
+
+    html += '<div class="forecast-field">' +
+      '<label class="field-label" for="forecastPeriods">Project ' + periodLabel + '</label>' +
+      '<select id="forecastPeriods" class="field-input">';
+    periodCountOptions.forEach(function (m) {
+      html += '<option value="' + m + '"' + (state.periods === m ? ' selected' : '') + '>' + m + ' ' + periodLabel + '</option>';
     });
     html += '</select>' +
     '</div>';
@@ -206,27 +250,31 @@
   function renderBaselineCard(state) {
     const total = (state.data.stripe.revenue || 0) + state.data.weflex;
     const runRate = computeRunRate(total, state.data.period);
+    const interval = state.interval || 'month';
+    const avgLabel = interval === 'week' ? 'Avg weekly' : 'Avg monthly';
+    const avgDivisor = interval === 'week' ? 52 : 12;
     return '<div class="stat-grid stripe-stats-grid" style="margin-bottom:22px;">' +
       '<div class="stat-box"><div class="stat-label">Period</div><div class="stat-value">' + escapeHtml(state.data.label) + '</div></div>' +
       '<div class="stat-box"><div class="stat-label">Stripe revenue</div><div class="stat-value">' + escapeHtml(formatCurrency(state.data.stripe.revenue)) + '</div></div>' +
       '<div class="stat-box"><div class="stat-label">Weflex revenue</div><div class="stat-value">' + escapeHtml(formatCurrency(state.data.weflex)) + '</div></div>' +
       '<div class="stat-box"><div class="stat-label">Total baseline</div><div class="stat-value">' + escapeHtml(formatCurrency(total)) + '</div></div>' +
       '<div class="stat-box"><div class="stat-label">Annual run-rate</div><div class="stat-value">' + escapeHtml(formatCurrency(runRate)) + '</div></div>' +
-      '<div class="stat-box"><div class="stat-label">Avg monthly</div><div class="stat-value">' + escapeHtml(formatCurrency(runRate / 12)) + '</div></div>' +
+      '<div class="stat-box"><div class="stat-label">' + escapeHtml(avgLabel) + '</div><div class="stat-value">' + escapeHtml(formatCurrency(runRate / avgDivisor)) + '</div></div>' +
     '</div>';
   }
 
-  function renderForecastTable(scenarios) {
+  function renderForecastTable(scenarios, interval) {
     const keys = Object.keys(scenarios);
     if (!keys.length) return '';
 
-    const months = scenarios[keys[0]].projection.map(function (r) { return r.label; });
+    const labels = scenarios[keys[0]].projection.map(function (r) { return r.label; });
+    const heading = interval === 'week' ? 'Weekly projection' : 'Monthly projection';
 
     let html = '<div class="card" style="margin-bottom:22px;overflow:auto;">' +
-      '<h3 style="margin:0 0 16px;">Monthly projection</h3>' +
+      '<h3 style="margin:0 0 16px;">' + escapeHtml(heading) + '</h3>' +
       '<table class="data-table integration-table forecast-table">' +
         '<thead><tr><th>Scenario</th>';
-    months.forEach(function (m) {
+    labels.forEach(function (m) {
       html += '<th>' + escapeHtml(m) + '</th>';
     });
     html += '<th>Total</th></tr></thead><tbody>';
@@ -245,18 +293,20 @@
     return html;
   }
 
-  function renderSummaryCards(scenarios, baselineTotal, period) {
+  function renderSummaryCards(scenarios, baselineTotal, period, interval) {
     const runRate = computeRunRate(baselineTotal, period);
+    const periodsPerYear = interval === 'week' ? 52 : 12;
+    const periodLabel = interval === 'week' ? 'weeks' : 'months';
     let html = '<div class="forecast-summary-grid" style="margin-bottom:22px;">';
 
     Object.keys(scenarios).forEach(function (key) {
       const s = scenarios[key];
       const total = s.projection.reduce(function (sum, r) { return sum + r.amount; }, 0);
-      const lift = runRate > 0 ? ((total / (runRate * (s.projection.length / 12)) - 1) * 100) : 0;
+      const lift = runRate > 0 ? ((total / (runRate * (s.projection.length / periodsPerYear)) - 1) * 100) : 0;
       html += '<div class="card forecast-summary-card">' +
         '<div class="forecast-summary-label">' + escapeHtml(s.label) + ' forecast</div>' +
         '<div class="forecast-summary-value">' + escapeHtml(formatCurrency(total)) + '</div>' +
-        '<div class="forecast-summary-sub">over ' + s.projection.length + ' months</div>' +
+        '<div class="forecast-summary-sub">over ' + s.projection.length + ' ' + periodLabel + '</div>' +
         '<div class="forecast-summary-sub">~' + Math.round(lift) + '% vs run-rate</div>' +
       '</div>';
     });
@@ -277,20 +327,41 @@
     }
   }
 
-  function computeMonthlyGap(scenario, baselineMonthly) {
-    // Gap = how much revenue above baseline we need in each forecast month.
+  function packageIntervalValue(pkg, interval) {
+    const price = Number(pkg.price) || 0;
+    if (interval === 'week') {
+      switch (pkg.billing_frequency) {
+        case 'weekly': return price;
+        case 'fortnightly': return price / 2;
+        case 'monthly': return price * 12 / 52;
+        case 'quarterly': return price * 4 / 52;
+        case 'yearly': return price / 52;
+        default: return price;
+      }
+    }
+    switch (pkg.billing_frequency) {
+      case 'weekly': return price * 52 / 12;
+      case 'fortnightly': return price * 26 / 12;
+      case 'monthly': return price;
+      case 'quarterly': return price / 3;
+      case 'yearly': return price / 12;
+      default: return price;
+    }
+  }
+
+  function computeGap(scenario, baselinePerInterval, interval) {
     return scenario.projection.map(function (r) {
-      return { month: r.label, gap: Math.max(0, r.amount - baselineMonthly) };
+      return { label: r.label, gap: Math.max(0, r.amount - baselinePerInterval) };
     });
   }
 
-  function salesForGap(gap, pkg) {
-    const monthlyValue = packageMonthlyValue(pkg);
-    if (!monthlyValue) return 0;
-    return gap / monthlyValue;
+  function salesForGap(gap, pkg, interval) {
+    const value = packageIntervalValue(pkg, interval);
+    if (!value) return 0;
+    return gap / value;
   }
 
-  function renderSalesTargets(scenarios, baselineTotal, period, packages) {
+  function renderSalesTargets(scenarios, baselineTotal, period, packages, interval) {
     const activePackages = (packages || []).filter(function (p) { return p.status === 'active'; });
     if (!activePackages.length) {
       return '<div class="card" style="margin-bottom:22px;">' +
@@ -299,23 +370,32 @@
       '</div>';
     }
 
-    const baselineMonthly = computeRunRate(baselineTotal, period) / 12;
+    const isWeekly = interval === 'week';
+    const periodsPerYear = isWeekly ? 52 : 12;
+    const baselinePerInterval = computeRunRate(baselineTotal, period) / periodsPerYear;
+    const intervalLabel = isWeekly ? 'week' : 'month';
+    const heading = isWeekly ? 'What to add per week to hit forecast' : 'What to add per week to hit forecast';
+    const subtext = isWeekly
+      ? 'New package sales required each week to close the gap between current revenue and each forecast.'
+      : 'New package sales required each month to close the gap between current revenue and each forecast. Each row is cumulative by the end of that month.';
 
     let html = '<div class="card" style="margin-bottom:22px;">' +
-      '<h3 style="margin:0 0 12px;">What to add per week to hit forecast</h3>' +
-      '<p class="hint" style="margin-bottom:18px;">New package sales required each month to close the gap between current revenue and each forecast. Each row is cumulative by the end of that month.</p>';
+      '<h3 style="margin:0 0 12px;">' + heading + '</h3>' +
+      '<p class="hint" style="margin-bottom:18px;">' + subtext + '</p>';
 
     Object.keys(scenarios).forEach(function (key) {
       const s = scenarios[key];
-      const gaps = computeMonthlyGap(s, baselineMonthly);
+      const gaps = computeGap(s, baselinePerInterval, interval);
       const totalGap = gaps.reduce(function (sum, g) { return sum + g.gap; }, 0);
+      const periodLabel = isWeekly ? 'weeks' : 'months';
+      const columnHeader = isWeekly ? 'Week' : 'Month';
 
       html += '<div class="forecast-target-scenario" style="margin-bottom:22px;">' +
-        '<div class="forecast-target-title" style="margin-bottom:12px;">' + escapeHtml(s.label) + ' — ' + escapeHtml(formatCurrency(totalGap)) + ' new revenue needed over ' + s.projection.length + ' months</div>';
+        '<div class="forecast-target-title" style="margin-bottom:12px;">' + escapeHtml(s.label) + ' — ' + escapeHtml(formatCurrency(totalGap)) + ' new revenue needed over ' + s.projection.length + ' ' + periodLabel + '</div>';
 
       html += '<table class="data-table integration-table forecast-table">' +
         '<thead><tr>' +
-          '<th>Month</th>' +
+          '<th>' + columnHeader + '</th>' +
           '<th class="text-right">Gap to close</th>';
       activePackages.forEach(function (pkg) {
         html += '<th class="text-right" style="min-width:110px;">' + escapeHtml(pkg.name) + ' sales / week</th>';
@@ -324,11 +404,11 @@
 
       gaps.forEach(function (g) {
         html += '<tr>' +
-          '<td>' + escapeHtml(g.month) + '</td>' +
+          '<td>' + escapeHtml(g.label) + '</td>' +
           '<td class="text-right font-mono">' + escapeHtml(formatCurrency(g.gap)) + '</td>';
         activePackages.forEach(function (pkg) {
-          const sales = salesForGap(g.gap, pkg);
-          const perWeek = sales / 4.33;
+          const sales = salesForGap(g.gap, pkg, interval);
+          const perWeek = isWeekly ? sales : sales / 4.33;
           const display = perWeek > 0 && perWeek < 0.1 ? '< 0.1' : perWeek.toFixed(1);
           html += '<td class="text-right font-mono">' + display + '</td>';
         });
@@ -338,11 +418,11 @@
       // Average row
       const avgGap = totalGap / s.projection.length;
       html += '<tr style="border-top:2px solid var(--line);">' +
-        '<td><strong>Monthly average</strong></td>' +
+        '<td><strong>' + columnHeader + 'ly average</strong></td>' +
         '<td class="text-right font-mono"><strong>' + escapeHtml(formatCurrency(avgGap)) + '</strong></td>';
       activePackages.forEach(function (pkg) {
-        const avgSales = salesForGap(avgGap, pkg);
-        const avgPerWeek = avgSales / 4.33;
+        const avgSales = salesForGap(avgGap, pkg, interval);
+        const avgPerWeek = isWeekly ? avgSales : avgSales / 4.33;
         const display = avgPerWeek > 0 && avgPerWeek < 0.1 ? '< 0.1' : avgPerWeek.toFixed(1);
         html += '<td class="text-right font-mono"><strong>' + display + '</strong></td>';
       });
@@ -355,9 +435,10 @@
     return html;
   }
 
-  function renderForecastChart(scenarios) {
+  function renderForecastChart(scenarios, interval) {
     if (!Object.keys(scenarios).length) return '';
     const labels = scenarios.conservative.projection.map(function (r) { return r.label; });
+    const heading = interval === 'week' ? 'Weekly projection chart' : 'Monthly projection chart';
     const datasets = Object.keys(scenarios).map(function (key) {
       const s = scenarios[key];
       return {
@@ -371,7 +452,7 @@
 
     // Simple HTML bar chart fallback - no external chart library needed
     let html = '<div class="card forecast-chart-card" style="margin-bottom:22px;">' +
-      '<h3 style="margin:0 0 16px;">Projection chart</h3>' +
+      '<h3 style="margin:0 0 16px;">' + escapeHtml(heading) + '</h3>' +
       '<div class="forecast-chart" id="' + chartId + '">';
 
     labels.forEach(function (label, idx) {
@@ -399,19 +480,22 @@
     const baselineTotal = (state.data.stripe.revenue || 0) + state.data.weflex;
     const runRate = computeRunRate(baselineTotal, state.data.period);
     const inputs = state.inputs || defaultScenarios();
+    const interval = state.interval || 'month';
+    const count = state.periods || 12;
     const scenarios = {};
 
     Object.keys(inputs).forEach(function (key) {
       const s = inputs[key];
-      // Effective monthly growth after churn
-      const effectiveAnnual = Math.max(-0.5, s.growth - s.churn * 12);
+      // Effective annual growth after churn, scaled by interval
+      const periodsPerYear = interval === 'week' ? 52 : 12;
+      const effectiveAnnual = Math.max(-0.5, s.growth - s.churn * periodsPerYear);
       scenarios[key] = {
         label: s.label,
-        projection: projectMonthly(runRate, effectiveAnnual, state.months)
+        projection: projectForward(runRate, effectiveAnnual, count, interval)
       };
     });
 
-    return { scenarios, baselineTotal };
+    return { scenarios, baselineTotal, interval };
   }
 
   async function render() {
@@ -434,10 +518,10 @@
       container.innerHTML =
         renderInputs(state) +
         renderBaselineCard(state) +
-        renderSummaryCards(forecast.scenarios, forecast.baselineTotal, state.data.period) +
-        renderSalesTargets(forecast.scenarios, forecast.baselineTotal, state.data.period, state.packages) +
-        renderForecastChart(forecast.scenarios) +
-        renderForecastTable(forecast.scenarios);
+        renderSummaryCards(forecast.scenarios, forecast.baselineTotal, state.data.period, forecast.interval) +
+        renderSalesTargets(forecast.scenarios, forecast.baselineTotal, state.data.period, state.packages, forecast.interval) +
+        renderForecastChart(forecast.scenarios, forecast.interval) +
+        renderForecastTable(forecast.scenarios, forecast.interval);
 
       attachListeners();
     } catch (err) {
@@ -456,7 +540,8 @@
       runBtn.addEventListener('click', function () {
         const inputs = getInputValues();
         state.period = inputs.period;
-        state.months = inputs.months;
+        state.interval = inputs.interval;
+        state.periods = inputs.periods;
         state.inputs = inputs.scenarios;
         state.data = null;
         render();
@@ -471,7 +556,8 @@
 
   const state = {
     period: 'month',
-    months: 12,
+    interval: 'month',
+    periods: 12,
     inputs: null,
     data: null,
     packages: null

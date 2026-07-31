@@ -42,6 +42,14 @@ function parsePeriod(req) {
     start = new Date(year, quarter * 3, 1);
     end = new Date(year, (quarter + 1) * 3, 1);
     label = 'Q' + (quarter + 1) + ' ' + year;
+  } else if (period === 'week') {
+    const now = new Date();
+    const day = now.getDay();
+    const diff = now.getDate() - day + (day === 0 ? -6 : 1); // Monday start
+    start = new Date(year, month - 1, diff);
+    start.setHours(0, 0, 0, 0);
+    end = new Date(start.getTime() + 7 * 24 * 60 * 60 * 1000);
+    label = 'Week of ' + start.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
   } else {
     start = new Date(year, month - 1, 1);
     end = new Date(year, month, 1);
