@@ -140,6 +140,35 @@
     return html;
   }
 
+  function buildCombinedFilter(state) {
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const currentYear = new Date().getFullYear();
+
+    let html = '<div class="filter-row stripe-filters" style="margin-bottom:14px;">';
+
+    html += '<select id="combinedPeriod" style="font-size:13px;">' +
+      '<option value="month"' + (state.period === 'month' ? ' selected' : '') + '>Month</option>' +
+      '<option value="quarter"' + (state.period === 'quarter' ? ' selected' : '') + '>Quarter</option>' +
+      '<option value="year"' + (state.period === 'year' ? ' selected' : '') + '>Year</option>' +
+      '</select>';
+
+    html += '<select id="combinedMonth" style="font-size:13px;' + (state.period === 'year' ? 'display:none;' : '') + '">';
+    for (let i = 1; i <= 12; i++) {
+      html += '<option value="' + i + '"' + (i === state.month ? ' selected' : '') + '>' + months[i - 1] + '</option>';
+    }
+    html += '</select>';
+
+    html += '<select id="combinedYear" style="font-size:13px;">';
+    for (let y = currentYear - 2; y <= currentYear + 1; y++) {
+      html += '<option value="' + y + '"' + (y === state.year ? ' selected' : '') + '>' + y + '</option>';
+    }
+    html += '</select>';
+
+    html += '<button class="admin-btn" id="combinedApplyFilter" style="font-size:11px;">Apply</button>';
+    html += '</div>';
+    return html;
+  }
+
   function renderCombinedOverview(stripeMetrics, weflexMetrics, label) {
     const stripeRevenue = Number(stripeMetrics && stripeMetrics.revenue) || 0;
     const weflexTotal = Number(weflexMetrics && weflexMetrics.total) || 0;
@@ -152,6 +181,7 @@
           '<h3 style="margin:0;">Combined revenue (' + escapeHtml(label || '') + ')</h3>' +
         '</div>' +
       '</div>' +
+      buildCombinedFilter(widgetState) +
       '<div class="stat-grid stripe-stats-grid" style="margin-bottom:24px;">' +
         '<div class="stat-box"><div class="stat-label">Total revenue</div><div class="stat-value">' + escapeHtml(formatCurrency(totalRevenue)) + '</div></div>' +
         '<div class="stat-box"><div class="stat-label">Stripe revenue</div><div class="stat-value">' + escapeHtml(formatCurrency(stripeRevenue)) + '</div></div>' +
@@ -444,6 +474,25 @@
     const weflexMetrics = computeWeflexMetrics(filtered);
     const bounds = parsePeriodBounds(widgetState.period, widgetState.month, widgetState.year);
     container.innerHTML = renderCombinedOverview(widgetState.stripeMetrics, weflexMetrics, bounds.label);
+
+    const combinedApply = document.getElementById('combinedApplyFilter');
+    const combinedPeriod = document.getElementById('combinedPeriod');
+
+    if (combinedApply) {
+      combinedApply.addEventListener('click', function () {
+        widgetState.period = document.getElementById('combinedPeriod').value;
+        widgetState.month = parseInt(document.getElementById('combinedMonth').value, 10);
+        widgetState.year = parseInt(document.getElementById('combinedYear').value, 10);
+        refreshAndRender();
+      });
+    }
+
+    if (combinedPeriod) {
+      combinedPeriod.addEventListener('change', function () {
+        const monthSelect = document.getElementById('combinedMonth');
+        if (monthSelect) monthSelect.style.display = this.value === 'year' ? 'none' : '';
+      });
+    }
   }
 
   function attachEventListeners() {
