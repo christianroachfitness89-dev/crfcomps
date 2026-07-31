@@ -977,3 +977,48 @@ header{
     width:100%;
   }
 }
+
+/* ---------- weflex payment form ---------- */
+.weflex-field-row{
+  margin-bottom:16px;
+}
+
+.weflex-field-row:last-child{
+  margin-bottom:0;
+}
+
+.weflex-field-row .field-label{
+  display:block;
+  font-family:'IBM Plex Mono',monospace;
+  font-size:11px;
+  text-transform:uppercase;
+  letter-spacing:0.06em;
+  color:var(--ink-soft);
+  margin-bottom:6px;
+}
+
+.weflex-field-row .field-input,
+.weflex-field-row .field-input[type="date"],
+.weflex-field-row .field-input[type="number"]{
+  display:block;
+  width:100%;
+  box-sizing:border-box;
+  padding:10px 12px;
+  font-size:14px;
+  font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  border:1px solid var(--line);
+  border-radius:var(--radius-sm);
+  background:#fff;
+  color:var(--ink);
+}
+
+.weflex-field-row .field-input:focus{
+  outline:none;
+  border-color:var(--gold);
+  box-shadow:0 0 0 3px rgba(184,134,11,.12);
+}
+
+.weflex-field-row textarea.field-input{
+  resize:vertical;
+  min-height:80px;
+}

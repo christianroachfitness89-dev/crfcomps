@@ -284,14 +284,22 @@
           '<button class="modal-close" onclick="window.weflexPayments.closeModal()">×</button>' +
         '</div>' +
         '<div class="modal-body">' +
-          '<label class="field-label">Date</label>' +
-          '<input type="date" id="weflexPaidAt" class="field-input" value="' + escapeHtml(paidAt) + '">' +
-          '<label class="field-label">Amount</label>' +
-          '<input type="number" id="weflexAmount" class="field-input" step="0.01" min="0" placeholder="0.00" value="' + escapeHtml(existing ? existing.amount : '') + '">' +
-          '<label class="field-label">Remittance reference</label>' +
-          '<input type="text" id="weflexReference" class="field-input" placeholder="e.g. REM-2026-001" value="' + escapeHtml(existing ? existing.remittance_reference || '' : '') + '">' +
-          '<label class="field-label">Notes</label>' +
-          '<textarea id="weflexNotes" class="field-input" rows="3" placeholder="Optional notes">' + escapeHtml(existing ? existing.notes || '' : '') + '</textarea>' +
+          '<div class="weflex-field-row">' +
+            '<label class="field-label" for="weflexPaidAt">Date</label>' +
+            '<input type="date" id="weflexPaidAt" class="field-input" value="' + escapeHtml(paidAt) + '">' +
+          '</div>' +
+          '<div class="weflex-field-row">' +
+            '<label class="field-label" for="weflexAmount">Amount</label>' +
+            '<input type="number" id="weflexAmount" class="field-input" step="0.01" min="0" placeholder="0.00" value="' + escapeHtml(existing ? existing.amount : '') + '">' +
+          '</div>' +
+          '<div class="weflex-field-row">' +
+            '<label class="field-label" for="weflexReference">Remittance reference</label>' +
+            '<input type="text" id="weflexReference" class="field-input" placeholder="e.g. REM-2026-001" value="' + escapeHtml(existing ? existing.remittance_reference || '' : '') + '">' +
+          '</div>' +
+          '<div class="weflex-field-row">' +
+            '<label class="field-label" for="weflexNotes">Notes</label>' +
+            '<textarea id="weflexNotes" class="field-input" rows="3" placeholder="Optional notes">' + escapeHtml(existing ? existing.notes || '' : '') + '</textarea>' +
+          '</div>' +
         '</div>' +
         '<div class="modal-footer">' +
           '<button class="admin-btn" id="weflexSavePayment" data-id="' + escapeHtml(existing ? existing.id : '') + '">' + (isEdit ? 'Update' : 'Add') + '</button>' +
