@@ -23,7 +23,8 @@
     sessions: [],
     attendance: [],
     communications: [],
-    clientNotes: []
+    clientNotes: [],
+    formTemplates: []
   };
 
   function packageWeeklySessions(pkg) {
@@ -102,7 +103,7 @@
 
   async function loadData() {
     try {
-      const [leadsRes, stratRes, compRes, clientRes, notesRes, payRes, invRes, weflexRes, pkgRes, clientPkgRes, sessRes, attRes, commRes] = await Promise.all([
+      const [leadsRes, stratRes, compRes, clientRes, notesRes, payRes, invRes, weflexRes, pkgRes, clientPkgRes, sessRes, attRes, commRes, formTmplRes] = await Promise.all([
         client.from('leads').select('*').order('created_at', { ascending: false }),
         client.from('marketing_strategies').select('*').order('created_at', { ascending: false }),
         client.from('competitions').select('*').order('starts_at', { ascending: false }),
@@ -115,7 +116,8 @@
         safeSelect('client_packages'),
         safeSelect('sessions'),
         safeSelect('attendance'),
-        safeSelect('communications')
+        safeSelect('communications'),
+        safeSelect('form_templates')
       ]);
 
       window.opsData.leads = leadsRes.data || [];
@@ -131,6 +133,7 @@
       window.opsData.sessions = sessRes.data || [];
       window.opsData.attendance = attRes.data || [];
       window.opsData.communications = commRes.data || [];
+      window.opsData.formTemplates = formTmplRes.data || [];
     } catch (err) {
       console.error('loadData error:', err);
     }
