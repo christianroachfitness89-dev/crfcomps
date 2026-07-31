@@ -122,28 +122,41 @@
     return rows;
   }
 
-  function scenarioInputs() {
+  function defaultScenarios() {
     return {
-      conservative: {
-        growth: parseFloat(document.getElementById('forecastGrowthConservative').value) / 100,
-        churn: parseFloat(document.getElementById('forecastChurnConservative').value) / 100,
-        label: 'Conservative'
-      },
-      moderate: {
-        growth: parseFloat(document.getElementById('forecastGrowthModerate').value) / 100,
-        churn: parseFloat(document.getElementById('forecastChurnModerate').value) / 100,
-        label: 'Moderate'
-      },
-      aggressive: {
-        growth: parseFloat(document.getElementById('forecastGrowthAggressive').value) / 100,
-        churn: parseFloat(document.getElementById('forecastChurnAggressive').value) / 100,
-        label: 'Aggressive'
+      conservative: { growth: 0.10, churn: 0.05, label: 'Conservative' },
+      moderate: { growth: 0.25, churn: 0.03, label: 'Moderate' },
+      aggressive: { growth: 0.50, churn: 0.02, label: 'Aggressive' }
+    };
+  }
+
+  function getInputValues() {
+    function getVal(id) {
+      const el = document.getElementById(id);
+      if (!el) return 0;
+      const n = parseFloat(el.value);
+      return isNaN(n) ? 0 : n;
+    }
+    return {
+      period: document.getElementById('forecastPeriod') ? document.getElementById('forecastPeriod').value : 'month',
+      months: document.getElementById('forecastMonths') ? parseInt(document.getElementById('forecastMonths').value, 10) : 12,
+      scenarios: {
+        conservative: { growth: getVal('forecastGrowthConservative') / 100, churn: getVal('forecastChurnConservative') / 100, label: 'Conservative' },
+        moderate: { growth: getVal('forecastGrowthModerate') / 100, churn: getVal('forecastChurnModerate') / 100, label: 'Moderate' },
+        aggressive: { growth: getVal('forecastGrowthAggressive') / 100, churn: getVal('forecastChurnAggressive') / 100, label: 'Aggressive' }
       }
     };
   }
 
   function renderInputs(state) {
     const months = [3, 6, 9, 12, 18, 24];
+    const scenarios = state.inputs || defaultScenarios();
+    const map = {
+      conservative: 'Conservative',
+      moderate: 'Moderate',
+      aggressive: 'Aggressive'
+    };
+
     let html = '<div class="forecast-inputs card" style="margin-bottom:22px;">' +
       '<h3 style="margin:0 0 18px;">Forecast inputs</h3>' +
       '<div class="forecast-input-grid">';
@@ -166,22 +179,18 @@
     html += '</select>' +
     '</div>';
 
-    const scenarios = [
-      { key: 'conservative', title: 'Conservative', growth: 10, churn: 5 },
-      { key: 'moderate', title: 'Moderate', growth: 25, churn: 3 },
-      { key: 'aggressive', title: 'Aggressive', growth: 50, churn: 2 }
-    ];
-
-    scenarios.forEach(function (s) {
+    Object.keys(scenarios).forEach(function (key) {
+      const s = scenarios[key];
+      const title = map[key] || key;
       html += '<div class="forecast-scenario-inputs">' +
-        '<div class="forecast-scenario-title">' + escapeHtml(s.title) + '</div>' +
+        '<div class="forecast-scenario-title">' + escapeHtml(s.label || title) + '</div>' +
         '<div class="forecast-field">' +
-          '<label class="field-label" for="forecastGrowth' + s.title + '">Annual growth %</label>' +
-          '<input type="number" id="forecastGrowth' + s.title + '" class="field-input" step="1" value="' + s.growth + '">' +
+          '<label class="field-label" for="forecastGrowth' + title + '">Annual growth %</label>' +
+          '<input type="number" id="forecastGrowth' + title + '" class="field-input" step="1" value="' + Math.round(s.growth * 100) + '">' +
         '</div>' +
         '<div class="forecast-field">' +
-          '<label class="field-label" for="forecastChurn' + s.title + '">Monthly churn %</label>' +
-          '<input type="number" id="forecastChurn' + s.title + '" class="field-input" step="0.1" value="' + s.churn + '">' +
+          '<label class="field-label" for="forecastChurn' + title + '">Monthly churn %</label>' +
+          '<input type="number" id="forecastChurn' + title + '" class="field-input" step="0.1" value="' + (s.churn * 100).toFixed(1) + '">' +
         '</div>' +
       '</div>';
     });
@@ -299,7 +308,7 @@
   function runForecast(state) {
     const baselineTotal = (state.data.stripe.revenue || 0) + state.data.weflex;
     const runRate = computeRunRate(baselineTotal, state.data.period);
-    const inputs = scenarioInputs();
+    const inputs = state.inputs || defaultScenarios();
     const scenarios = {};
 
     Object.keys(inputs).forEach(function (key) {
@@ -347,13 +356,13 @@
 
   function attachListeners() {
     const runBtn = document.getElementById('forecastRunBtn');
-    const periodSelect = document.getElementById('forecastPeriod');
-    const monthsSelect = document.getElementById('forecastMonths');
 
     if (runBtn) {
       runBtn.addEventListener('click', function () {
-        state.period = document.getElementById('forecastPeriod').value;
-        state.months = parseInt(document.getElementById('forecastMonths').value, 10);
+        const inputs = getInputValues();
+        state.period = inputs.period;
+        state.months = inputs.months;
+        state.inputs = inputs.scenarios;
         state.data = null;
         render();
       });
@@ -368,6 +377,7 @@
   const state = {
     period: 'month',
     months: 12,
+    inputs: null,
     data: null
   };
 
