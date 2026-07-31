@@ -11,5 +11,7 @@ Run these in order in the Supabase SQL Editor after deploying the matching front
 | 5 | `phase5-communications.sql` | Communications log table |
 | 6 | `phase6-stripe-integration.sql` | Add `stripe_charge_id` to payments for Stripe matching |
 | 7 | `phase7-stripe-invoices.sql` | Add `stripe_invoice_id` and `stripe_payment_intent_id` to invoices for Stripe invoice matching |
+| 8 | `phase8-birthday-filter.sql` | Add `birthday` date column to leads and backfill from tags for birthday-today filtering |
+| 9 | `phase9-competition-sms-templates.sql` | Add `sms_templates` jsonb column to competitions for multiple per-giveaway SMS templates |
 
 > `supabase-setup.sql` at the repo root already contains the complete schema. These migration files are for applying changes incrementally to an existing live database.

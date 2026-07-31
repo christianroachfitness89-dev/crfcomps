@@ -56,6 +56,7 @@ create table if not exists public.competitions (
   hero_headline text not null default 'Enter for free.<br><em>Win coaching.</em>',
   hero_subheadline text not null default 'Join the current giveaway for a chance to win coaching prizes. No purchase needed.',
   rules_text text,
+  sms_templates jsonb not null default '[]'::jsonb,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -77,6 +78,10 @@ alter table public.competitions
   drop column if exists prize_second_cash,
   drop column if exists prize_third_cash;
 
+-- Migration: add per-giveaway SMS templates (array of {name, body}).
+alter table public.competitions
+  add column if not exists sms_templates jsonb not null default '[]'::jsonb;
+
 -- Leads / entries. One row per capture; tagged to a marketing strategy.
 create table if not exists public.leads (
   id uuid default gen_random_uuid() primary key,
@@ -93,8 +98,11 @@ create table if not exists public.leads (
   status text not null default 'entered' check (status in ('entered', 'called', 'no_answer', 'sms_sent', 'email_sent', 'follow_up', 'converted', 'not_interested', 'winner', 'runner_up', 'runner_up_2', 'contact_later', 'disqualified')),
   pool text not null default 'giveaway' check (pool in ('giveaway', 'new_member', 'non_attendance', 'birthday')),
   last_contact_at timestamptz,
+  birthday date,
   created_at timestamptz not null default now()
 );
+
+create index if not exists idx_leads_birthday on public.leads(birthday);
 
 -- Migration: link leads to strategies and add flexible tagging (run after table exists).
 alter table public.leads
@@ -121,6 +129,10 @@ alter table public.leads
 
 -- Migration: add last_contact_at for speed-to-lead tracking.
 alter table public.leads add column if not exists last_contact_at timestamptz;
+
+-- Migration: add birthday date column for birthday pool filtering.
+alter table public.leads add column if not exists birthday date;
+create index if not exists idx_leads_birthday on public.leads(birthday);
 
 -- Backfill existing rows to the giveaway pool if they have no pool set.
 update public.leads set pool = 'giveaway' where pool is null or pool = '';

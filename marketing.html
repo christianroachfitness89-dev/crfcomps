@@ -275,7 +275,7 @@
           </div>
           <div class="form-row">
             <label for="bulkSmsBody-giveaway">Message preview (editable)</label>
-            <textarea id="bulkSmsBody-giveaway" rows="3" placeholder="Pick a strategy template to populate this, or type your own message..."></textarea>
+            <textarea id="bulkSmsBody-giveaway" rows="3" placeholder="Pick a giveaway or strategy template to populate this, or type your own message..."></textarea>
             <p style="font-size:13px;color:var(--ink-soft);margin-top:6px;">Placeholders: <b>{first_name}</b>, <b>{last_name}</b>, <b>{full_name}</b>, <b>{phone}</b>, <b>{email}</b>, <b>{strategy_name}</b>, plus any tags such as <b>{age}</b> or <b>{birth_month}</b>. The message is filled per lead when sent.</p>
           </div>
           <div class="admin-actions">
@@ -385,7 +385,7 @@
           </div>
           <div class="form-row">
             <label for="bulkSmsBody-new_member">Message preview (editable)</label>
-            <textarea id="bulkSmsBody-new_member" rows="3" placeholder="Pick a strategy template to populate this, or type your own message..."></textarea>
+            <textarea id="bulkSmsBody-new_member" rows="3" placeholder="Pick a giveaway or strategy template to populate this, or type your own message..."></textarea>
             <p style="font-size:13px;color:var(--ink-soft);margin-top:6px;">Placeholders: <b>{first_name}</b>, <b>{last_name}</b>, <b>{full_name}</b>, <b>{phone}</b>, <b>{email}</b>, <b>{strategy_name}</b>, plus any tags such as <b>{age}</b> or <b>{birth_month}</b>. The message is filled per lead when sent.</p>
           </div>
           <div class="admin-actions">
@@ -495,7 +495,7 @@
           </div>
           <div class="form-row">
             <label for="bulkSmsBody-non_attendance">Message preview (editable)</label>
-            <textarea id="bulkSmsBody-non_attendance" rows="3" placeholder="Pick a strategy template to populate this, or type your own message..."></textarea>
+            <textarea id="bulkSmsBody-non_attendance" rows="3" placeholder="Pick a giveaway or strategy template to populate this, or type your own message..."></textarea>
             <p style="font-size:13px;color:var(--ink-soft);margin-top:6px;">Placeholders: <b>{first_name}</b>, <b>{last_name}</b>, <b>{full_name}</b>, <b>{phone}</b>, <b>{email}</b>, <b>{strategy_name}</b>, plus any tags such as <b>{age}</b> or <b>{birth_month}</b>. The message is filled per lead when sent.</p>
           </div>
           <div class="admin-actions">
@@ -557,7 +557,7 @@
         <div class="form-row">
           <label for="uploadFile-birthday">Upload CSV or Excel file</label>
           <input type="file" id="uploadFile-birthday" accept=".csv,.xlsx,.xls" onchange="handleFileUpload('birthday')">
-          <p style="font-size:13px;color:var(--ink-soft);margin-top:6px;">Required columns: <b>first_name, last_name, mobile</b>. Optional: <b>email</b>, <b>opt_in</b> (yes/no/true/false), and <b>birthday</b> for day/month/year so we can auto-calculate <b>{age}</b>. Choose the birth month from the dropdown above and it will be applied to every lead as the <b>{birth_month}</b> placeholder. Any other headers become SMS placeholders.</p>
+          <p style="font-size:13px;color:var(--ink-soft);margin-top:6px;">Required columns: <b>first_name, last_name, mobile</b>. Optional: <b>email</b>, <b>opt_in</b> (yes/no/true/false), and <b>birthday / birthday_on / dob</b>. Dates can be in any common format (e.g. 15/01/1990 or 1990-01-15) or an Excel date serial number (e.g. 33102) — we convert them automatically. We also auto-calculate the <b>{age}</b> placeholder. Choose the birth month from the dropdown above and it will be applied to every lead as the <b>{birth_month}</b> placeholder. Any other headers become SMS placeholders.</p>
         </div>
         <div class="form-row" id="uploadPreview-birthday" style="display:none;">
           <label>Preview (<span id="uploadCount-birthday">0</span> leads ready)</label>
@@ -590,11 +590,13 @@
             <option value="contact_later">Contact later</option>
             <option value="disqualified">Disqualified</option>
           </select>
+          <button type="button" class="admin-btn " id="birthdayTodayBtn" onclick="toggleBirthdayTodayFilter()">🎂 Birthday today</button>
         </div>
         <div class="admin-actions">
           <button class="admin-btn" onclick="renderLeadPool('birthday')">Refresh</button>
           <button class="admin-btn" onclick="exportCsv('birthday')">Export CSV</button>
           <button class="admin-btn" onclick="openBulkSmsPanel('birthday')">Bulk SMS</button>
+          <button class="admin-btn" id="birthdayMessageTodayBtn" onclick="messageBirthdaysToday()" style="display:none;">Message today's birthdays</button>
           <button class="admin-btn danger" onclick="deleteSelectedLeads('birthday')">Delete Selected</button>
         </div>
       </div>
@@ -623,7 +625,7 @@
           </div>
           <div class="form-row">
             <label for="bulkSmsBody-birthday">Message preview (editable)</label>
-            <textarea id="bulkSmsBody-birthday" rows="3" placeholder="Pick a strategy template to populate this, or type your own message..."></textarea>
+            <textarea id="bulkSmsBody-birthday" rows="3" placeholder="Pick a giveaway or strategy template to populate this, or type your own message..."></textarea>
             <p style="font-size:13px;color:var(--ink-soft);margin-top:6px;">Placeholders: <b>{first_name}</b>, <b>{last_name}</b>, <b>{full_name}</b>, <b>{phone}</b>, <b>{email}</b>, <b>{strategy_name}</b>, plus any tags such as <b>{age}</b> or <b>{birth_month}</b>. The message is filled per lead when sent.</p>
           </div>
           <div class="admin-actions">
@@ -817,6 +819,12 @@
         <div class="form-row">
           <label for="compRules">Rules text (one rule per line)</label>
           <textarea id="compRules" rows="4" placeholder="Entry is free.&#10;One entry per person per round.&#10;Winners contacted by email and phone."></textarea>
+        </div>
+        <div class="form-row">
+          <label>SMS templates (optional)</label>
+          <div id="compSmsTemplatesList" class="sms-templates-list"></div>
+          <button type="button" class="admin-btn" onclick="addCompSmsTemplate()" style="margin-top:8px;">+ Add SMS template</button>
+          <p style="font-size:13px;color:var(--ink-soft);margin-top:6px;">Add one or more message templates for this giveaway. When messaging leads tied to this giveaway, you can pick from these. Placeholders: <b>{first_name}</b>, <b>{last_name}</b>, <b>{full_name}</b>, <b>{phone}</b>, <b>{email}</b>, <b>{strategy_name}</b>, <b>{giveaway_name}</b>, plus any tags such as <b>{age}</b> or <b>{birth_month}</b>.</p>
         </div>
         <div class="form-row" style="margin-top:12px;">
           <button type="button" class="submit-btn" id="createCompBtn" onclick="createCompetition()" style="width:auto;padding:14px 24px;">Create Giveaway</button>

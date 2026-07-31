@@ -591,6 +591,49 @@
 
   // ---------- competitions ----------
 
+  function gatherSmsTemplatesFromContainer(container) {
+    const out = [];
+    if (!container) return out;
+    container.querySelectorAll('.sms-template-row').forEach(function (row) {
+      const nameInput = row.querySelector('.comp-sms-name');
+      const bodyInput = row.querySelector('.comp-sms-body');
+      const name = nameInput ? nameInput.value.trim() : '';
+      const body = bodyInput ? bodyInput.value.trim() : '';
+      if (body) out.push({ name: name || ('Template ' + (out.length + 1)), body: body });
+    });
+    return out;
+  }
+
+  function renderSmsTemplateList(templates, editId) {
+    const list = Array.isArray(templates) ? templates : [];
+    let html = '';
+    list.forEach(function (t) {
+      html += '<div class="sms-template-row" style="display:grid;grid-template-columns:1fr 2fr auto;gap:10px;margin-bottom:10px;align-items:start;">' +
+        '<input type="text" class="comp-sms-name" placeholder="Template name" value="' + escapeHtml(t.name || '') + '">' +
+        '<textarea class="comp-sms-body" rows="2" placeholder="Message body...">' + escapeHtml(t.body || '') + '</textarea>' +
+        '<button type="button" class="admin-btn danger" onclick="removeCompSmsTemplate(this)" style="padding:6px 12px;">Remove</button>' +
+        '</div>';
+    });
+    return html;
+  }
+
+  function addCompSmsTemplate(editId) {
+    const container = document.getElementById(editId ? 'edit-sms-templates-list-' + editId : 'compSmsTemplatesList');
+    if (!container) return;
+    const row = document.createElement('div');
+    row.className = 'sms-template-row';
+    row.style.cssText = 'display:grid;grid-template-columns:1fr 2fr auto;gap:10px;margin-bottom:10px;align-items:start;';
+    row.innerHTML = '<input type="text" class="comp-sms-name" placeholder="Template name">' +
+      '<textarea class="comp-sms-body" rows="2" placeholder="Message body..."></textarea>' +
+      '<button type="button" class="admin-btn danger" onclick="removeCompSmsTemplate(this)" style="padding:6px 12px;">Remove</button>';
+    container.appendChild(row);
+  }
+
+  function removeCompSmsTemplate(btn) {
+    const row = btn.closest('.sms-template-row');
+    if (row) row.remove();
+  }
+
   function gatherCompetitionPayload() {
     const value = parseFloat(document.getElementById('compValue').value);
     const strategyId = document.getElementById('compStrategy').value;
@@ -613,6 +656,7 @@
       hero_headline: document.getElementById('compHeadline').value.trim() || 'Enter for free.<br><em>Win coaching.</em>',
       hero_subheadline: document.getElementById('compSub').value.trim() || 'Join the current giveaway for a chance to win coaching prizes. No purchase needed.',
       rules_text: document.getElementById('compRules').value.trim() || null,
+      sms_templates: gatherSmsTemplatesFromContainer(document.getElementById('compSmsTemplatesList')),
       updated_at: new Date().toISOString()
     };
   }
@@ -672,6 +716,8 @@
     document.getElementById('compHeadline').value = '';
     document.getElementById('compSub').value = '';
     document.getElementById('compRules').value = '';
+    const smsList = document.getElementById('compSmsTemplatesList');
+    if (smsList) smsList.innerHTML = '';
   }
 
   async function updateCompetitionStatus(id, status) {
@@ -791,6 +837,12 @@
       '<div class="form-row"><label>Hero headline (HTML allowed)</label><input type="text" id="edit-headline-' + c.id + '" value="' + escapeHtml(c.hero_headline || '') + '"></div>' +
       '<div class="form-row"><label>Hero subheadline</label><textarea id="edit-sub-' + c.id + '" rows="2">' + escapeHtml(c.hero_subheadline || '') + '</textarea></div>' +
       '<div class="form-row"><label>Rules text (one rule per line)</label><textarea id="edit-rules-' + c.id + '" rows="4">' + escapeHtml(c.rules_text || '') + '</textarea></div>' +
+      '<div class="form-row">' +
+        '<label>SMS templates (optional)</label>' +
+        '<div id="edit-sms-templates-list-' + c.id + '" class="sms-templates-list">' + renderSmsTemplateList(c.sms_templates, c.id) + '</div>' +
+        '<button type="button" class="admin-btn" onclick="addCompSmsTemplate(\'' + c.id + '\')" style="margin-top:8px;">+ Add SMS template</button>' +
+        '<p style="font-size:13px;color:var(--ink-soft);margin-top:6px;">Add one or more message templates for this giveaway. Placeholders: <b>{first_name}</b>, <b>{last_name}</b>, <b>{full_name}</b>, <b>{phone}</b>, <b>{email}</b>, <b>{strategy_name}</b>, <b>{giveaway_name}</b>, plus any tags.</p>' +
+      '</div>' +
       '<div class="admin-actions">' +
         '<button class="admin-btn" onclick="saveCompetitionEdit(\'' + c.id + '\')">Save Changes</button>' +
         '<button class="admin-btn" onclick="document.getElementById(\'edit-' + c.id + '\').classList.remove(\'show\')">Cancel</button>' +
@@ -825,6 +877,7 @@
       hero_headline: document.getElementById('edit-headline-' + id).value.trim() || 'Enter for free.<br><em>Win coaching.</em>',
       hero_subheadline: document.getElementById('edit-sub-' + id).value.trim() || 'Join the current giveaway for a chance to win coaching prizes. No purchase needed.',
       rules_text: document.getElementById('edit-rules-' + id).value.trim() || null,
+      sms_templates: gatherSmsTemplatesFromContainer(document.getElementById('edit-sms-templates-list-' + id)),
       updated_at: new Date().toISOString()
     };
 
@@ -849,6 +902,37 @@
 
   // ---------- lead pools ----------
 
+  let birthdayTodayFilterActive = false;
+
+  function toggleBirthdayTodayFilter() {
+    birthdayTodayFilterActive = !birthdayTodayFilterActive;
+    const btn = document.getElementById('birthdayTodayBtn');
+    const msgBtn = document.getElementById('birthdayMessageTodayBtn');
+    if (btn) {
+      btn.classList.toggle('active', birthdayTodayFilterActive);
+      btn.style.background = birthdayTodayFilterActive ? 'var(--ink)' : '';
+      btn.style.color = birthdayTodayFilterActive ? 'var(--paper-3)' : '';
+      btn.style.borderColor = birthdayTodayFilterActive ? 'var(--ink)' : '';
+    }
+    if (msgBtn) msgBtn.style.display = birthdayTodayFilterActive ? 'inline-block' : 'none';
+    renderLeadPool('birthday');
+  }
+
+  function messageBirthdaysToday() {
+    birthdayTodayFilterActive = true;
+    const btn = document.getElementById('birthdayTodayBtn');
+    const msgBtn = document.getElementById('birthdayMessageTodayBtn');
+    if (btn) {
+      btn.classList.add('active');
+      btn.style.background = 'var(--ink)';
+      btn.style.color = 'var(--paper-3)';
+      btn.style.borderColor = 'var(--ink)';
+    }
+    if (msgBtn) msgBtn.style.display = 'inline-block';
+    renderLeadPool('birthday');
+    setTimeout(function () { openBulkSmsPanel('birthday'); }, 50);
+  }
+
   function renderLeadPool(pool) {
     const page = document.getElementById('page-' + pool);
     if (!page) return;
@@ -869,7 +953,8 @@
       const matchesStrategy = strategyFilter === 'all' || l.strategy_id === strategyFilter;
       const matchesComp = compFilter === 'all' || l.competition_id === compFilter;
       const matchesStatus = statusFilter === 'all' || l.status === statusFilter;
-      return matchesSearch && matchesStrategy && matchesComp && matchesStatus;
+      const matchesBirthdayToday = pool !== 'birthday' || !birthdayTodayFilterActive || isBirthdayToday(l.birthday);
+      return matchesSearch && matchesStrategy && matchesComp && matchesStatus && matchesBirthdayToday;
     });
 
     // Stats
@@ -890,6 +975,7 @@
       return;
     }
 
+    const isBirthdayPool = pool === 'birthday';
     let html = '<table class="data-table">' +
       '<thead><tr>' +
         '<th><input type="checkbox" class="select-all-leads" onchange="toggleSelectAllLeads(\'' + pool + '\')"></th>' +
@@ -899,6 +985,7 @@
         '<th>Strategy</th>' +
         '<th>Giveaway</th>' +
         '<th>Entered</th>' +
+        (isBirthdayPool ? '<th>Birthday</th>' : '') +
         '<th>Status</th>' +
         '<th>Actions</th>' +
       '</tr></thead><tbody>';
@@ -912,6 +999,7 @@
         '<td>' + escapeHtml(getStrategyName(l.strategy_id)) + '</td>' +
         '<td>' + escapeHtml(getCompName(l.competition_id)) + '</td>' +
         '<td>' + fmtDateShort(l.created_at) + '</td>' +
+        (isBirthdayPool ? '<td>' + formatBirthday(l.birthday) + (isBirthdayToday(l.birthday) ? ' <span class="tag tag-hot">Today</span>' : '') + '</td>' : '') +
         '<td><select onchange="updateLeadStatus(\'' + l.id + '\', this.value)" style="font-size:12px;padding:4px 8px;border-radius:var(--radius);border:1.5px solid var(--line);">' + renderStatusOptions(l.status) + '</select></td>' +
         '<td class="lead-actions">' +
           '<button class="admin-btn" onclick="openSmsWithTemplate(\'' + l.id + '\')" style="padding:6px 12px;font-size:11px;margin-right:6px;">Template SMS</button>' +
@@ -942,16 +1030,19 @@
     }).join('');
   }
 
-  function fillSmsTemplate(template, lead, strategy) {
+  function fillSmsTemplate(template, lead, strategy, competition) {
     if (!template) return '';
     const { first, last } = splitName(lead.full_name);
+    const comp = competition || (lead.competition_id ? allCompetitions.find(function (x) { return x.id === lead.competition_id; }) : null);
     let result = template
       .replace(/\{first_name\}/gi, first)
       .replace(/\{last_name\}/gi, last)
       .replace(/\{full_name\}/gi, lead.full_name || '')
       .replace(/\{phone\}/gi, lead.phone || '')
       .replace(/\{email\}/gi, lead.email || '')
-      .replace(/\{strategy_name\}/gi, strategy ? (strategy.name || '') : '');
+      .replace(/\{strategy_name\}/gi, strategy ? (strategy.name || '') : '')
+      .replace(/\{giveaway_name\}/gi, comp ? (comp.name || '') : '')
+      .replace(/\{birthday\}/gi, lead.birthday ? formatBirthday(lead.birthday) : '');
 
     const tagMap = {};
     (lead.tags || []).forEach(function (tag) {
@@ -978,15 +1069,37 @@
       return { ok: false, reason: 'no_phone' };
     }
     const strategy = allStrategies.find(function (x) { return x.id === lead.strategy_id; });
-    const template = templateOverride || (strategy ? (strategy.sms_template || '') : '');
+    const competition = allCompetitions.find(function (x) { return x.id === lead.competition_id; });
+    const compTemplates = (competition && Array.isArray(competition.sms_templates))
+      ? competition.sms_templates.filter(function (t) { return t && t.body; })
+      : [];
+
+    let template = templateOverride;
     if (!template) {
-      if (confirm('No SMS template for this strategy. Send a blank SMS instead?')) {
+      if (compTemplates.length === 1) {
+        template = compTemplates[0].body;
+      } else if (compTemplates.length > 1) {
+        const names = compTemplates.map(function (t, i) {
+          return (i + 1) + '. ' + (t.name || ('Template ' + (i + 1)));
+        }).join('\n');
+        const choice = prompt('Choose a giveaway SMS template (enter number):\n' + names);
+        if (!choice) return { ok: false, reason: 'cancelled' };
+        const idx = parseInt(choice, 10) - 1;
+        if (idx >= 0 && idx < compTemplates.length) template = compTemplates[idx].body;
+      }
+      if (!template) {
+        template = strategy ? (strategy.sms_template || '') : '';
+      }
+    }
+
+    if (!template) {
+      if (confirm('No SMS template for this giveaway or strategy. Send a blank SMS instead?')) {
         const clean = String(lead.phone).replace(/\s/g, '');
         window.location.href = 'sms:' + clean;
       }
       return { ok: false, reason: 'no_template' };
     }
-    const body = fillSmsTemplate(template, lead, strategy);
+    const body = fillSmsTemplate(template, lead, strategy, competition);
     if (!confirm('Open Messages with:\n\n' + body)) return { ok: false, reason: 'cancelled' };
 
     const clean = String(lead.phone).replace(/\s/g, '');
@@ -1031,13 +1144,42 @@
     const select = document.getElementById('bulkSmsTemplate-' + pool);
     const current = select ? select.value : '';
     if (select) {
-      select.innerHTML = '<option value="">— Select strategy / template —</option>' +
-        allStrategies.map(function (s) {
-          return '<option value="' + escapeHtml(s.id) + '"' + (s.id === current ? ' selected' : '') + '>' + escapeHtml((s.name || 'Unnamed') + ' · ' + fmtStratType(s.type)) + '</option>';
+      const competitionOptions = allCompetitions
+        .filter(function (c) { return c.sms_templates && Array.isArray(c.sms_templates) && c.sms_templates.length; })
+        .map(function (c) {
+          return c.sms_templates.map(function (t, i) {
+            const label = escapeHtml((c.name || 'Unnamed') + ' · ' + (t.name || ('Template ' + (i + 1))));
+            const value = 'competition:' + escapeHtml(c.id) + ':' + i;
+            return '<option value="' + value + '"' + (value === current ? ' selected' : '') + '>' + label + '</option>';
+          }).join('');
         }).join('');
+
+      const strategyOptions = allStrategies.map(function (s) {
+        const value = 'strategy:' + escapeHtml(s.id);
+        return '<option value="' + value + '"' + (value === current ? ' selected' : '') + '>' + escapeHtml((s.name || 'Unnamed') + ' · ' + fmtStratType(s.type)) + '</option>';
+      }).join('');
+
+      select.innerHTML = '<option value="">— Select giveaway or strategy template —</option>' +
+        (competitionOptions ? '<optgroup label="Giveaways">' + competitionOptions + '</optgroup>' : '') +
+        '<optgroup label="Strategies">' + strategyOptions + '</optgroup>';
+
       select.onchange = function () {
-        const strategy = allStrategies.find(function (x) { return x.id === this.value; });
-        document.getElementById('bulkSmsBody-' + pool).value = strategy ? (strategy.sms_template || '') : '';
+        const bodyEl = document.getElementById('bulkSmsBody-' + pool);
+        const val = this.value;
+        if (val.indexOf('strategy:') === 0) {
+          const sid = val.split(':')[1];
+          const strategy = allStrategies.find(function (x) { return x.id === sid; });
+          bodyEl.value = strategy ? (strategy.sms_template || '') : '';
+        } else if (val.indexOf('competition:') === 0) {
+          const parts = val.split(':');
+          const cid = parts[1];
+          const idx = parseInt(parts[2], 10);
+          const comp = allCompetitions.find(function (x) { return x.id === cid; });
+          const templates = comp && Array.isArray(comp.sms_templates) ? comp.sms_templates : [];
+          bodyEl.value = templates[idx] ? (templates[idx].body || '') : '';
+        } else {
+          bodyEl.value = '';
+        }
       };
     }
     if (select && !select.value) {
@@ -1379,8 +1521,11 @@
     const compFilter = page.querySelector('.pool-comp').value;
     const statusFilter = page.querySelector('.pool-status').value;
 
-    const rows = [];
-    rows.push(['Name', 'Email', 'Phone', 'Strategy', 'Giveaway', 'Status', 'Opt In', 'Entered At', 'Tags']);
+    const isBirthdayPool = pool === 'birthday';
+    const headers = isBirthdayPool
+      ? ['Name', 'Email', 'Phone', 'Strategy', 'Giveaway', 'Status', 'Opt In', 'Entered At', 'Birthday', 'Tags']
+      : ['Name', 'Email', 'Phone', 'Strategy', 'Giveaway', 'Status', 'Opt In', 'Entered At', 'Tags'];
+    const rows = [headers];
 
     allLeads.forEach(function (l) {
       if ((l.pool || 'giveaway') !== pool) return;
@@ -1393,7 +1538,7 @@
       const matchesStatus = statusFilter === 'all' || l.status === statusFilter;
       if (!matchesSearch || !matchesStrategy || !matchesComp || !matchesStatus) return;
 
-      rows.push([
+      const base = [
         l.full_name || '',
         l.email || '',
         l.phone || '',
@@ -1401,9 +1546,11 @@
         getCompName(l.competition_id),
         l.status || '',
         l.opt_in ? 'Yes' : 'No',
-        l.created_at || '',
-        (l.tags || []).join('; ')
-      ]);
+        l.created_at || ''
+      ];
+      if (isBirthdayPool) base.push(l.birthday || '');
+      base.push((l.tags || []).join('; '));
+      rows.push(base);
     });
 
     const csv = rows.map(function (r) { return r.map(escapeCsv).join(','); }).join('\n');
@@ -1477,9 +1624,25 @@
 
   // ---------- bulk upload ----------
 
+  function excelSerialToDate(serial) {
+    // Windows Excel stores dates as days since 30 Dec 1899.
+    // This handles serial values commonly seen from exported spreadsheets.
+    return new Date(Date.UTC(1899, 11, 30) + Math.round(serial * 86400 * 1000));
+  }
+
   function parseDateApprox(val) {
     if (!val) return null;
     const s = String(val).trim();
+
+    // Plain number may be an Excel date serial (e.g. 22156, 33102).
+    const numeric = Number(s);
+    if (!isNaN(numeric) && numeric > 1 && numeric < 80000 && /^\d+(\.\d+)?$/.test(s)) {
+      const excelDate = excelSerialToDate(numeric);
+      if (!isNaN(excelDate.getTime()) && excelDate.getFullYear() >= 1900 && excelDate.getFullYear() <= 2100) {
+        return excelDate;
+      }
+    }
+
     let d = new Date(s);
     if (!isNaN(d.getTime())) return d;
     const parts = s.split(/[\/\-\.]/);
@@ -1493,6 +1656,27 @@
       }
     }
     return null;
+  }
+
+  function toDateString(d) {
+    if (!d || isNaN(d.getTime())) return null;
+    const pad = function (n) { return n < 10 ? '0' + n : n; };
+    return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+  }
+
+  function formatBirthday(iso) {
+    if (!iso) return '-';
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return '-';
+    return d.toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
+  }
+
+  function isBirthdayToday(iso) {
+    if (!iso) return false;
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return false;
+    const now = new Date();
+    return d.getMonth() === now.getMonth() && d.getDate() === now.getDate();
   }
 
   function calculateAge(birthDate) {
@@ -1513,7 +1697,7 @@
 
   function deriveBirthdayTags(row, headers, forcedMonth) {
     const idx = headers.findIndex(function (h) {
-      return h === 'birthday' || h === 'dob' || h === 'date_of_birth';
+      return h === 'birthday' || h === 'birthday_on' || h === 'dob' || h === 'date_of_birth';
     });
     let d = null;
     if (idx >= 0) d = parseDateApprox(row[idx]);
@@ -1533,6 +1717,8 @@
       const monthName = d.toLocaleString(undefined, { month: 'long' });
       if (monthName) tags.birth_month = monthName;
     }
+
+    if (d) tags._birthday = toDateString(d);
     return tags;
   }
 
@@ -1559,7 +1745,7 @@
       throw new Error('CSV/Excel must have first_name, last_name and mobile columns.');
     }
 
-    const known = new Set(['first_name', 'last_name', 'email', 'mobile', 'opt_in', 'birthday_day']);
+    const known = new Set(['first_name', 'last_name', 'email', 'mobile', 'opt_in', 'birthday', 'birthday_on', 'dob', 'date_of_birth', 'birthday_day']);
     const extraIndexes = headers.map(function (h, i) {
       return known.has(h) ? -1 : i;
     }).filter(function (i) { return i !== -1; });
@@ -1587,7 +1773,12 @@
       });
 
       const derived = deriveBirthdayTags(row, headers, options.birthMonth);
+      let birthday = null;
       Object.keys(derived).forEach(function (key) {
+        if (key === '_birthday') {
+          birthday = derived[key];
+          return;
+        }
         if (!seenKeys.has(key)) {
           tags.push(key + ': ' + derived[key]);
           seenKeys.add(key);
@@ -1599,7 +1790,8 @@
         email: email || null,
         phone: mobile,
         opt_in: optInIdx === -1 ? true : parseOptIn(row[optInIdx]),
-        tags: tags.length ? tags : null
+        tags: tags.length ? tags : null,
+        birthday: birthday
       });
     }
     return leads;
@@ -1649,20 +1841,23 @@
 
   function renderUploadPreview(leads, pool) {
     const container = document.getElementById('uploadPreviewRows-' + pool);
+    const isBirthdayPool = pool === 'birthday';
     let html = '<table style="width:100%;border-collapse:collapse;font-size:13px;">' +
       '<thead><tr><th style="text-align:left;padding:6px;border-bottom:1px solid var(--line);">Name</th>' +
       '<th style="text-align:left;padding:6px;border-bottom:1px solid var(--line);">Email</th>' +
       '<th style="text-align:left;padding:6px;border-bottom:1px solid var(--line);">Mobile</th>' +
+      (isBirthdayPool ? '<th style="text-align:left;padding:6px;border-bottom:1px solid var(--line);">Birthday</th>' : '') +
       '<th style="text-align:left;padding:6px;border-bottom:1px solid var(--line);">Extra tags</th></tr></thead><tbody>';
     leads.slice(0, 10).forEach(function (l) {
       const extras = (l.tags || []).join(', ');
       html += '<tr><td style="padding:6px;border-bottom:1px solid var(--paper-2);">' + escapeHtml(l.full_name) + '</td>' +
         '<td style="padding:6px;border-bottom:1px solid var(--paper-2);">' + escapeHtml(l.email) + '</td>' +
         '<td style="padding:6px;border-bottom:1px solid var(--paper-2);">' + escapeHtml(l.phone || '-') + '</td>' +
+        (isBirthdayPool ? '<td style="padding:6px;border-bottom:1px solid var(--paper-2);">' + escapeHtml(formatBirthday(l.birthday)) + '</td>' : '') +
         '<td style="padding:6px;border-bottom:1px solid var(--paper-2);" title="' + escapeHtml(extras) + '">' + escapeHtml(extras.slice(0, 40) + (extras.length > 40 ? '...' : '')) + '</td></tr>';
     });
     if (leads.length > 10) {
-      html += '<tr><td colspan="4" style="padding:6px;color:var(--ink-soft);">... and ' + (leads.length - 10) + ' more</td></tr>';
+      html += '<tr><td colspan="' + (isBirthdayPool ? 5 : 4) + '" style="padding:6px;color:var(--ink-soft);">... and ' + (leads.length - 10) + ' more</td></tr>';
     }
     html += '</tbody></table>';
     container.innerHTML = html;
@@ -1753,6 +1948,7 @@
         opt_in: l.opt_in,
         source: source,
         tags: l.tags,
+        birthday: l.birthday,
         status: 'entered',
         pool: pool
       };
@@ -1799,6 +1995,8 @@
   window.deleteCompetition = deleteCompetition;
   window.toggleEditForm = toggleEditForm;
   window.saveCompetitionEdit = saveCompetitionEdit;
+  window.addCompSmsTemplate = addCompSmsTemplate;
+  window.removeCompSmsTemplate = removeCompSmsTemplate;
 
   window.updateLeadStatus = updateLeadStatus;
   window.deleteLead = deleteLead;
@@ -1823,6 +2021,8 @@
   window.closeBulkSmsPanel = closeBulkSmsPanel;
   window.startBulkSms = startBulkSms;
   window.pauseBulkSms = pauseBulkSms;
+  window.toggleBirthdayTodayFilter = toggleBirthdayTodayFilter;
+  window.messageBirthdaysToday = messageBirthdaysToday;
 
   window.saveSettings = saveSettings;
   window.handleSignOut = handleSignOut;
