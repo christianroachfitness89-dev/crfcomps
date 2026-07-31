@@ -250,6 +250,25 @@
     return data || [];
   }
 
+  function downloadTemplate() {
+    if (!window.XLSX) {
+      alert('Excel library not loaded yet. Please refresh the page.');
+      return;
+    }
+
+    const rows = [
+      { Date: '2026-07-29', Amount: 1250.00, Remittance_Reference: 'REM-2026-001', Notes: 'Fortnightly remittance' },
+      { Date: '2026-08-12', Amount: 875.50, Remittance_Reference: 'REM-2026-002', Notes: '' }
+    ];
+
+    const wb = window.XLSX.utils.book_new();
+    const ws = window.XLSX.utils.json_to_sheet(rows, { header: ['Date', 'Amount', 'Remittance_Reference', 'Notes'] });
+    window.XLSX.utils.book_append_sheet(wb, ws, 'Weflex Remittance');
+
+    const today = new Date().toISOString().split('T')[0];
+    window.XLSX.writeFile(wb, 'weflex-remittance-template-' + today + '.xlsx');
+  }
+
   async function updateWeflexPayment(id, payment) {
     const { data, error } = await client.from('weflex_payments')
       .update({
@@ -401,6 +420,7 @@
           '<h3 style="margin:0;">Weflex payments</h3>' +
         '</div>' +
         '<div class="admin-actions">' +
+          '<button class="admin-btn" id="weflexTemplateBtn">Download template</button>' +
           '<button class="admin-btn" id="weflexUploadBtn">Upload remittance</button>' +
           '<button class="admin-btn" id="weflexAddBtn">Add payment</button>' +
         '</div>' +
@@ -430,11 +450,18 @@
     const container = document.getElementById('weflexWidget');
     if (!container) return;
 
+    const templateBtn = document.getElementById('weflexTemplateBtn');
     const uploadBtn = document.getElementById('weflexUploadBtn');
     const addBtn = document.getElementById('weflexAddBtn');
     const fileInput = document.getElementById('weflexFileInput');
     const applyBtn = document.getElementById('weflexApplyFilter');
     const periodSelect = document.getElementById('weflexPeriod');
+
+    if (templateBtn) {
+      templateBtn.addEventListener('click', function () {
+        downloadTemplate();
+      });
+    }
 
     if (uploadBtn) {
       uploadBtn.addEventListener('click', function () {
