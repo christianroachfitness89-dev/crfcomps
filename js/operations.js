@@ -17,6 +17,7 @@
     clients: [],
     payments: [],
     invoices: [],
+    weflexPayments: [],
     sessions: [],
     attendance: [],
     communications: [],
@@ -82,7 +83,7 @@
 
   async function loadData() {
     try {
-      const [leadsRes, stratRes, compRes, clientRes, notesRes, payRes, invRes, sessRes, attRes, commRes] = await Promise.all([
+      const [leadsRes, stratRes, compRes, clientRes, notesRes, payRes, invRes, weflexRes, sessRes, attRes, commRes] = await Promise.all([
         client.from('leads').select('*').order('created_at', { ascending: false }),
         client.from('marketing_strategies').select('*').order('created_at', { ascending: false }),
         client.from('competitions').select('*').order('starts_at', { ascending: false }),
@@ -90,6 +91,7 @@
         safeSelect('client_notes'),
         safeSelect('payments'),
         safeSelect('invoices'),
+        safeSelect('weflex_payments'),
         safeSelect('sessions'),
         safeSelect('attendance'),
         safeSelect('communications')
@@ -102,6 +104,7 @@
       window.opsData.clientNotes = notesRes.data || [];
       window.opsData.payments = payRes.data || [];
       window.opsData.invoices = invRes.data || [];
+      window.opsData.weflexPayments = weflexRes.data || [];
       window.opsData.sessions = sessRes.data || [];
       window.opsData.attendance = attRes.data || [];
       window.opsData.communications = commRes.data || [];

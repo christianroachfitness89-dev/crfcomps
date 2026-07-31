@@ -13,5 +13,6 @@ Run these in order in the Supabase SQL Editor after deploying the matching front
 | 7 | `phase7-stripe-invoices.sql` | Add `stripe_invoice_id` and `stripe_payment_intent_id` to invoices for Stripe invoice matching |
 | 8 | `phase8-birthday-filter.sql` | Add `birthday` date column to leads and backfill from tags for birthday-today filtering |
 | 9 | `phase9-competition-sms-templates.sql` | Add `sms_templates` jsonb column to competitions for multiple per-giveaway SMS templates |
+| 10 | `phase10-weflex-payments.sql` | Add `weflex_payments` table for manual remittance entries and combined revenue reporting |
 
 > `supabase-setup.sql` at the repo root already contains the complete schema. These migration files are for applying changes incrementally to an existing live database.

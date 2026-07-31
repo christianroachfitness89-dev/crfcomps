@@ -92,8 +92,8 @@
       <div class="page-head">
         <div>
           <div class="sec-eyebrow">Finance</div>
-          <h2>Stripe Revenue</h2>
-          <p style="color:var(--ink-soft);font-size:14px;margin-top:6px;">Read-only view of live Stripe invoices and revenue. Use the filters below to change the period or status.</p>
+          <h2>Revenue</h2>
+          <p style="color:var(--ink-soft);font-size:14px;margin-top:6px;">Combined Stripe and Weflex revenue. Upload remittance documents or add Weflex payments manually.</p>
         </div>
         <div class="admin-actions">
           <button class="admin-btn" onclick="finance.refresh()">Refresh</button>
@@ -101,7 +101,9 @@
         </div>
       </div>
 
+      <div id="combinedRevenue" style="margin-bottom:28px;"></div>
       <div id="stripeWidget" style="margin-bottom:28px;"></div>
+      <div id="weflexWidget" style="margin-bottom:28px;"></div>
     </section>
   </main>
 </div>
@@ -119,6 +121,8 @@
 <script src="js/operations.js"></script>
 <script src="js/finance.js"></script>
 <script src="js/integrations.js"></script>
+<script src="js/weflex-payments.js"></script>
+<script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
 <script>
   window.operations.init().then(function () {
     finance.init();

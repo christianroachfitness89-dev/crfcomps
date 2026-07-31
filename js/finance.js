@@ -1,8 +1,7 @@
 /*
  * CRF Comps — Finance page logic
  *
- * Finance is now read-only from Stripe. This file just bootstraps the page
- * and refreshes the Stripe widget rendered by js/integrations.js.
+ * Boots the combined Stripe + Weflex revenue view.
  */
 
 (function () {
@@ -12,6 +11,9 @@
     await ops.loadData();
     if (window.integrations && window.integrations.init) {
       await window.integrations.init('finance');
+    }
+    if (window.weflexPayments && window.weflexPayments.refresh) {
+      await window.weflexPayments.refresh();
     }
   }
 

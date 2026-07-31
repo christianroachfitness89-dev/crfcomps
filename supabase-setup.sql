@@ -192,6 +192,17 @@ create table if not exists public.payments (
   created_at timestamptz not null default now()
 );
 
+-- Weflex payments (manual entries from remittance documents).
+create table if not exists public.weflex_payments (
+  id uuid default gen_random_uuid() primary key,
+  paid_at timestamptz not null default now(),
+  amount numeric not null default 0,
+  remittance_reference text,
+  notes text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
 -- Invoices / billing records.
 create table if not exists public.invoices (
   id uuid default gen_random_uuid() primary key,
@@ -264,6 +275,7 @@ create index if not exists idx_client_notes_client_id on public.client_notes(cli
 create index if not exists idx_payments_client_id on public.payments(client_id);
 create index if not exists idx_payments_paid_at on public.payments(paid_at);
 create index if not exists idx_payments_stripe_charge_id on public.payments(stripe_charge_id);
+create index if not exists idx_weflex_payments_paid_at on public.weflex_payments(paid_at);
 create index if not exists idx_invoices_client_id on public.invoices(client_id);
 create index if not exists idx_invoices_status on public.invoices(status);
 create index if not exists idx_invoices_due_at on public.invoices(due_at);
@@ -299,6 +311,7 @@ alter table public.site_settings enable row level security;
 alter table public.clients enable row level security;
 alter table public.client_notes enable row level security;
 alter table public.payments enable row level security;
+alter table public.weflex_payments enable row level security;
 alter table public.invoices enable row level security;
 alter table public.sessions enable row level security;
 alter table public.attendance enable row level security;
@@ -441,6 +454,17 @@ drop policy if exists "Admins can manage payments" on public.payments;
 
 create policy "Admins can manage payments"
   on public.payments
+  for all
+  to authenticated
+  using (public.is_admin(auth.uid()))
+  with check (public.is_admin(auth.uid()));
+
+-- ---------- weflex payment policies ----------
+
+drop policy if exists "Admins can manage weflex payments" on public.weflex_payments;
+
+create policy "Admins can manage weflex payments"
+  on public.weflex_payments
   for all
   to authenticated
   using (public.is_admin(auth.uid()))
