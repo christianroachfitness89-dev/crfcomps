@@ -227,7 +227,20 @@ create table if not exists public.packages (
   description text,
   price numeric not null default 0,
   billing_frequency text not null default 'monthly' check (billing_frequency in ('weekly', 'fortnightly', 'monthly', 'quarterly', 'yearly')),
+  session_amount integer not null default 1 check (session_amount >= 0),
+  session_length_minutes integer not null default 30 check (session_length_minutes > 0),
   status text not null default 'active' check (status in ('active', 'archived')),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+-- Client package subscriptions (links clients to packages for CRM session load).
+create table if not exists public.client_packages (
+  id uuid default gen_random_uuid() primary key,
+  client_id uuid references public.clients on delete cascade not null,
+  package_id uuid references public.packages on delete set null,
+  status text not null default 'active' check (status in ('active', 'paused', 'cancelled')),
+  started_at timestamptz not null default now(),
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -293,6 +306,9 @@ create index if not exists idx_invoices_status on public.invoices(status);
 create index if not exists idx_invoices_due_at on public.invoices(due_at);
 create index if not exists idx_invoices_stripe_invoice_id on public.invoices(stripe_invoice_id);
 create index if not exists idx_packages_status on public.packages(status);
+create index if not exists idx_client_packages_client_id on public.client_packages(client_id);
+create index if not exists idx_client_packages_package_id on public.client_packages(package_id);
+create index if not exists idx_client_packages_status on public.client_packages(status);
 create index if not exists idx_sessions_client_id on public.sessions(client_id);
 create index if not exists idx_sessions_scheduled_at on public.sessions(scheduled_at);
 create index if not exists idx_sessions_status on public.sessions(status);
@@ -501,6 +517,17 @@ drop policy if exists "Admins can manage packages" on public.packages;
 
 create policy "Admins can manage packages"
   on public.packages
+  for all
+  to authenticated
+  using (public.is_admin(auth.uid()))
+  with check (public.is_admin(auth.uid()));
+
+-- ---------- client package policies ----------
+
+drop policy if exists "Admins can manage client packages" on public.client_packages;
+
+create policy "Admins can manage client packages"
+  on public.client_packages
   for all
   to authenticated
   using (public.is_admin(auth.uid()))

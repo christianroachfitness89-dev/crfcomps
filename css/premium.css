@@ -808,6 +808,60 @@ header{
   min-height:72px;
 }
 
+.client-detail-section .client-package-form{
+  margin-top:auto;
+}
+
+.client-package-form-row{
+  display:flex;
+  gap:10px;
+  align-items:flex-end;
+}
+
+.client-package-form-row select{
+  flex:1 1 auto;
+  min-width:0;
+}
+
+.client-package-form-row button{
+  flex:0 0 auto;
+  white-space:nowrap;
+}
+
+.client-package-item{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:12px 14px;
+  margin-bottom:10px;
+  border:1px solid var(--glass-border);
+  border-radius:var(--radius-md);
+  background:rgba(255,255,255,.45);
+  box-shadow:var(--shadow-1), inset 0 1px 0 rgba(255,255,255,.55);
+}
+
+.client-package-info{
+  min-width:0;
+}
+
+.client-package-name{
+  font-weight:600;
+  font-size:14px;
+  margin-bottom:2px;
+}
+
+.client-package-load{
+  font-size:12px;
+  color:var(--ink-soft);
+}
+
+.client-package-empty{
+  font-size:13px;
+  color:var(--ink-soft);
+  margin-bottom:14px;
+}
+
 @media(max-width:720px){
   .client-detail-meta{
     grid-template-columns:1fr;

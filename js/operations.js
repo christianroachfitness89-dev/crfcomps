@@ -19,11 +19,29 @@
     invoices: [],
     weflexPayments: [],
     packages: [],
+    clientPackages: [],
     sessions: [],
     attendance: [],
     communications: [],
     clientNotes: []
   };
+
+  function packageWeeklySessions(pkg) {
+    if (!pkg || !pkg.session_amount) return 0;
+    const amount = Number(pkg.session_amount) || 0;
+    switch (pkg.billing_frequency) {
+      case 'weekly': return amount;
+      case 'fortnightly': return amount / 2;
+      case 'monthly': return amount * 12 / 52;
+      case 'quarterly': return amount * 4 / 52;
+      case 'yearly': return amount / 52;
+      default: return amount;
+    }
+  }
+
+  function packageWeeklyMinutes(pkg) {
+    return packageWeeklySessions(pkg) * (Number(pkg.session_length_minutes) || 0);
+  }
 
   function fmtDateShort(iso) {
     if (!iso) return '-';
@@ -84,7 +102,7 @@
 
   async function loadData() {
     try {
-      const [leadsRes, stratRes, compRes, clientRes, notesRes, payRes, invRes, weflexRes, pkgRes, sessRes, attRes, commRes] = await Promise.all([
+      const [leadsRes, stratRes, compRes, clientRes, notesRes, payRes, invRes, weflexRes, pkgRes, clientPkgRes, sessRes, attRes, commRes] = await Promise.all([
         client.from('leads').select('*').order('created_at', { ascending: false }),
         client.from('marketing_strategies').select('*').order('created_at', { ascending: false }),
         client.from('competitions').select('*').order('starts_at', { ascending: false }),
@@ -94,6 +112,7 @@
         safeSelect('invoices'),
         safeSelect('weflex_payments'),
         safeSelect('packages'),
+        safeSelect('client_packages'),
         safeSelect('sessions'),
         safeSelect('attendance'),
         safeSelect('communications')
@@ -108,6 +127,7 @@
       window.opsData.invoices = invRes.data || [];
       window.opsData.weflexPayments = weflexRes.data || [];
       window.opsData.packages = pkgRes.data || [];
+      window.opsData.clientPackages = clientPkgRes.data || [];
       window.opsData.sessions = sessRes.data || [];
       window.opsData.attendance = attRes.data || [];
       window.opsData.communications = commRes.data || [];
@@ -300,7 +320,9 @@
     formatCurrency,
     fmtDateShort,
     escapeHtml,
-    promoteLeadToClient
+    promoteLeadToClient,
+    packageWeeklySessions,
+    packageWeeklyMinutes
   };
 
   window.toggleSidebar = toggleSidebar;

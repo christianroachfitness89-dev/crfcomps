@@ -44,7 +44,31 @@
     }
   }
 
+  function weeklySessions(pkg) {
+    if (window.operations && window.operations.packageWeeklySessions) {
+      return window.operations.packageWeeklySessions(pkg);
+    }
+    const amount = Number(pkg.session_amount) || 0;
+    switch (pkg.billing_frequency) {
+      case 'weekly': return amount;
+      case 'fortnightly': return amount / 2;
+      case 'monthly': return amount * 12 / 52;
+      case 'quarterly': return amount * 4 / 52;
+      case 'yearly': return amount / 52;
+      default: return amount;
+    }
+  }
+
+  function weeklyMinutes(pkg) {
+    if (window.operations && window.operations.packageWeeklyMinutes) {
+      return window.operations.packageWeeklyMinutes(pkg);
+    }
+    return weeklySessions(pkg) * (Number(pkg.session_length_minutes) || 0);
+  }
+
   function renderPackageCard(pkg) {
+    const ws = weeklySessions(pkg);
+    const wm = weeklyMinutes(pkg);
     return '<div class="card package-card" data-package-id="' + escapeHtml(pkg.id) + '">' +
       '<div class="package-card-head">' +
         '<div>' +
@@ -55,6 +79,8 @@
       '</div>' +
       '<div class="package-description">' + escapeHtml(pkg.description || '-') + '</div>' +
       '<div class="package-monthly">~' + escapeHtml(formatCurrency(packageMonthlyValue(pkg))) + ' /month value</div>' +
+      '<div class="package-sessions">' + escapeHtml(String(pkg.session_amount || 0)) + ' × ' + escapeHtml(String(pkg.session_length_minutes || 0)) + ' min sessions</div>' +
+      '<div class="package-weekly-load">~' + ws.toFixed(1) + ' sessions/week · ' + wm.toFixed(0) + ' min/week</div>' +
       '<div class="package-actions">' +
         '<button class="btn-ghost" data-package-edit="' + escapeHtml(pkg.id) + '">Edit</button>' +
         '<button class="btn-ghost" data-package-delete="' + escapeHtml(pkg.id) + '" style="color:var(--red);">Delete</button>' +
@@ -91,6 +117,16 @@
     });
     html += '</select>' +
             '</div>' +
+            '<div class="weflex-field-row weflex-field-inline">' +
+              '<div style="flex:1;">' +
+                '<label class="field-label" for="pkgSessionAmount">Sessions included</label>' +
+                '<input type="number" id="pkgSessionAmount" class="field-input" min="0" step="1" value="' + escapeHtml(existing ? existing.session_amount : '1') + '">' +
+              '</div>' +
+              '<div style="flex:1;">' +
+                '<label class="field-label" for="pkgSessionLength">Session length (min)</label>' +
+                '<input type="number" id="pkgSessionLength" class="field-input" min="1" step="1" value="' + escapeHtml(existing ? existing.session_length_minutes : '30') + '">' +
+              '</div>' +
+            '</div>' +
             '<div class="weflex-field-row">' +
               '<label class="field-label" for="pkgStatus">Status</label>' +
               '<select id="pkgStatus" class="field-input">';
@@ -115,6 +151,11 @@
   }
 
   function renderPriceCalculator() {
+    const pkgOptions = window.opsData.packages
+      .filter(function (p) { return p.status === 'active'; })
+      .map(function (p) { return '<option value="' + escapeHtml(p.id) + '">' + escapeHtml(p.name) + '</option>'; })
+      .join('');
+
     return '<div class="card price-calc-card" style="margin-bottom:22px;">' +
       '<h3 style="margin:0 0 18px;">Price increase calculator</h3>' +
       '<div class="price-calc-grid">' +
@@ -140,6 +181,23 @@
             '<option value="yearly">Yearly</option>' +
           '</select>' +
         '</div>' +
+        '<div class="weflex-field-row">' +
+          '<label class="field-label" for="calcForecastPeriod">Forecast period</label>' +
+          '<select id="calcForecastPeriod" class="field-input">' +
+            '<option value="weekly" selected>Weekly</option>' +
+            '<option value="fortnightly">Fortnightly</option>' +
+            '<option value="monthly">Monthly</option>' +
+            '<option value="quarterly">Quarterly</option>' +
+            '<option value="yearly">Yearly</option>' +
+          '</select>' +
+        '</div>' +
+        '<div class="weflex-field-row">' +
+          '<label class="field-label" for="calcPackage">Capacity reference package (optional)</label>' +
+          '<select id="calcPackage" class="field-input">' +
+            '<option value="">None</option>' +
+            pkgOptions +
+          '</select>' +
+        '</div>' +
       '</div>' +
       '<div style="margin-top:18px;">' +
         '<button class="admin-btn" id="priceCalcRun">Calculate impact</button>' +
@@ -148,30 +206,48 @@
     '</div>';
   }
 
-  function renderCalcResults(current, newPrice, clients, frequency) {
-    const periodsPerYear = {
-      weekly: 52,
-      fortnightly: 26,
-      monthly: 12,
-      quarterly: 4,
-      yearly: 1
-    };
-    const periods = periodsPerYear[frequency] || 12;
-    const currentAnnual = current * periods * clients;
-    const newAnnual = newPrice * periods * clients;
+  function periodsPerYear(frequency) {
+    const map = { weekly: 52, fortnightly: 26, monthly: 12, quarterly: 4, yearly: 1 };
+    return map[frequency] || 12;
+  }
+
+  function renderCalcResults(current, newPrice, clients, frequency, forecastPeriod, pkg) {
+    const basePeriods = periodsPerYear(frequency);
+    const forecastPeriods = periodsPerYear(forecastPeriod);
+    const currentAnnual = current * basePeriods * clients;
+    const newAnnual = newPrice * basePeriods * clients;
     const increase = newAnnual - currentAnnual;
+    const increasePerForecastPeriod = increase / forecastPeriods;
+    const currentPerForecastPeriod = currentAnnual / forecastPeriods;
+    const newPerForecastPeriod = newAnnual / forecastPeriods;
     const percent = current > 0 ? ((newPrice - current) / current) * 100 : 0;
-    const breakEvenClients = newPrice > 0 ? Math.ceil(currentAnnual / (newPrice * periods)) : 0;
+    const breakEvenClients = newPrice > 0 ? Math.ceil(currentAnnual / (newPrice * basePeriods)) : 0;
     const churnTolerance = currentAnnual > 0 ? (increase / currentAnnual) * 100 : 0;
+
+    let capacityHtml = '';
+    if (pkg && increasePerForecastPeriod > 0) {
+      const pkgPrice = Number(pkg.price) || 0;
+      const extraSalesNeeded = pkgPrice > 0 ? Math.ceil(increasePerForecastPeriod / pkgPrice) : 0;
+      const extraSessions = window.operations ? window.operations.packageWeeklySessions(pkg) : weeklySessions(pkg);
+      const extraMinutes = window.operations ? window.operations.packageWeeklyMinutes(pkg) : weeklyMinutes(pkg);
+      const periodLabel = forecastPeriod === 'weekly' ? 'week' : forecastPeriod;
+      capacityHtml = '<div class="stat-grid stripe-stats-grid" style="margin-top:18px;">' +
+        '<div class="stat-box"><div class="stat-label">Extra ' + escapeHtml(periodLabel) + ' sales of ' + escapeHtml(pkg.name) + '</div><div class="stat-value">' + escapeHtml(String(extraSalesNeeded)) + '</div></div>' +
+        '<div class="stat-box"><div class="stat-label">Extra weekly sessions</div><div class="stat-value">' + escapeHtml((extraSalesNeeded * extraSessions).toFixed(1)) + '</div></div>' +
+        '<div class="stat-box"><div class="stat-label">Extra weekly minutes</div><div class="stat-value">' + escapeHtml((extraSalesNeeded * extraMinutes).toFixed(0)) + '</div></div>' +
+      '</div>';
+    }
 
     return '<div class="stat-grid stripe-stats-grid">' +
       '<div class="stat-box"><div class="stat-label">Price increase</div><div class="stat-value">' + escapeHtml(percent.toFixed(1)) + '%</div></div>' +
+      '<div class="stat-box"><div class="stat-label">Current revenue / ' + escapeHtml(forecastPeriod) + '</div><div class="stat-value">' + escapeHtml(formatCurrency(currentPerForecastPeriod)) + '</div></div>' +
+      '<div class="stat-box"><div class="stat-label">New revenue / ' + escapeHtml(forecastPeriod) + '</div><div class="stat-value">' + escapeHtml(formatCurrency(newPerForecastPeriod)) + '</div></div>' +
+      '<div class="stat-box"><div class="stat-label">Increase / ' + escapeHtml(forecastPeriod) + '</div><div class="stat-value">' + escapeHtml(formatCurrency(increasePerForecastPeriod)) + '</div></div>' +
       '<div class="stat-box"><div class="stat-label">Revenue uplift / year</div><div class="stat-value">' + escapeHtml(formatCurrency(increase)) + '</div></div>' +
       '<div class="stat-box"><div class="stat-label">New annual revenue</div><div class="stat-value">' + escapeHtml(formatCurrency(newAnnual)) + '</div></div>' +
       '<div class="stat-box"><div class="stat-label">Clients you can afford to lose</div><div class="stat-value">' + escapeHtml(String(clients - breakEvenClients)) + '</div><div class="stat-sub">and still break even</div></div>' +
       '<div class="stat-box"><div class="stat-label">Max churn tolerance</div><div class="stat-value">' + escapeHtml(churnTolerance.toFixed(1)) + '%</div></div>' +
-      '<div class="stat-box"><div class="stat-label">Per-client increase</div><div class="stat-value">' + escapeHtml(formatCurrency(newPrice - current)) + '</div><div class="stat-sub">per ' + escapeHtml(frequency) + '</div></div>' +
-    '</div>';
+    '</div>' + capacityHtml;
   }
 
   async function loadPackages() {
@@ -214,6 +290,8 @@
         name: document.getElementById('pkgName').value.trim(),
         price: parseFloat(document.getElementById('pkgPrice').value) || 0,
         billing_frequency: document.getElementById('pkgFrequency').value,
+        session_amount: parseInt(document.getElementById('pkgSessionAmount').value, 10) || 0,
+        session_length_minutes: parseInt(document.getElementById('pkgSessionLength').value, 10) || 30,
         status: document.getElementById('pkgStatus').value,
         description: document.getElementById('pkgDescription').value.trim() || null
       };
@@ -279,9 +357,12 @@
         const newPrice = parseFloat(document.getElementById('calcNewPrice').value) || 0;
         const clients = parseInt(document.getElementById('calcClients').value, 10) || 0;
         const frequency = document.getElementById('calcFrequency').value;
+        const forecastPeriod = document.getElementById('calcForecastPeriod').value;
+        const pkgId = document.getElementById('calcPackage').value;
+        const pkg = pkgId ? packages.find(function (p) { return p.id === pkgId; }) : null;
         const results = document.getElementById('priceCalcResults');
         results.style.display = 'block';
-        results.innerHTML = renderCalcResults(current, newPrice, clients, frequency);
+        results.innerHTML = renderCalcResults(current, newPrice, clients, frequency, forecastPeriod, pkg);
       });
     }
   }

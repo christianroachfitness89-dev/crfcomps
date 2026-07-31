@@ -48,6 +48,30 @@
     return lead ? lead.full_name : '';
   }
 
+  function packageById(id) {
+    return window.opsData.packages.find(function (p) { return p.id === id; });
+  }
+
+  function clientPackages(clientId) {
+    return window.opsData.clientPackages.filter(function (cp) { return cp.client_id === clientId; });
+  }
+
+  function activeClientWeeklyLoad() {
+    let sessions = 0;
+    let minutes = 0;
+    window.opsData.clients.forEach(function (c) {
+      if (c.status !== 'active_member') return;
+      clientPackages(c.id).forEach(function (cp) {
+        if (cp.status !== 'active') return;
+        const pkg = packageById(cp.package_id);
+        if (!pkg) return;
+        sessions += window.operations.packageWeeklySessions(pkg);
+        minutes += window.operations.packageWeeklyMinutes(pkg);
+      });
+    });
+    return { sessions: sessions, minutes: minutes };
+  }
+
   function renderPhone(phone) {
     if (!phone) return '-';
     const clean = String(phone).replace(/\s/g, '');
@@ -78,6 +102,9 @@
     document.getElementById('statActive').textContent = window.opsData.clients.filter(function (c) { return c.status === 'active_member'; }).length;
     document.getElementById('statProspects').textContent = window.opsData.clients.filter(function (c) { return c.status === 'prospect'; }).length;
     document.getElementById('statInactive').textContent = window.opsData.clients.filter(function (c) { return ['inactive_member', 'churned', 'former_client'].includes(c.status); }).length;
+    const load = activeClientWeeklyLoad();
+    document.getElementById('statWeeklySessions').textContent = load.sessions.toFixed(1);
+    document.getElementById('statWeeklyMinutes').textContent = load.minutes.toFixed(0);
 
     if (!clients.length) {
       container.innerHTML = '<div class="dash-empty">No clients found. Add one manually or promote a lead from Marketing.</div>';
@@ -215,7 +242,9 @@
     const c = window.opsData.clients.find(function (x) { return x.id === id; });
     if (!c) return;
     document.getElementById('detailClientId').value = c.id;
+    document.getElementById('detailPackageClientId').value = c.id;
     document.getElementById('detailTitle').textContent = c.full_name;
+    renderClientPackages(c.id);
 
     document.getElementById('detailMeta').innerHTML =
       '<div class="client-detail-row">' +
@@ -246,6 +275,79 @@
     renderNotesList(c.id);
     renderCommunications(c.id);
     document.getElementById('clientDetailModal').classList.add('show');
+  }
+
+  function renderClientPackages(clientId) {
+    const list = document.getElementById('detailPackagesList');
+    const select = document.getElementById('detailPackageSelect');
+    const activePkgs = window.opsData.packages.filter(function (p) { return p.status === 'active'; });
+
+    select.innerHTML = '<option value="">Select active package...</option>' +
+      activePkgs.map(function (p) {
+        return '<option value="' + ops.escapeHtml(p.id) + '">' + ops.escapeHtml(p.name) + ' · ' + ops.escapeHtml(window.operations.formatCurrency ? window.operations.formatCurrency(p.price) : ('$' + p.price)) + ' · ' + ops.escapeHtml(p.billing_frequency) + '</option>';
+      }).join('');
+
+    const assigned = clientPackages(clientId);
+    if (!assigned.length) {
+      list.innerHTML = '<div class="client-package-empty">No packages assigned yet.</div>';
+      return;
+    }
+
+    list.innerHTML = assigned.map(function (cp) {
+      const pkg = packageById(cp.package_id);
+      const name = pkg ? pkg.name : 'Unknown package';
+      const sessions = pkg ? window.operations.packageWeeklySessions(pkg) : 0;
+      const minutes = pkg ? window.operations.packageWeeklyMinutes(pkg) : 0;
+      return '<div class="client-package-item">' +
+        '<div class="client-package-info">' +
+          '<div class="client-package-name">' + ops.escapeHtml(name) + ' <span class="tag ' + (cp.status === 'active' ? 'tag-active' : 'tag-archived') + '">' + ops.escapeHtml(cp.status) + '</span></div>' +
+          '<div class="client-package-load">' + sessions.toFixed(1) + ' sessions/week · ' + minutes.toFixed(0) + ' min/week</div>' +
+        '</div>' +
+        '<button type="button" class="admin-btn danger" onclick="crm.removePackage(\'' + ops.escapeHtml(cp.id) + '\')" style="padding:6px 12px;font-size:11px;">Remove</button>' +
+      '</div>';
+    }).join('');
+  }
+
+  async function assignPackage(e) {
+    e.preventDefault();
+    const clientId = document.getElementById('detailPackageClientId').value;
+    const packageId = document.getElementById('detailPackageSelect').value;
+    if (!clientId || !packageId) return;
+
+    try {
+      const { data, error } = await client.from('client_packages').insert({
+        client_id: clientId,
+        package_id: packageId,
+        status: 'active',
+        started_at: new Date().toISOString()
+      }).select();
+      if (error) throw error;
+      window.opsData.clientPackages.push(data[0]);
+      renderClientPackages(clientId);
+      const load = activeClientWeeklyLoad();
+      document.getElementById('statWeeklySessions').textContent = load.sessions.toFixed(1);
+      document.getElementById('statWeeklyMinutes').textContent = load.minutes.toFixed(0);
+    } catch (err) {
+      alert('Could not assign package: ' + err.message);
+      console.error(err);
+    }
+  }
+
+  async function removePackage(id) {
+    if (!confirm('Remove this package assignment?')) return;
+    const cp = window.opsData.clientPackages.find(function (x) { return x.id === id; });
+    try {
+      const { error } = await client.from('client_packages').delete().eq('id', id);
+      if (error) throw error;
+      window.opsData.clientPackages = window.opsData.clientPackages.filter(function (x) { return x.id !== id; });
+      if (cp) renderClientPackages(cp.client_id);
+      const load = activeClientWeeklyLoad();
+      document.getElementById('statWeeklySessions').textContent = load.sessions.toFixed(1);
+      document.getElementById('statWeeklyMinutes').textContent = load.minutes.toFixed(0);
+    } catch (err) {
+      alert('Could not remove package assignment: ' + err.message);
+      console.error(err);
+    }
   }
 
   function renderCommunications(clientId) {
@@ -337,6 +439,8 @@
     deleteClient,
     openDetail,
     closeDetailModal,
-    addNote
+    addNote,
+    assignPackage,
+    removePackage
   };
 })();
