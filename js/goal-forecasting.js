@@ -153,25 +153,25 @@
         '<div class="forecast-field">' +
           '<label class="field-label" for="goalRevenue">Target monthly revenue</label>' +
           '<input type="number" id="goalRevenue" class="field-input" step="0.01" min="0" placeholder="0.00" value="' + (state.goal > 0 ? state.goal : '') + '" style="max-width:280px;">' +
-        '<;/div>' +
+        '</div>' +
         '<div class="forecast-field">' +
           '<label class="field-label" for="goalMonths">Timeframe</label>' +
           '<select id="goalMonths" class="field-input" style="max-width:280px;">' +
             monthsOptions.map(function (m) {
               return '<option value="' + m + '"' + (state.months === m ? ' selected' : '') + '>' + m + ' months</option>';
             }).join('') +
-          '<;/select>' +
-        '<;/div>' +
-      '<;/div>' +
+          '</select>' +
+        '</div>' +
+      '</div>' +
       '<div class="goal-inputs-summary" style="margin-top:18px;">' +
         '<span class="goal-summary-item">Total target: <strong>' + escapeHtml(formatCurrency(totalTarget)) + '</strong></span> ' +
         '<span class="goal-summary-item">Monthly gap: <strong>' + escapeHtml(formatCurrency(gapMonthly)) + '</strong></span> ' +
         '<span class="goal-summary-item">Total gap: <strong>' + escapeHtml(formatCurrency(totalGap)) + '</strong></span>' +
-      '<;/div>' +
+      '</div>' +
       '<div style="margin-top:18px;">' +
         '<button class="admin-btn" id="goalUpdateBtn">Update goal</button>' +
-      '<;/div>' +
-    '<;/div>';
+      '</div>' +
+    '</div>';
   }
 
   function renderAutoCalc() {
@@ -182,7 +182,7 @@
       return '<div class="card" style="margin-bottom:22px;">' +
         '<h3 style="margin:0 0 12px;">Packages needed to close the gap</h3>' +
         '<p class="hint">No active packages yet. Add packages on the <a href="pricing.html">Pricing</a> page to see how many sales are required.</p>' +
-      '<;/div>';
+      '</div>';
     }
 
     let html = '<div class="card" style="margin-bottom:22px;">' +
@@ -196,7 +196,7 @@
           '<th class="text-right">Sales needed</th>' +
           '<th class="text-right">Per week over ' + state.months + ' mo</th>' +
           '<th class="text-right">Total value over ' + state.months + ' mo</th>' +
-        '<;/tr></thead><tbody>';
+        '</tr></thead><tbody>';
 
     actives.forEach(function (pkg) {
       const monthlyValue = packageMonthlyValue(pkg);
@@ -211,12 +211,12 @@
         '<td class="text-right font-mono">' + escapeHtml(String(salesNeeded)) + '</td>' +
         '<td class="text-right font-mono">' + (perWeek > 0 && perWeek < 0.1 ? '< 0.1' : perWeek.toFixed(1)) + '</td>' +
         '<td class="text-right font-mono">' + escapeHtml(formatCurrency(totalValue)) + '</td>' +
-      '<;/tr>';
+      '</tr>';
     });
 
-    html += '<;/tbody></table>' +
+    html += '</tbody></table>' +
       '<p class="hint" style="margin-top:12px;">Sales needed is the total number of new packages to sell to reach the monthly goal. The per-week pace spreads those sales evenly across the timeframe.</p>' +
-    '<;/div>';
+    '</div>';
     return html;
   }
 
@@ -240,17 +240,17 @@
         '<div class="package-card-head" style="margin-bottom:10px;">' +
           '<div class="package-name">' + escapeHtml(pkg.name) + '</div>' +
           '<span class="tag tag-active">' + escapeHtml(pkg.billing_frequency) + '</span>' +
-        '<;/div>' +
+        '</div>' +
         '<div class="package-price" style="font-size:22px; margin-bottom:4px;">' + escapeHtml(formatCurrency(pkg.price)) + '<span class="package-frequency">' + escapeHtml(packageFrequencyLabel(pkg.billing_frequency)) + '</span></div>' +
         '<div class="package-monthly">' + escapeHtml(formatCurrency(monthlyValue)) + ' /month value</div>' +
         '<div class="forecast-field" style="margin-top:12px;">' +
           '<label class="field-label" for="manualPkg_' + escapeHtml(pkg.id) + '">Packages to add</label>' +
           '<input type="number" id="manualPkg_' + escapeHtml(pkg.id) + '" class="field-input" min="0" step="1" value="' + count + '">' +
-        '<;/div>' +
-      '<;/div>';
+        '</div>' +
+      '</div>';
     });
 
-    html += '<;/div>';
+    html += '</div>';
 
     const projectedMonthly = state.baseline.total + addedMonthly;
     const projectedTotal = projectedMonthly * state.months;
@@ -263,7 +263,7 @@
       '<div class="stat-box"><div class="stat-label">Projected monthly revenue</div><div class="stat-value">' + escapeHtml(formatCurrency(projectedMonthly)) + '</div></div>' +
       '<div class="stat-box"><div class="stat-label">Projected total (' + state.months + ' mo)</div><div class="stat-value">' + escapeHtml(formatCurrency(projectedTotal)) + '</div></div>' +
       '<div class="stat-box"><div class="stat-label">' + (isSurplus ? 'Surplus over goal' : 'Shortfall to goal') + '</div><div class="stat-value" style="color:' + (isSurplus ? 'var(--green)' : 'var(--red)') + '">' + escapeHtml(formatCurrency(Math.abs(diff))) + '</div></div>' +
-    '<;/div>';
+    '</div>';
 
     if (!isSurplus) {
       const remainingMonthly = state.goal - projectedMonthly;
@@ -276,11 +276,11 @@
         const extraNeeded = remainingMonthly > 0 && monthlyValue > 0 ? Math.ceil(remainingMonthly / monthlyValue) : 0;
         html += '<tr><td>' + escapeHtml(pkg.name) + '</td><td class="text-right font-mono">' + escapeHtml(formatCurrency(monthlyValue)) + '</td><td class="text-right font-mono">' + extraNeeded + '</td></tr>';
       });
-      html += '<;/tbody></table>' +
-      '<;/div>';
+      html += '</tbody></table>' +
+      '</div>';
     }
 
-    html += '<;/div>';
+    html += '</div>';
     return html;
   }
 
@@ -324,7 +324,7 @@
         '<strong>Could not load revenue data</strong>' +
         '<p class="hint" style="margin:6px 0 0;">' + escapeHtml(state.error) + '</p>' +
         '<button class="admin-btn" style="margin-top:12px;" onclick="goalForecasting.refresh()">Retry</button>' +
-      '<;/div>';
+      '</div>';
       return;
     }
 
