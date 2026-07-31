@@ -3,13 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CRF Comps · Finance</title>
+<title>CRF Comps · Forecasting</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/main.css">
 <link rel="stylesheet" href="css/premium.css">
 </head>
-<body data-page="finance" class="premium no-ops-auto-init">
+<body data-page="forecasting" class="premium no-ops-auto-init">
 
 <header>
   <div class="nav">
@@ -92,22 +92,20 @@
   <div class="nav-overlay" onclick="closeMobileNav()"></div>
 
   <main class="admin-main">
-    <section class="admin-page active" id="page-finance">
+    <section class="admin-page active" id="page-forecasting">
       <div class="page-head">
         <div>
           <div class="sec-eyebrow">Finance</div>
-          <h2>Revenue</h2>
-          <p style="color:var(--ink-soft);font-size:14px;margin-top:6px;">Combined Stripe and Weflex revenue. Upload remittance documents or add Weflex payments manually.</p>
+          <h2>Forecasting</h2>
+          <p style="color:var(--ink-soft);font-size:14px;margin-top:6px;">Project future revenue from Stripe and Weflex data. Adjust growth inputs to model scenarios.</p>
         </div>
         <div class="admin-actions">
-          <button class="admin-btn" onclick="finance.refresh()">Refresh</button>
+          <button class="admin-btn" onclick="forecasting.refresh()">Refresh</button>
           <a href="integrations.html" class="admin-btn">Integrations →</a>
         </div>
       </div>
 
-      <div id="combinedRevenue" style="margin-bottom:28px;"></div>
-      <div id="stripeWidget" style="margin-bottom:28px;"></div>
-      <div id="weflexWidget" style="margin-bottom:28px;"></div>
+      <div id="forecastingWidget"></div>
     </section>
   </main>
 </div>
@@ -123,14 +121,10 @@
 <script src="js/auth.js"></script>
 <script src="js/site-settings.js"></script>
 <script src="js/operations.js"></script>
-<script src="js/finance.js"></script>
-<script src="js/integrations.js"></script>
-<script src="js/weflex-payments.js"></script>
-<script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+  <script src="js/forecasting.js"></script>
 <script>
   window.operations.init().then(function () {
-    finance.init();
-    window.integrations.init('finance');
+    if (window.forecasting && window.forecasting.init) window.forecasting.init();
   });
 </script>
 
