@@ -178,27 +178,35 @@
 
 <!-- Client detail / notes modal -->
 <div class="modal-overlay" id="clientDetailModal" onclick="crm.closeDetailModal(event)">
-  <div class="modal-card modal-card-wide" onclick="event.stopPropagation()">
+  <div class="modal-card modal-card-wide client-detail-modal" onclick="event.stopPropagation()">
     <div class="modal-head">
       <h3 id="detailTitle">Client details</h3>
       <button class="modal-close" onclick="crm.closeDetailModal()" aria-label="Close">
         <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
       </button>
     </div>
-    <div id="detailBody">
+    <div id="detailBody" class="client-detail-body">
       <div class="client-detail-meta" id="detailMeta"></div>
-      <div class="client-notes client-communications">
-        <h4>Communications</h4>
-        <div id="detailCommunicationsList" class="client-notes-list"></div>
-      </div>
-      <div class="client-notes" style="margin-top:18px;">
-        <h4>Notes</h4>
-        <div id="detailNotesList" class="client-notes-list"></div>
-        <form class="client-note-form" onsubmit="crm.addNote(event)">
-          <input type="hidden" id="detailClientId">
-          <textarea id="detailNoteText" rows="2" placeholder="Add a note..." required></textarea>
-          <button type="submit" class="submit-btn">Add note</button>
-        </form>
+      <div class="client-detail-sections">
+        <div class="client-detail-section client-communications">
+          <div class="client-section-head">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5z"/></svg>
+            <h4>Communications</h4>
+          </div>
+          <div id="detailCommunicationsList" class="client-notes-list"></div>
+        </div>
+        <div class="client-detail-section">
+          <div class="client-section-head">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm-1 7V3.5L18.5 9H13zm1 13h-2v-6H6v-2h6v-6h2v6h6v2h-6v6z"/></svg>
+            <h4>Notes</h4>
+          </div>
+          <div id="detailNotesList" class="client-notes-list"></div>
+          <form class="client-note-form" onsubmit="crm.addNote(event)">
+            <input type="hidden" id="detailClientId">
+            <textarea id="detailNoteText" rows="2" placeholder="Add a note..." required></textarea>
+            <button type="submit" class="submit-btn">Add note</button>
+          </form>
+        </div>
       </div>
     </div>
   </div>
