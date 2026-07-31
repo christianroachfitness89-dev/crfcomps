@@ -276,7 +276,7 @@
       ? new Date(existing.paid_at).toISOString().split('T')[0]
       : new Date().toISOString().split('T')[0];
 
-    return '<div class="modal" id="weflexPaymentModal" style="display:flex;">' +
+    return '<div class="modal weflex-modal" id="weflexPaymentModal" style="display:flex;">' +
       '<div class="modal-overlay" onclick="window.weflexPayments.closeModal()"></div>' +
       '<div class="modal-content" style="max-width:420px;">' +
         '<div class="modal-header">' +
