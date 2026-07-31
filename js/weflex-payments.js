@@ -276,35 +276,36 @@
       ? new Date(existing.paid_at).toISOString().split('T')[0]
       : new Date().toISOString().split('T')[0];
 
-    return '<div class="modal weflex-modal" id="weflexPaymentModal" style="display:flex;">' +
-      '<div class="modal-overlay" onclick="window.weflexPayments.closeModal()"></div>' +
-      '<div class="modal-content" style="max-width:420px;">' +
-        '<div class="modal-header">' +
-          '<h3 style="margin:0;">' + (isEdit ? 'Edit Weflex payment' : 'Add Weflex payment') + '</h3>' +
-          '<button class="modal-close" onclick="window.weflexPayments.closeModal()">×</button>' +
-        '</div>' +
-        '<div class="modal-body">' +
-          '<div class="weflex-field-row">' +
-            '<label class="field-label" for="weflexPaidAt">Date</label>' +
-            '<input type="date" id="weflexPaidAt" class="field-input" value="' + escapeHtml(paidAt) + '">' +
+    return '<div class="modal-overlay show" id="weflexPaymentModal">' +
+      '<div class="modal-card weflex-card">' +
+        '<form class="weflex-payment-form" onsubmit="return false;">' +
+          '<div class="modal-head">' +
+            '<h3 style="margin:0;">' + (isEdit ? 'Edit Weflex payment' : 'Add Weflex payment') + '</h3>' +
+            '<button type="button" class="modal-close" onclick="window.weflexPayments.closeModal()">×</button>' +
           '</div>' +
-          '<div class="weflex-field-row">' +
-            '<label class="field-label" for="weflexAmount">Amount</label>' +
-            '<input type="number" id="weflexAmount" class="field-input" step="0.01" min="0" placeholder="0.00" value="' + escapeHtml(existing ? existing.amount : '') + '">' +
+          '<div class="weflex-form-body">' +
+            '<div class="weflex-field-row">' +
+              '<label class="field-label" for="weflexPaidAt">Date</label>' +
+              '<input type="date" id="weflexPaidAt" class="field-input" value="' + escapeHtml(paidAt) + '">' +
+            '</div>' +
+            '<div class="weflex-field-row">' +
+              '<label class="field-label" for="weflexAmount">Amount</label>' +
+              '<input type="number" id="weflexAmount" class="field-input" step="0.01" min="0" placeholder="0.00" value="' + escapeHtml(existing ? existing.amount : '') + '">' +
+            '</div>' +
+            '<div class="weflex-field-row">' +
+              '<label class="field-label" for="weflexReference">Remittance reference</label>' +
+              '<input type="text" id="weflexReference" class="field-input" placeholder="e.g. REM-2026-001" value="' + escapeHtml(existing ? existing.remittance_reference || '' : '') + '">' +
+            '</div>' +
+            '<div class="weflex-field-row">' +
+              '<label class="field-label" for="weflexNotes">Notes</label>' +
+              '<textarea id="weflexNotes" class="field-input" rows="3" placeholder="Optional notes">' + escapeHtml(existing ? existing.notes || '' : '') + '</textarea>' +
+            '</div>' +
           '</div>' +
-          '<div class="weflex-field-row">' +
-            '<label class="field-label" for="weflexReference">Remittance reference</label>' +
-            '<input type="text" id="weflexReference" class="field-input" placeholder="e.g. REM-2026-001" value="' + escapeHtml(existing ? existing.remittance_reference || '' : '') + '">' +
+          '<div class="modal-foot">' +
+            '<button type="button" class="btn-ghost" onclick="window.weflexPayments.closeModal()">Cancel</button>' +
+            '<button type="button" class="admin-btn" id="weflexSavePayment" data-id="' + escapeHtml(existing ? existing.id : '') + '">' + (isEdit ? 'Update' : 'Add') + '</button>' +
           '</div>' +
-          '<div class="weflex-field-row">' +
-            '<label class="field-label" for="weflexNotes">Notes</label>' +
-            '<textarea id="weflexNotes" class="field-input" rows="3" placeholder="Optional notes">' + escapeHtml(existing ? existing.notes || '' : '') + '</textarea>' +
-          '</div>' +
-        '</div>' +
-        '<div class="modal-footer">' +
-          '<button class="admin-btn" id="weflexSavePayment" data-id="' + escapeHtml(existing ? existing.id : '') + '">' + (isEdit ? 'Update' : 'Add') + '</button>' +
-          '<button class="btn-ghost" onclick="window.weflexPayments.closeModal()">Cancel</button>' +
-        '</div>' +
+        '</form>' +
       '</div>' +
     '</div>';
   }
