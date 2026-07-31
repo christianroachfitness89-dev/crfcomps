@@ -166,7 +166,29 @@
     return true;
   }
 
-  function renderDashboard() {
+  async function fetchStripeDashboardMetrics() {
+    try {
+      if (!window.auth || !window.auth.getSession) return null;
+      const session = await window.auth.getSession();
+      if (!session || !session.access_token) return null;
+
+      const res = await fetch('/api/stripe/payments?period=month&limit=1', {
+        headers: { 'Authorization': 'Bearer ' + session.access_token, 'Accept': 'application/json' }
+      });
+      if (!res.ok) return null;
+      const data = await res.json();
+      if (!data.metrics) return null;
+      return {
+        revenue: data.metrics.revenue || 0,
+        outstanding: data.metrics.outstanding || 0
+      };
+    } catch (err) {
+      console.warn('Dashboard Stripe fetch failed:', err);
+      return null;
+    }
+  }
+
+  async function renderDashboard() {
     const container = document.getElementById('ops-dashboard');
     if (!container) return;
 
@@ -181,11 +203,16 @@
 
     const activeClients = d.clients.filter(function (c) { return c.status === 'active_member' || c.status === 'prospect'; }).length;
 
-    const revenueMonth = d.payments.filter(function (p) {
+    const stripeMetrics = await fetchStripeDashboardMetrics();
+    let revenueMonth = d.payments.filter(function (p) {
       return p.paid_at && new Date(p.paid_at).getMonth() === now.getMonth() && new Date(p.paid_at).getFullYear() === now.getFullYear();
     }).reduce(function (sum, p) { return sum + (Number(p.amount) || 0); }, 0);
+    let outstanding = d.invoices.filter(function (i) { return i.status !== 'paid' && i.status !== 'cancelled'; }).reduce(function (sum, i) { return sum + (Number(i.amount) || 0); }, 0);
 
-    const outstanding = d.invoices.filter(function (i) { return i.status !== 'paid' && i.status !== 'cancelled'; }).reduce(function (sum, i) { return sum + (Number(i.amount) || 0); }, 0);
+    if (stripeMetrics) {
+      revenueMonth = stripeMetrics.revenue;
+      outstanding = stripeMetrics.outstanding;
+    }
 
     const upcomingSessions = d.sessions.filter(function (s) {
       return s.scheduled_at && new Date(s.scheduled_at) >= dayStart && s.status !== 'cancelled';
@@ -209,8 +236,8 @@
         kpiCard('Total leads', totalLeads, '+' + newLeadsWeek + ' this week') +
         kpiCard('Converted leads', convertedLeads) +
         kpiCard('Active clients', activeClients) +
-        kpiCard('Revenue this month', formatCurrency(revenueMonth)) +
-        kpiCard('Outstanding', formatCurrency(outstanding)) +
+        kpiCard('Revenue this month', formatCurrency(revenueMonth), stripeMetrics ? 'Stripe' : null) +
+        kpiCard('Outstanding', formatCurrency(outstanding), stripeMetrics ? 'Stripe' : null) +
         kpiCard('Upcoming sessions', upcomingSessions, sessionsWeek + ' this week') +
         kpiCard('Attendance this week', attendedWeek) +
         kpiCard('Communications this week', commsWeek) +
@@ -254,7 +281,7 @@
 
     setActiveNav();
     await loadData();
-    renderDashboard();
+    await renderDashboard();
   }
 
   window.operations = {

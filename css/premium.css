@@ -657,6 +657,40 @@ header{
   -webkit-backdrop-filter:saturate(180%) blur(24px);
 }
 
+/* ---------- finance / stripe widget ---------- */
+.stripe-filters{
+  flex-wrap:wrap;
+  gap:10px;
+}
+
+.stripe-filters select,
+.stripe-filters input{
+  min-width:120px;
+  font-size:13px;
+  padding:10px 12px;
+}
+
+.stripe-stats-grid{
+  grid-template-columns:repeat(4, minmax(0, 1fr));
+  gap:16px;
+}
+
+@media(max-width:960px){
+  .stripe-stats-grid{
+    grid-template-columns:repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media(max-width:560px){
+  .stripe-stats-grid{
+    grid-template-columns:1fr;
+  }
+  .stripe-filters select,
+  .stripe-filters input{
+    width:100%;
+  }
+}
+
 /* ---------- client detail modal ---------- */
 .client-detail-modal .modal-head h3{
   font-size:22px;

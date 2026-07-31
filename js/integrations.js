@@ -91,7 +91,8 @@
     return '<span class="tag tag-hot">Outstanding</span>';
   }
 
-  function renderInvoiceTable(invoices, limit) {
+  function renderInvoiceTable(invoices, limit, opts) {
+    opts = opts || {};
     if (!invoices || !invoices.length) {
       return '<div class="dash-empty">No Stripe invoices found for this period.</div>';
     }
@@ -104,7 +105,7 @@
         '<th>Description</th>' +
         '<th class="text-right">Amount</th>' +
         '<th>Status</th>' +
-        '<th>Supabase</th>' +
+        (opts.showMatched !== false ? '<th>Supabase</th>' : '') +
       '</tr></thead><tbody>';
 
     invoices.slice(0, limit || invoices.length).forEach(function (inv) {
@@ -117,7 +118,7 @@
         '<td>' + escapeHtml(inv.description || '-') + '</td>' +
         '<td class="text-right font-mono">' + escapeHtml(formatCurrency(inv.amount)) + '</td>' +
         '<td><span class="tag ' + invoiceStatusClass(inv) + '">' + escapeHtml(inv.label || inv.status) + '</span></td>' +
-        '<td>' + matchedBadge(inv) + '</td>' +
+        (opts.showMatched !== false ? '<td>' + matchedBadge(inv) + '</td>' : '') +
       '</tr>';
     });
 
@@ -125,23 +126,38 @@
     return html;
   }
 
-  function buildMonthFilter(selectedMonth, selectedYear) {
+  function buildPeriodFilter(state) {
     const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-    let html = '<div class="filter-row" style="margin-bottom:14px;">';
+    const currentYear = new Date().getFullYear();
 
-    html += '<select id="stripeMonth" style="font-size:13px;">';
+    let html = '<div class="filter-row stripe-filters" style="margin-bottom:14px;">';
+
+    html += '<select id="stripePeriod" style="font-size:13px;">' +
+      '<option value="month"' + (state.period === 'month' ? ' selected' : '') + '>Month</option>' +
+      '<option value="quarter"' + (state.period === 'quarter' ? ' selected' : '') + '>Quarter</option>' +
+      '<option value="year"' + (state.period === 'year' ? ' selected' : '') + '>Year</option>' +
+      '</select>';
+
+    html += '<select id="stripeMonth" style="font-size:13px;' + (state.period === 'year' ? 'display:none;' : '') + '">';
     for (let i = 1; i <= 12; i++) {
-      html += '<option value="' + i + '"' + (i === selectedMonth ? ' selected' : '') + '>' + months[i - 1] + '</option>';
+      html += '<option value="' + i + '"' + (i === state.month ? ' selected' : '') + '>' + months[i - 1] + '</option>';
     }
     html += '</select>';
 
     html += '<select id="stripeYear" style="font-size:13px;">';
-    const currentYear = new Date().getFullYear();
     for (let y = currentYear - 2; y <= currentYear + 1; y++) {
-      html += '<option value="' + y + '"' + (y === selectedYear ? ' selected' : '') + '>' + y + '</option>';
+      html += '<option value="' + y + '"' + (y === state.year ? ' selected' : '') + '>' + y + '</option>';
     }
     html += '</select>';
 
+    html += '<select id="stripeStatus" style="font-size:13px;">' +
+      '<option value="all"' + (state.status === 'all' ? ' selected' : '') + '>All statuses</option>' +
+      '<option value="paid"' + (state.status === 'paid' ? ' selected' : '') + '>Paid</option>' +
+      '<option value="open"' + (state.status === 'open' ? ' selected' : '') + '>Open</option>' +
+      '<option value="overdue"' + (state.status === 'overdue' ? ' selected' : '') + '>Overdue</option>' +
+      '</select>';
+
+    html += '<input type="text" id="stripeCustomer" placeholder="Search customer..." value="' + escapeHtml(state.customer || '') + '" style="font-size:13px;">';
     html += '<button class="admin-btn" id="stripeApplyFilter" style="font-size:11px;">Apply</button>';
     html += '</div>';
     return html;
@@ -162,23 +178,24 @@
       const now = new Date();
       const [status, stripe] = await Promise.all([
         api('/api/integrations/status'),
-        api('/api/stripe/payments?month=' + (now.getMonth() + 1) + '&year=' + now.getFullYear() + '&limit=5')
+        api('/api/stripe/payments?period=month&month=' + (now.getMonth() + 1) + '&year=' + now.getFullYear() + '&limit=5')
       ]);
 
       const stripeStatus = status.status && status.status.stripe ? status.status.stripe.healthy : false;
+      const metrics = stripe.metrics || {};
 
       section.innerHTML =
         '<div class="ops-section-title">Live integrations</div>' +
         '<div class="ops-kpi-grid integration-grid">' +
           '<div class="ops-kpi integration-kpi">' +
-            '<div class="stat-label">Stripe revenue (' + escapeHtml(stripe.month_label || '') + ')</div>' +
-            '<div class="stat-value">' + escapeHtml(formatCurrency(stripe.revenue_month)) + '</div>' +
+            '<div class="stat-label">Stripe revenue (' + escapeHtml(stripe.label || '') + ')</div>' +
+            '<div class="stat-value">' + escapeHtml(formatCurrency(metrics.revenue)) + '</div>' +
             statusBadge(stripeStatus, stripeStatus ? 'Connected' : 'Not connected') +
           '</div>' +
           '<div class="ops-kpi integration-kpi">' +
-            '<div class="stat-label">Stripe outstanding (' + escapeHtml(stripe.month_label || '') + ')</div>' +
-            '<div class="stat-value">' + escapeHtml(formatCurrency(stripe.outstanding_month)) + '</div>' +
-            '<div class="stat-sub">' + (stripe.outstanding_count || 0) + ' open invoices</div>' +
+            '<div class="stat-label">Stripe outstanding (' + escapeHtml(stripe.label || '') + ')</div>' +
+            '<div class="stat-value">' + escapeHtml(formatCurrency(metrics.outstanding)) + '</div>' +
+            '<div class="stat-sub">Outstanding invoices</div>' +
           '</div>' +
         '</div>' +
         '<div class="card integration-card" style="margin-top:16px;">' +
@@ -199,23 +216,42 @@
     }
   }
 
+  function renderFinanceStats(metrics, label) {
+    const m = metrics || {};
+    return '<div class="stat-grid stripe-stats-grid" style="margin-bottom:24px;">' +
+      '<div class="stat-box"><div class="stat-label">Revenue (' + escapeHtml(label || '') + ')</div><div class="stat-value">' + escapeHtml(formatCurrency(m.revenue)) + '</div></div>' +
+      '<div class="stat-box"><div class="stat-label">Outstanding (' + escapeHtml(label || '') + ')</div><div class="stat-value">' + escapeHtml(formatCurrency(m.outstanding)) + '</div></div>' +
+      '<div class="stat-box"><div class="stat-label">Overdue (' + escapeHtml(label || '') + ')</div><div class="stat-value">' + escapeHtml(formatCurrency(m.overdue)) + '</div></div>' +
+      '<div class="stat-box"><div class="stat-label">Net revenue</div><div class="stat-value">' + escapeHtml(formatCurrency(m.net_revenue)) + '</div></div>' +
+      '<div class="stat-box"><div class="stat-label">Refunds</div><div class="stat-value">' + escapeHtml(formatCurrency(m.refunds)) + '</div></div>' +
+      '<div class="stat-box"><div class="stat-label">Failed payments</div><div class="stat-value">' + escapeHtml(String(m.failed_payments || 0)) + '</div></div>' +
+      '<div class="stat-box"><div class="stat-label">Paying customers</div><div class="stat-value">' + escapeHtml(String(m.paying_customers || 0)) + '</div></div>' +
+      '<div class="stat-box"><div class="stat-label">Average invoice value</div><div class="stat-value">' + escapeHtml(formatCurrency(m.average_invoice_value)) + '</div></div>' +
+    '</div>';
+  }
+
   async function renderFinanceStripe() {
     const container = document.getElementById('stripeWidget');
     if (!container) return;
     container.innerHTML = '<div class="loading">Loading Stripe data...</div>';
 
     const widgetState = {
+      period: 'month',
       month: new Date().getMonth() + 1,
       year: new Date().getFullYear(),
-      outstandingOnly: false,
+      status: 'all',
+      customer: '',
       data: null
     };
 
     async function loadData() {
-      const path = '/api/stripe/payments?month=' + widgetState.month +
+      const path = '/api/stripe/payments' +
+        '?period=' + encodeURIComponent(widgetState.period) +
+        '&month=' + widgetState.month +
         '&year=' + widgetState.year +
-        '&limit=100' +
-        (widgetState.outstandingOnly ? '&outstanding=true' : '');
+        '&status=' + encodeURIComponent(widgetState.status) +
+        '&customer=' + encodeURIComponent(widgetState.customer) +
+        '&limit=100';
 
       const [status, stripe] = await Promise.all([
         api('/api/integrations/status'),
@@ -225,8 +261,7 @@
       widgetState.data = stripe;
       const stripeStatus = status.status && status.status.stripe ? status.status.stripe.healthy : false;
       const invoices = stripe.invoices || [];
-      const allCount = invoices.length;
-      const outCount = stripe.outstanding_count || 0;
+      const metrics = stripe.metrics || {};
 
       container.innerHTML =
         '<div class="page-head" style="margin-bottom:18px;">' +
@@ -236,32 +271,22 @@
           '</div>' +
           statusBadge(stripeStatus) +
         '</div>' +
-        '<div class="stat-grid" style="margin-bottom:20px;">' +
-          '<div class="stat-box"><div class="stat-label">Revenue (' + escapeHtml(stripe.month_label || '') + ')</div><div class="stat-value">' + escapeHtml(formatCurrency(stripe.revenue_month)) + '</div></div>' +
-          '<div class="stat-box"><div class="stat-label">Outstanding (' + escapeHtml(stripe.month_label || '') + ')</div><div class="stat-value">' + escapeHtml(formatCurrency(stripe.outstanding_month)) + '</div></div>' +
-          '<div class="stat-box"><div class="stat-label">Open invoice count</div><div class="stat-value">' + escapeHtml(String(outCount)) + '</div></div>' +
-          '<div class="stat-box"><div class="stat-label">Invoices shown</div><div class="stat-value">' + escapeHtml(String(allCount)) + '</div></div>' +
-        '</div>' +
-        buildMonthFilter(widgetState.month, widgetState.year) +
-        '<div class="filter-row" style="margin-bottom:14px;">' +
-          '<button class="admin-btn ' + (widgetState.outstandingOnly ? '' : 'active') + '" id="stripeAllBtn" style="font-size:11px;">All invoices</button>' +
-          '<button class="admin-btn ' + (widgetState.outstandingOnly ? 'active' : '') + '" id="stripeOutstandingBtn" style="font-size:11px;">Outstanding only (' + outCount + ')</button>' +
-        '</div>' +
-        '<div id="stripeTableWrap">' + renderInvoiceTable(invoices, 100) + '</div>';
+        renderFinanceStats(metrics, stripe.label) +
+        buildPeriodFilter(widgetState) +
+        '<div id="stripeTableWrap" style="margin-top:14px;">' + renderInvoiceTable(invoices, 100, { showMatched: false }) + '</div>';
 
       document.getElementById('stripeApplyFilter').addEventListener('click', function () {
+        widgetState.period = document.getElementById('stripePeriod').value;
         widgetState.month = parseInt(document.getElementById('stripeMonth').value, 10);
         widgetState.year = parseInt(document.getElementById('stripeYear').value, 10);
+        widgetState.status = document.getElementById('stripeStatus').value;
+        widgetState.customer = document.getElementById('stripeCustomer').value.trim();
         loadData();
       });
 
-      document.getElementById('stripeAllBtn').addEventListener('click', function () {
-        widgetState.outstandingOnly = false;
-        loadData();
-      });
-      document.getElementById('stripeOutstandingBtn').addEventListener('click', function () {
-        widgetState.outstandingOnly = true;
-        loadData();
+      document.getElementById('stripePeriod').addEventListener('change', function () {
+        const monthSelect = document.getElementById('stripeMonth');
+        monthSelect.style.display = this.value === 'year' ? 'none' : '';
       });
     }
 
@@ -358,11 +383,12 @@
     if (!el) return;
     try {
       const now = new Date();
-      const stripe = await api('/api/stripe/payments?month=' + (now.getMonth() + 1) + '&year=' + now.getFullYear() + '&limit=10');
+      const stripe = await api('/api/stripe/payments?period=month&month=' + (now.getMonth() + 1) + '&year=' + now.getFullYear() + '&limit=10');
+      const metrics = stripe.metrics || {};
       el.innerHTML =
         '<div class="stat-grid" style="margin-bottom:16px;">' +
-          '<div class="stat-box"><div class="stat-label">Revenue (' + escapeHtml(stripe.month_label || '') + ')</div><div class="stat-value">' + escapeHtml(formatCurrency(stripe.revenue_month)) + '</div></div>' +
-          '<div class="stat-box"><div class="stat-label">Outstanding (' + escapeHtml(stripe.month_label || '') + ')</div><div class="stat-value">' + escapeHtml(formatCurrency(stripe.outstanding_month)) + '</div></div>' +
+          '<div class="stat-box"><div class="stat-label">Revenue (' + escapeHtml(stripe.label || '') + ')</div><div class="stat-value">' + escapeHtml(formatCurrency(metrics.revenue)) + '</div></div>' +
+          '<div class="stat-box"><div class="stat-label">Outstanding (' + escapeHtml(stripe.label || '') + ')</div><div class="stat-value">' + escapeHtml(formatCurrency(metrics.outstanding)) + '</div></div>' +
         '</div>' +
         '<strong style="display:block;margin-bottom:8px;">Recent invoices</strong>' +
         renderInvoiceTable(stripe.invoices, 10);

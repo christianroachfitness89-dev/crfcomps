@@ -92,165 +92,18 @@
       <div class="page-head">
         <div>
           <div class="sec-eyebrow">Finance</div>
-          <h2>Payments &amp; Invoices</h2>
+          <h2>Stripe Revenue</h2>
+          <p style="color:var(--ink-soft);font-size:14px;margin-top:6px;">Read-only view of live Stripe invoices and revenue. Use the filters below to change the period or status.</p>
         </div>
         <div class="admin-actions">
-          <button class="submit-btn" onclick="finance.openPaymentModal()">+ Add payment</button>
-          <button class="admin-btn" onclick="finance.openInvoiceModal()">+ Add invoice</button>
+          <button class="admin-btn" onclick="finance.refresh()">Refresh</button>
+          <a href="integrations.html" class="admin-btn">Integrations →</a>
         </div>
-      </div>
-
-      <div class="stat-grid" id="financeStats">
-        <div class="stat-box"><div class="stat-label">Revenue this month</div><div class="stat-value" id="statRevenueMonth">-</div></div>
-        <div class="stat-box"><div class="stat-label">Outstanding</div><div class="stat-value" id="statOutstanding">-</div></div>
-        <div class="stat-box"><div class="stat-label">Overdue</div><div class="stat-value" id="statOverdue">-</div></div>
-        <div class="stat-box"><div class="stat-label">Total paid this year</div><div class="stat-value" id="statPaidYear">-</div></div>
       </div>
 
       <div id="stripeWidget" style="margin-bottom:28px;"></div>
-
-      <div class="finance-tabs">
-        <button class="finance-tab active" onclick="finance.switchTab('payments', this)">Payments</button>
-        <button class="finance-tab" onclick="finance.switchTab('invoices', this)">Invoices</button>
-      </div>
-
-      <div class="card" id="paymentsTab">
-        <div class="filter-row" style="margin-bottom:18px;">
-          <input type="text" id="paymentSearch" placeholder="Search client or reference..." oninput="finance.renderPayments()">
-          <select id="paymentMethodFilter" onchange="finance.renderPayments()">
-            <option value="">All methods</option>
-            <option value="cash">Cash</option>
-            <option value="card">Card</option>
-            <option value="transfer">Transfer</option>
-            <option value="stripe">Stripe</option>
-            <option value="paypal">PayPal</option>
-            <option value="other">Other</option>
-          </select>
-          <button class="admin-btn" onclick="finance.refresh()">Refresh</button>
-        </div>
-        <div id="paymentsTableWrap"><div class="loading">Loading payments...</div></div>
-      </div>
-
-      <div class="card" id="invoicesTab" style="display:none;">
-        <div class="filter-row" style="margin-bottom:18px;">
-          <input type="text" id="invoiceSearch" placeholder="Search client or description..." oninput="finance.renderInvoices()">
-          <select id="invoiceStatusFilter" onchange="finance.renderInvoices()">
-            <option value="">All statuses</option>
-            <option value="draft">Draft</option>
-            <option value="sent">Sent</option>
-            <option value="paid">Paid</option>
-            <option value="overdue">Overdue</option>
-            <option value="cancelled">Cancelled</option>
-          </select>
-          <button class="admin-btn" onclick="finance.refresh()">Refresh</button>
-        </div>
-        <div id="invoicesTableWrap"><div class="loading">Loading invoices...</div></div>
-      </div>
     </section>
   </main>
-</div>
-
-<!-- Payment modal -->
-<div class="modal-overlay" id="paymentModal" onclick="finance.closePaymentModal(event)">
-  <div class="modal-card" onclick="event.stopPropagation()">
-    <div class="modal-head">
-      <h3 id="paymentModalTitle">Add payment</h3>
-      <button class="modal-close" onclick="finance.closePaymentModal()" aria-label="Close">
-        <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
-      </button>
-    </div>
-    <form id="paymentForm" onsubmit="finance.savePayment(event)">
-      <input type="hidden" id="paymentId">
-      <div class="form-row">
-        <label for="paymentClient">Client</label>
-        <select id="paymentClient"></select>
-      </div>
-      <div class="form-row">
-        <label for="paymentAmount">Amount *</label>
-        <input type="number" id="paymentAmount" step="0.01" min="0" required>
-      </div>
-      <div class="form-row">
-        <label for="paymentMethod">Method</label>
-        <select id="paymentMethod">
-          <option value="cash">Cash</option>
-          <option value="card">Card</option>
-          <option value="transfer">Transfer</option>
-          <option value="stripe">Stripe</option>
-          <option value="paypal">PayPal</option>
-          <option value="other">Other</option>
-        </select>
-      </div>
-      <div class="form-row">
-        <label for="paymentReference">Reference</label>
-        <input type="text" id="paymentReference">
-      </div>
-      <div class="form-row">
-        <label for="paymentPaidAt">Paid at</label>
-        <input type="datetime-local" id="paymentPaidAt">
-      </div>
-      <div class="form-row">
-        <label for="paymentNotes">Notes</label>
-        <textarea id="paymentNotes" rows="3"></textarea>
-      </div>
-      <div class="form-row" style="display:flex;justify-content:flex-end;gap:10px;margin-bottom:0;">
-        <button type="button" class="admin-btn" onclick="finance.closePaymentModal()">Cancel</button>
-        <button type="submit" class="submit-btn" id="paymentSaveBtn">Save payment</button>
-      </div>
-    </form>
-  </div>
-</div>
-
-<!-- Invoice modal -->
-<div class="modal-overlay" id="invoiceModal" onclick="finance.closeInvoiceModal(event)">
-  <div class="modal-card" onclick="event.stopPropagation()">
-    <div class="modal-head">
-      <h3 id="invoiceModalTitle">Add invoice</h3>
-      <button class="modal-close" onclick="finance.closeInvoiceModal()" aria-label="Close">
-        <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
-      </button>
-    </div>
-    <form id="invoiceForm" onsubmit="finance.saveInvoice(event)">
-      <input type="hidden" id="invoiceId">
-      <div class="form-row">
-        <label for="invoiceClient">Client</label>
-        <select id="invoiceClient"></select>
-      </div>
-      <div class="form-row">
-        <label for="invoiceAmount">Amount *</label>
-        <input type="number" id="invoiceAmount" step="0.01" min="0" required>
-      </div>
-      <div class="form-row">
-        <label for="invoiceStatus">Status</label>
-        <select id="invoiceStatus">
-          <option value="draft">Draft</option>
-          <option value="sent">Sent</option>
-          <option value="paid">Paid</option>
-          <option value="overdue">Overdue</option>
-          <option value="cancelled">Cancelled</option>
-        </select>
-      </div>
-      <div class="form-row">
-        <label for="invoiceReference">Reference</label>
-        <input type="text" id="invoiceReference" placeholder="e.g. in_1Ab2C3d4Ef5Gh6Ij">
-      </div>
-      <div class="form-row">
-        <label for="invoiceIssued">Issued</label>
-        <input type="datetime-local" id="invoiceIssued">
-      </div>
-      <div class="form-row">
-        <label for="invoiceDue">Due</label>
-        <input type="datetime-local" id="invoiceDue">
-      </div>
-      <div class="form-row">
-        <label for="invoiceDescription">Description</label>
-        <textarea id="invoiceDescription" rows="3" placeholder="e.g. 8-week coaching package"></textarea>
-      </div>
-      <div class="form-row" style="display:flex;justify-content:flex-end;gap:10px;margin-bottom:0;">
-        <button type="button" class="admin-btn" onclick="finance.closeInvoiceModal()">Cancel</button>
-        <button type="submit" class="submit-btn" id="invoiceSaveBtn">Save invoice</button>
-      </div>
-    </form>
-  </div>
 </div>
 
 <footer>
