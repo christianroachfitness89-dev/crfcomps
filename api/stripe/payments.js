@@ -232,8 +232,9 @@ module.exports = allowCors(async function (req, res) {
         created: { gte: bounds.start, lt: bounds.end }
       }),
       fetchAll(stripe, 'paymentIntents', {
-        created: { gte: bounds.start, lt: bounds.end },
-        status: 'requires_payment_method'
+        created: { gte: bounds.start, lt: bounds.end }
+      }).then(function (list) {
+        return list.filter(function (pi) { return pi.status === 'requires_payment_method'; });
       })
     ]);
 
