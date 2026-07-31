@@ -265,19 +265,6 @@
     return html;
   }
 
-  function weeklySalesRequired(targetIncrease, pkg) {
-    // Target is additional revenue needed per month; convert to weekly sales of this package.
-    const monthlyValue = packageMonthlyValue(pkg);
-    if (!monthlyValue) return { perWeek: 0, perMonth: 0, revenuePerWeek: 0 };
-    const perMonth = targetIncrease / monthlyValue;
-    const perWeek = perMonth / 4.33;
-    return {
-      perWeek: perWeek,
-      perMonth: perMonth,
-      revenuePerWeek: perWeek * monthlyValue
-    };
-  }
-
   function packageMonthlyValue(pkg) {
     const price = Number(pkg.price) || 0;
     switch (pkg.billing_frequency) {
@@ -290,46 +277,81 @@
     }
   }
 
+  function computeMonthlyGap(scenario, baselineMonthly) {
+    // Gap = how much revenue above baseline we need in each forecast month.
+    return scenario.projection.map(function (r) {
+      return { month: r.label, gap: Math.max(0, r.amount - baselineMonthly) };
+    });
+  }
+
+  function salesForGap(gap, pkg) {
+    const monthlyValue = packageMonthlyValue(pkg);
+    if (!monthlyValue) return 0;
+    return gap / monthlyValue;
+  }
+
   function renderSalesTargets(scenarios, baselineTotal, period, packages) {
     const activePackages = (packages || []).filter(function (p) { return p.status === 'active'; });
     if (!activePackages.length) {
       return '<div class="card" style="margin-bottom:22px;">' +
-        '<h3 style="margin:0 0 12px;">Weekly sales targets</h3>' +
+        '<h3 style="margin:0 0 12px;">What to add per week</h3>' +
         '<p class="hint">Add active packages on the Pricing page to see how many new sales you need per week to hit each forecast.</p>' +
       '</div>';
     }
 
-    const runRate = computeRunRate(baselineTotal, period);
-    let html = '<div class="card" style="margin-bottom:22px;overflow:auto;">' +
-      '<h3 style="margin:0 0 16px;">What to add per week to hit forecast</h3>' +
-      '<p class="hint" style="margin-bottom:16px;">Additional monthly revenue needed and how many new package sales you need each week, assuming no churn is replaced.</p>' +
-      '<table class="data-table integration-table forecast-table">' +
-        '<thead><tr>' +
-          '<th>Scenario</th>' +
-          '<th>Extra monthly revenue needed</th>';
-    activePackages.forEach(function (pkg) {
-      html += '<th>' + escapeHtml(pkg.name) + ' sales / week</th>';
-    });
-    html += '</tr></thead><tbody>';
+    const baselineMonthly = computeRunRate(baselineTotal, period) / 12;
+
+    let html = '<div class="card" style="margin-bottom:22px;">' +
+      '<h3 style="margin:0 0 12px;">What to add per week to hit forecast</h3>' +
+      '<p class="hint" style="margin-bottom:18px;">New package sales required each month to close the gap between current revenue and each forecast. Each row is cumulative by the end of that month.</p>';
 
     Object.keys(scenarios).forEach(function (key) {
       const s = scenarios[key];
-      const total = s.projection.reduce(function (sum, r) { return sum + r.amount; }, 0);
-      const avgMonthly = total / s.projection.length;
-      const currentMonthly = runRate / 12;
-      const extra = Math.max(0, avgMonthly - currentMonthly);
+      const gaps = computeMonthlyGap(s, baselineMonthly);
+      const totalGap = gaps.reduce(function (sum, g) { return sum + g.gap; }, 0);
 
-      html += '<tr>' +
-        '<td><strong>' + escapeHtml(s.label) + '</strong></td>' +
-        '<td class="text-right font-mono">' + escapeHtml(formatCurrency(extra)) + '</td>';
+      html += '<div class="forecast-target-scenario" style="margin-bottom:22px;">' +
+        '<div class="forecast-target-title" style="margin-bottom:12px;">' + escapeHtml(s.label) + ' — ' + escapeHtml(formatCurrency(totalGap)) + ' new revenue needed over ' + s.projection.length + ' months</div>';
+
+      html += '<table class="data-table integration-table forecast-table">' +
+        '<thead><tr>' +
+          '<th>Month</th>' +
+          '<th class="text-right">Gap to close</th>';
       activePackages.forEach(function (pkg) {
-        const target = weeklySalesRequired(extra, pkg);
-        html += '<td class="text-right font-mono">' + (target.perWeek > 0 && target.perWeek < 0.1 ? '< 0.1' : target.perWeek.toFixed(1)) + '</td>';
+        html += '<th class="text-right" style="min-width:110px;">' + escapeHtml(pkg.name) + ' sales / week</th>';
+      });
+      html += '</tr></thead><tbody>';
+
+      gaps.forEach(function (g) {
+        html += '<tr>' +
+          '<td>' + escapeHtml(g.month) + '</td>' +
+          '<td class="text-right font-mono">' + escapeHtml(formatCurrency(g.gap)) + '</td>';
+        activePackages.forEach(function (pkg) {
+          const sales = salesForGap(g.gap, pkg);
+          const perWeek = sales / 4.33;
+          const display = perWeek > 0 && perWeek < 0.1 ? '< 0.1' : perWeek.toFixed(1);
+          html += '<td class="text-right font-mono">' + display + '</td>';
+        });
+        html += '</tr>';
+      });
+
+      // Average row
+      const avgGap = totalGap / s.projection.length;
+      html += '<tr style="border-top:2px solid var(--line);">' +
+        '<td><strong>Monthly average</strong></td>' +
+        '<td class="text-right font-mono"><strong>' + escapeHtml(formatCurrency(avgGap)) + '</strong></td>';
+      activePackages.forEach(function (pkg) {
+        const avgSales = salesForGap(avgGap, pkg);
+        const avgPerWeek = avgSales / 4.33;
+        const display = avgPerWeek > 0 && avgPerWeek < 0.1 ? '< 0.1' : avgPerWeek.toFixed(1);
+        html += '<td class="text-right font-mono"><strong>' + display + '</strong></td>';
       });
       html += '</tr>';
+
+      html += '</tbody></table></div>';
     });
 
-    html += '</tbody></table></div>';
+    html += '</div>';
     return html;
   }
 

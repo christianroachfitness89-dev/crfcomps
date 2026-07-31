@@ -1285,3 +1285,19 @@ header{
     grid-template-columns:1fr;
   }
 }
+
+.forecast-target-scenario{
+  padding:18px 0;
+  border-bottom:1px solid var(--line);
+}
+
+.forecast-target-scenario:last-child{
+  border-bottom:none;
+  padding-bottom:0;
+}
+
+.forecast-target-title{
+  font-weight:600;
+  font-size:15px;
+  color:var(--ink);
+}
