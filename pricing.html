@@ -3,13 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CRF Comps · Integrations</title>
+<title>CRF Comps · Pricing</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/main.css">
 <link rel="stylesheet" href="css/premium.css">
 </head>
-<body data-page="integrations" class="premium no-ops-auto-init">
+<body data-page="pricing" class="premium no-ops-auto-init">
 
 <header>
   <div class="nav">
@@ -96,24 +96,27 @@
   <div class="nav-overlay" onclick="closeMobileNav()"></div>
 
   <main class="admin-main">
-    <section class="admin-page active" id="page-integrations">
+    <section class="admin-page active" id="page-pricing">
       <div class="page-head">
         <div>
-          <div class="sec-eyebrow">Operations</div>
-          <h2>Connected apps</h2>
+          <div class="sec-eyebrow">Finance</div>
+          <h2>Pricing & packages</h2>
+          <p style="color:var(--ink-soft);font-size:14px;margin-top:6px;">Manage coaching packages, pricing tiers and model price increases.</p>
+        </div>
+        <div class="admin-actions">
+          <button class="admin-btn" onclick="pricing.refresh()">Refresh</button>
+          <a href="integrations.html" class="admin-btn">Integrations →</a>
         </div>
       </div>
 
-      <div id="integrationsContent">
-        <div class="loading">Loading integrations...</div>
-      </div>
+      <div id="pricingWidget"></div>
     </section>
   </main>
 </div>
 
 <footer>
   <div class="wrap">
-    <p class="foot-text">API keys for connected apps are stored only in Vercel environment variables and are never sent to the browser.</p>
+    <p class="foot-text">Financial data is private and must not be shared outside the operations team.</p>
   </div>
 </footer>
 
@@ -122,10 +125,10 @@
 <script src="js/auth.js"></script>
 <script src="js/site-settings.js"></script>
 <script src="js/operations.js"></script>
-<script src="js/integrations.js"></script>
+  <script src="js/pricing.js"></script>
 <script>
   window.operations.init().then(function () {
-    window.integrations.init('integrations');
+    if (window.pricing && window.pricing.init) window.pricing.init();
   });
 </script>
 

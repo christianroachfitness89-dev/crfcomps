@@ -220,6 +220,18 @@ create table if not exists public.invoices (
   updated_at timestamptz not null default now()
 );
 
+-- Packages / coaching pricing tiers.
+create table if not exists public.packages (
+  id uuid default gen_random_uuid() primary key,
+  name text not null,
+  description text,
+  price numeric not null default 0,
+  billing_frequency text not null default 'monthly' check (billing_frequency in ('weekly', 'fortnightly', 'monthly', 'quarterly', 'yearly')),
+  status text not null default 'active' check (status in ('active', 'archived')),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
 -- Sessions / scheduled appointments (default: 1-on-1 coaching).
 create table if not exists public.sessions (
   id uuid default gen_random_uuid() primary key,
@@ -280,6 +292,7 @@ create index if not exists idx_invoices_client_id on public.invoices(client_id);
 create index if not exists idx_invoices_status on public.invoices(status);
 create index if not exists idx_invoices_due_at on public.invoices(due_at);
 create index if not exists idx_invoices_stripe_invoice_id on public.invoices(stripe_invoice_id);
+create index if not exists idx_packages_status on public.packages(status);
 create index if not exists idx_sessions_client_id on public.sessions(client_id);
 create index if not exists idx_sessions_scheduled_at on public.sessions(scheduled_at);
 create index if not exists idx_sessions_status on public.sessions(status);
@@ -313,6 +326,7 @@ alter table public.client_notes enable row level security;
 alter table public.payments enable row level security;
 alter table public.weflex_payments enable row level security;
 alter table public.invoices enable row level security;
+alter table public.packages enable row level security;
 alter table public.sessions enable row level security;
 alter table public.attendance enable row level security;
 alter table public.communications enable row level security;
@@ -476,6 +490,17 @@ drop policy if exists "Admins can manage invoices" on public.invoices;
 
 create policy "Admins can manage invoices"
   on public.invoices
+  for all
+  to authenticated
+  using (public.is_admin(auth.uid()))
+  with check (public.is_admin(auth.uid()));
+
+-- ---------- package policies ----------
+
+drop policy if exists "Admins can manage packages" on public.packages;
+
+create policy "Admins can manage packages"
+  on public.packages
   for all
   to authenticated
   using (public.is_admin(auth.uid()))

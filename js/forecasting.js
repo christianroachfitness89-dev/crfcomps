@@ -265,6 +265,74 @@
     return html;
   }
 
+  function weeklySalesRequired(targetIncrease, pkg) {
+    // Target is additional revenue needed per month; convert to weekly sales of this package.
+    const monthlyValue = packageMonthlyValue(pkg);
+    if (!monthlyValue) return { perWeek: 0, perMonth: 0, revenuePerWeek: 0 };
+    const perMonth = targetIncrease / monthlyValue;
+    const perWeek = perMonth / 4.33;
+    return {
+      perWeek: perWeek,
+      perMonth: perMonth,
+      revenuePerWeek: perWeek * monthlyValue
+    };
+  }
+
+  function packageMonthlyValue(pkg) {
+    const price = Number(pkg.price) || 0;
+    switch (pkg.billing_frequency) {
+      case 'weekly': return price * 52 / 12;
+      case 'fortnightly': return price * 26 / 12;
+      case 'monthly': return price;
+      case 'quarterly': return price / 3;
+      case 'yearly': return price / 12;
+      default: return price;
+    }
+  }
+
+  function renderSalesTargets(scenarios, baselineTotal, period, packages) {
+    const activePackages = (packages || []).filter(function (p) { return p.status === 'active'; });
+    if (!activePackages.length) {
+      return '<div class="card" style="margin-bottom:22px;">' +
+        '<h3 style="margin:0 0 12px;">Weekly sales targets</h3>' +
+        '<p class="hint">Add active packages on the Pricing page to see how many new sales you need per week to hit each forecast.</p>' +
+      '</div>';
+    }
+
+    const runRate = computeRunRate(baselineTotal, period);
+    let html = '<div class="card" style="margin-bottom:22px;overflow:auto;">' +
+      '<h3 style="margin:0 0 16px;">What to add per week to hit forecast</h3>' +
+      '<p class="hint" style="margin-bottom:16px;">Additional monthly revenue needed and how many new package sales you need each week, assuming no churn is replaced.</p>' +
+      '<table class="data-table integration-table forecast-table">' +
+        '<thead><tr>' +
+          '<th>Scenario</th>' +
+          '<th>Extra monthly revenue needed</th>';
+    activePackages.forEach(function (pkg) {
+      html += '<th>' + escapeHtml(pkg.name) + ' sales / week</th>';
+    });
+    html += '</tr></thead><tbody>';
+
+    Object.keys(scenarios).forEach(function (key) {
+      const s = scenarios[key];
+      const total = s.projection.reduce(function (sum, r) { return sum + r.amount; }, 0);
+      const avgMonthly = total / s.projection.length;
+      const currentMonthly = runRate / 12;
+      const extra = Math.max(0, avgMonthly - currentMonthly);
+
+      html += '<tr>' +
+        '<td><strong>' + escapeHtml(s.label) + '</strong></td>' +
+        '<td class="text-right font-mono">' + escapeHtml(formatCurrency(extra)) + '</td>';
+      activePackages.forEach(function (pkg) {
+        const target = weeklySalesRequired(extra, pkg);
+        html += '<td class="text-right font-mono">' + (target.perWeek > 0 && target.perWeek < 0.1 ? '< 0.1' : target.perWeek.toFixed(1)) + '</td>';
+      });
+      html += '</tr>';
+    });
+
+    html += '</tbody></table></div>';
+    return html;
+  }
+
   function renderForecastChart(scenarios) {
     if (!Object.keys(scenarios).length) return '';
     const labels = scenarios.conservative.projection.map(function (r) { return r.label; });
@@ -331,6 +399,10 @@
     container.innerHTML = '<div class="loading">Loading forecast data...</div>';
 
     try {
+      if (!state.packages) {
+        const pkgRes = await client.from('packages').select('*').eq('status', 'active').order('created_at', { ascending: false });
+        state.packages = pkgRes.data || [];
+      }
       if (!state.data) {
         state.data = await fetchCurrentRevenue(state.period);
       }
@@ -341,6 +413,7 @@
         renderInputs(state) +
         renderBaselineCard(state) +
         renderSummaryCards(forecast.scenarios, forecast.baselineTotal, state.data.period) +
+        renderSalesTargets(forecast.scenarios, forecast.baselineTotal, state.data.period, state.packages) +
         renderForecastChart(forecast.scenarios) +
         renderForecastTable(forecast.scenarios);
 
@@ -378,7 +451,8 @@
     period: 'month',
     months: 12,
     inputs: null,
-    data: null
+    data: null,
+    packages: null
   };
 
   async function init() {

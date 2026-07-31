@@ -1200,3 +1200,88 @@ header{
     grid-template-columns:1fr;
   }
 }
+
+/* ---------- pricing / packages ---------- */
+.package-grid{
+  display:grid;
+  grid-template-columns:repeat(3, minmax(0, 1fr));
+  gap:16px;
+}
+
+.package-card{
+  padding:20px;
+  display:flex;
+  flex-direction:column;
+}
+
+.package-card-head{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:12px;
+  margin-bottom:12px;
+}
+
+.package-name{
+  font-family:'Oswald',sans-serif;
+  font-size:18px;
+  text-transform:uppercase;
+  letter-spacing:0.02em;
+}
+
+.package-price{
+  font-size:28px;
+  font-weight:700;
+  margin-top:4px;
+}
+
+.package-frequency{
+  font-size:14px;
+  font-weight:500;
+  color:var(--ink-soft);
+  margin-left:6px;
+}
+
+.package-description{
+  font-size:14px;
+  color:var(--ink-soft);
+  margin-bottom:12px;
+  flex:1;
+}
+
+.package-monthly{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:12px;
+  color:var(--ink-soft);
+  margin-bottom:14px;
+}
+
+.package-actions{
+  display:flex;
+  gap:8px;
+}
+
+.price-calc-card{
+  padding:20px;
+}
+
+.price-calc-grid{
+  display:grid;
+  grid-template-columns:repeat(2, minmax(0, 1fr));
+  gap:16px;
+}
+
+@media(max-width:960px){
+  .package-grid{
+    grid-template-columns:repeat(2, minmax(0, 1fr));
+  }
+  .price-calc-grid{
+    grid-template-columns:1fr;
+  }
+}
+
+@media(max-width:560px){
+  .package-grid{
+    grid-template-columns:1fr;
+  }
+}
