@@ -959,11 +959,11 @@
 
     let html = '<div class="form-builder">' +
       '<div class="form-builder-head">' +
-        '<button class="admin-btn" onclick="forms.showGallery()">← Back to forms</button>' +
+        '<button class="admin-btn" onclick="window.forms.showGallery()">← Back to forms</button>' +
         '<div class="form-builder-actions">' +
-          '<button class="admin-btn" onclick="forms.saveDraft()">Save draft</button>' +
-          '<button class="admin-btn" onclick="forms.previewPdf()">Preview PDF</button>' +
-          '<button class="submit-btn" onclick="forms.submitForm()">Submit form</button>' +
+          '<button class="admin-btn" onclick="window.forms.saveDraft()">Save draft</button>' +
+          '<button class="admin-btn" onclick="window.forms.previewPdf()">Preview PDF</button>' +
+          '<button class="submit-btn" onclick="window.forms.submitForm()">Submit form</button>' +
         '</div>' +
       '</div>' +
       '<div class="card form-builder-card">' +
@@ -981,16 +981,16 @@
     html += '</form></div>';
 
     // PDF preview modal placeholder
-    html += '<div class="modal-overlay" id="pdfPreviewModal" onclick="forms.closePdfPreview(event)">' +
+    html += '<div class="modal-overlay" id="pdfPreviewModal" onclick="window.forms.closePdfPreview(event)">' +
       '<div class="modal-card modal-card-wide" onclick="event.stopPropagation()">' +
         '<div class="modal-head">' +
           '<h3>PDF preview</h3>' +
-          '<button class="modal-close" onclick="forms.closePdfPreview()" aria-label="Close">×</button>' +
+          '<button class="modal-close" onclick="window.forms.closePdfPreview()" aria-label="Close">×</button>' +
         '</div>' +
         '<div id="pdfPreviewBody"></div>' +
         '<div class="modal-foot">' +
-          '<button class="btn-ghost" onclick="forms.closePdfPreview()">Close</button>' +
-          '<button class="admin-btn" onclick="forms.downloadPdf()">Download PDF</button>' +
+          '<button class="btn-ghost" onclick="window.forms.closePdfPreview()">Close</button>' +
+          '<button class="admin-btn" onclick="window.forms.downloadPdf()">Download PDF</button>' +
         '</div>' +
       '</div>' +
     '</div>';
