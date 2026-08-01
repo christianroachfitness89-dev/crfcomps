@@ -933,7 +933,7 @@
           '<div class="form-card-actions">' +
             (isDraft
               ? '<button class="admin-btn" disabled style="opacity:.6">Open</button>'
-              : '<button class="admin-btn" onclick="forms.openForm(\'' + ops.escapeHtml(t.key) + '\')">Open form</button>') +
+              : '<button class="admin-btn" onclick="window.forms.openForm(\'' + ops.escapeHtml(t.key) + '\')">Open form</button>') +
           '</div>' +
         '</div>';
       });
