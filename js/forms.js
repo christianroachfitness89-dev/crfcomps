@@ -1216,14 +1216,18 @@
     const answers = collectAnswers();
     const element = document.createElement('div');
     element.innerHTML = buildPdfHtml(tmpl, answers);
-    element.className = 'pdf-export';
+    element.className = 'pdf-export-visible';
+    element.style.position = 'fixed';
+    element.style.left = '-9999px';
+    element.style.top = '0';
+    element.style.width = '210mm';
     document.body.appendChild(element);
 
     const opt = {
-      margin: 12,
+      margin: 10,
       filename: tmpl.key + '_' + new Date().toISOString().slice(0, 10) + '.pdf',
       image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { scale: 2, useCORS: true },
+      html2canvas: { scale: 2, useCORS: true, scrollY: 0 },
       jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
 
