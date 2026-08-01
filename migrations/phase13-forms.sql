@@ -19,6 +19,7 @@ create table if not exists public.form_submissions (
   id uuid default gen_random_uuid() primary key,
   template_id uuid references public.form_templates on delete set null,
   client_id uuid references public.clients on delete set null,
+  lead_id uuid references public.leads on delete set null,
   status text not null default 'draft' check (status in ('draft', 'submitted', 'signed', 'archived')),
   answers jsonb default '{}'::jsonb,
   pdf_url text,
@@ -32,6 +33,7 @@ create index if not exists idx_form_templates_key on public.form_templates(key);
 create index if not exists idx_form_templates_status on public.form_templates(status);
 create index if not exists idx_form_submissions_template on public.form_submissions(template_id);
 create index if not exists idx_form_submissions_client on public.form_submissions(client_id);
+create index if not exists idx_form_submissions_lead on public.form_submissions(lead_id);
 create index if not exists idx_form_submissions_status on public.form_submissions(status);
 create index if not exists idx_form_submissions_created on public.form_submissions(created_at desc);
 
@@ -45,6 +47,10 @@ create policy form_templates_admin_all on public.form_templates
 drop policy if exists form_submissions_admin_all on public.form_submissions;
 create policy form_submissions_admin_all on public.form_submissions
   for all to authenticated using (public.is_admin(auth.uid())) with check (public.is_admin(auth.uid()));
+
+-- Migration: add lead_id to form_submissions if it was created before this update.
+alter table public.form_submissions
+  add column if not exists lead_id uuid references public.leads on delete set null;
 
 -- Seed the four critical operational forms.
 -- The app also keeps a matching JS fallback so the UI works before/without this seed.

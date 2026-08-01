@@ -432,9 +432,9 @@
         "required": false
       },
       {
-        "key": "client_id",
-        "type": "client_select",
-        "label": "Client",
+        "key": "lead_id",
+        "type": "lead_select",
+        "label": "Prospect",
         "required": true
       },
       {
@@ -903,6 +903,10 @@
     return (window.opsData.clients || []).find(function (c) { return c.id === id; });
   }
 
+  function leadById(id) {
+    return (window.opsData.leads || []).find(function (l) { return l.id === id; });
+  }
+
   function packageById(id) {
     return (window.opsData.packages || []).find(function (p) { return p.id === id; });
   }
@@ -1000,6 +1004,11 @@
       const select = document.getElementById('field_client_id');
       if (select) select.value = prefillClient;
     }
+    const prefillLead = params.get('lead');
+    if (prefillLead) {
+      const select = document.getElementById('field_lead_id');
+      if (select) select.value = prefillLead;
+    }
   }
 
   function renderField(field, idx) {
@@ -1032,6 +1041,14 @@
           '<option value="">Select client...</option>' +
           (window.opsData.clients || []).map(function (c) {
             return '<option value="' + ops.escapeHtml(c.id) + '">' + ops.escapeHtml(c.full_name) + (c.email ? ' · ' + ops.escapeHtml(c.email) : '') + '</option>';
+          }).join('') +
+        '</select>';
+        break;
+      case 'lead_select':
+        input = '<select id="' + id + '" class="form-field-input"' + requiredAttr + '>' +
+          '<option value="">Select prospect...</option>' +
+          (window.opsData.leads || []).map(function (l) {
+            return '<option value="' + ops.escapeHtml(l.id) + '">' + ops.escapeHtml(l.full_name) + (l.email ? ' · ' + ops.escapeHtml(l.email) : '') + '</option>';
           }).join('') +
         '</select>';
         break;
@@ -1146,12 +1163,14 @@
     const tmpl = state.templates.find(function (t) { return t.key === state.currentKey; });
     const answers = collectAnswers();
     const clientId = answers.client_id || null;
+    const leadId = answers.lead_id || null;
     const user = window.opsData.user;
 
     try {
       const payload = {
         template_id: tmpl.id,
         client_id: clientId,
+        lead_id: leadId,
         status: status,
         answers: answers,
         created_by: user ? user.id : null,
@@ -1219,12 +1238,18 @@
 
   function buildPdfHtml(tmpl, answers) {
     const today = new Date().toLocaleDateString();
-    const c = answers.client_id ? clientById(answers.client_id) : null;
-    const clientName = c ? c.full_name : (answers.client_id || '-');
+    let entityName = '-';
+    if (answers.client_id) {
+      const c = clientById(answers.client_id);
+      entityName = c ? c.full_name : answers.client_id;
+    } else if (answers.lead_id) {
+      const l = leadById(answers.lead_id);
+      entityName = l ? l.full_name : answers.lead_id;
+    }
 
     let rows = '';
     (tmpl.schema || []).forEach(function (field) {
-      if (field.type === 'client_select' || field.type === 'static') return; // shown in header or layout only
+      if (field.type === 'client_select' || field.type === 'lead_select' || field.type === 'static') return; // shown in header or layout only
       let val = answers[field.key];
       if (field.type === 'checkbox') val = val ? 'Yes' : 'No';
       if (field.type === 'checkbox_group' && Array.isArray(val)) val = val.join(', ');
@@ -1243,7 +1268,7 @@
       '<div class="pdf-header">' +
         '<div class="pdf-logo">CRF Comps</div>' +
         '<div class="pdf-title">' + ops.escapeHtml(tmpl.name) + '</div>' +
-        '<div class="pdf-meta">Date: ' + ops.escapeHtml(today) + ' · Client: ' + ops.escapeHtml(clientName) + '</div>' +
+        '<div class="pdf-meta">Date: ' + ops.escapeHtml(today) + ' · Client / Prospect: ' + ops.escapeHtml(entityName) + '</div>' +
       '</div>' +
       '<table class="pdf-table">' + rows + '</table>' +
       '<div class="pdf-signatures">' +
@@ -1279,10 +1304,16 @@
     let html = '<div class="card" style="margin-top:28px;">' +
       '<h3 style="margin:0 0 16px;">Recent submissions</h3>' +
       '<table class="data-table">' +
-        '<thead><tr><th>Form</th><th>Client</th><th>Status</th><th>Date</th></tr></thead><tbody>';
+        '<thead><tr><th>Form</th><th>Client / Prospect</th><th>Status</th><th>Date</th></tr></thead><tbody>';
     state.submissions.forEach(function (s) {
-      const c = s.client_id ? clientById(s.client_id) : null;
-      const name = c ? c.full_name : '-';
+      let name = '-';
+      if (s.client_id) {
+        const c = clientById(s.client_id);
+        name = c ? c.full_name : '-';
+      } else if (s.lead_id) {
+        const l = leadById(s.lead_id);
+        name = l ? l.full_name : '-';
+      }
       const formName = s.form_templates ? s.form_templates.name : s.template_id;
       html += '<tr>' +
         '<td>' + ops.escapeHtml(formName) + '</td>' +
