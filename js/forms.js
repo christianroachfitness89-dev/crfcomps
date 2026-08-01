@@ -9,102 +9,864 @@
   const ops = window.operations;
 
   const FALLBACK_TEMPLATES = [
-    {
-      id: 'new_contract',
-      key: 'new_contract',
-      name: 'New contract',
-      description: 'New member training agreement with term, package and signatures.',
-      category: 'Contracts',
-      status: 'active',
-      schema: [
-        { key: 'client_id', type: 'client_select', label: 'Client', required: true },
-        { key: 'start_date', type: 'date', label: 'Start date', required: true },
-        { key: 'term_weeks', type: 'number', label: 'Term (weeks)', required: true, attrs: { min: 1, step: 1 } },
-        { key: 'package_id', type: 'package_select', label: 'Package', required: true },
-        { key: 'weekly_price', type: 'number', label: 'Weekly price ($)', required: true, attrs: { min: 0, step: '0.01' } },
-        { key: 'billing_frequency', type: 'select', label: 'Billing frequency', required: true, options: ['Weekly', 'Fortnightly', 'Monthly'] },
-        { key: 'trainer_name', type: 'text', label: 'Trainer name', required: true },
-        { key: 'notes', type: 'textarea', label: 'Notes / special terms', required: false },
-        { key: 'client_signature', type: 'signature', label: 'Client signature', required: false },
-        { key: 'trainer_signature', type: 'signature', label: 'Trainer signature', required: false }
-      ]
-    },
-    {
-      id: 'modify_contract',
-      key: 'modify_contract',
-      name: 'Modify contract',
-      description: 'Change an existing members package, term or billing arrangement.',
-      category: 'Contracts',
-      status: 'active',
-      schema: [
-        { key: 'client_id', type: 'client_select', label: 'Client', required: true },
-        { key: 'current_package', type: 'text', label: 'Current package', required: true },
-        { key: 'new_package_id', type: 'package_select', label: 'New package', required: true },
-        { key: 'change_reason', type: 'select', label: 'Reason for change', required: true, options: ['Upgrade', 'Downgrade', 'Injury / hold return', 'Other'] },
-        { key: 'effective_date', type: 'date', label: 'Effective date', required: true },
-        { key: 'new_weekly_price', type: 'number', label: 'New weekly price ($)', required: true, attrs: { min: 0, step: '0.01' } },
-        { key: 'trainer_name', type: 'text', label: 'Trainer name', required: true },
-        { key: 'notes', type: 'textarea', label: 'Notes', required: false },
-        { key: 'client_signature', type: 'signature', label: 'Client signature', required: false },
-        { key: 'trainer_signature', type: 'signature', label: 'Trainer signature', required: false }
-      ]
-    },
-    {
-      id: 'cancellation',
-      key: 'cancellation',
-      name: 'Cancellation',
-      description: 'Member cancellation notice with reason and final session details.',
-      category: 'Contracts',
-      status: 'active',
-      schema: [
-        { key: 'client_id', type: 'client_select', label: 'Client', required: true },
-        { key: 'cancellation_date', type: 'date', label: 'Cancellation date', required: true },
-        { key: 'last_session_date', type: 'date', label: 'Last session date', required: true },
-        { key: 'reason', type: 'select', label: 'Reason', required: true, options: ['Financial', 'Relocating', 'Injury / health', 'Time commitment', 'Not a fit', 'Other'] },
-        { key: 'notice_given', type: 'select', label: 'Notice given', required: true, options: ['Yes - in term', 'Yes - out of term', 'No'] },
-        { key: 'refund_required', type: 'select', label: 'Refund / credit required', required: true, options: ['None', 'Credit to account', 'Partial refund', 'Full refund'] },
-        { key: 'trainer_name', type: 'text', label: 'Trainer name', required: true },
-        { key: 'notes', type: 'textarea', label: 'Notes', required: false },
-        { key: 'client_signature', type: 'signature', label: 'Client signature', required: false },
-        { key: 'trainer_signature', type: 'signature', label: 'Trainer signature', required: false }
-      ]
-    },
-    {
-      id: 'dd_hold_form',
-      key: 'dd_hold_form',
-      name: 'DD hold form',
-      description: 'Temporarily suspend direct debits and schedule a resume date.',
-      category: 'Finance',
-      status: 'active',
-      schema: [
-        { key: 'client_id', type: 'client_select', label: 'Client', required: true },
-        { key: 'hold_start', type: 'date', label: 'Hold start', required: true },
-        { key: 'hold_end', type: 'date', label: 'Hold end', required: true },
-        { key: 'reason', type: 'select', label: 'Reason', required: true, options: ['Injury', 'Illness', 'Holiday', 'Financial', 'Other'] },
-        { key: 'resume_package_id', type: 'package_select', label: 'Package on resume', required: false },
-        { key: 'trainer_name', type: 'text', label: 'Trainer name', required: true },
-        { key: 'notes', type: 'textarea', label: 'Notes', required: false },
-        { key: 'client_signature', type: 'signature', label: 'Client signature', required: false },
-        { key: 'trainer_signature', type: 'signature', label: 'Trainer signature', required: false }
-      ]
-    },
-    {
-      id: 'consult_questionnaire',
-      key: 'consult_questionnaire',
-      name: 'Consult questionnaire',
-      description: 'Initial consult goals, history and preferences.',
-      category: 'Questionnaires',
-      status: 'draft'
-    },
-    {
-      id: 'movement_screen',
-      key: 'movement_screen',
-      name: 'Movement screen',
-      description: 'Movement and mobility assessment placeholder.',
-      category: 'Questionnaires',
-      status: 'draft'
-    }
-  ];
+  {
+    "id": "new_contract",
+    "key": "new_contract",
+    "name": "New contract",
+    "description": "Client training agreement, payment terms and T&Cs.",
+    "category": "Contracts",
+    "status": "active",
+    "schema": [
+      {
+        "key": "client_id",
+        "type": "client_select",
+        "label": "Client",
+        "required": true
+      },
+      {
+        "key": "start_date",
+        "type": "date",
+        "label": "Agreement start date",
+        "required": true
+      },
+      {
+        "key": "session_length_minutes",
+        "type": "number",
+        "label": "Session length (minutes)",
+        "required": true,
+        "attrs": {
+          "min": 1,
+          "step": 1
+        }
+      },
+      {
+        "key": "sessions_per_week",
+        "type": "number",
+        "label": "Sessions per week",
+        "required": true,
+        "attrs": {
+          "min": 1,
+          "step": 1
+        }
+      },
+      {
+        "key": "weekly_rate",
+        "type": "number",
+        "label": "Weekly training fee ($)",
+        "required": true,
+        "attrs": {
+          "min": 0,
+          "step": "0.01"
+        }
+      },
+      {
+        "key": "billing_frequency",
+        "type": "select",
+        "label": "Billing frequency",
+        "required": true,
+        "options": [
+          "Weekly",
+          "Fortnightly",
+          "Monthly"
+        ]
+      },
+      {
+        "key": "initial_setup_fee",
+        "type": "number",
+        "label": "Initial setup fee ($)",
+        "required": true,
+        "attrs": {
+          "min": 0,
+          "step": "0.01"
+        }
+      },
+      {
+        "key": "termination_fee",
+        "type": "number",
+        "label": "Contract termination fee ($)",
+        "required": true,
+        "attrs": {
+          "min": 0,
+          "step": "0.01"
+        }
+      },
+      {
+        "key": "cooling_off_days",
+        "type": "number",
+        "label": "Cooling-off period (days)",
+        "required": true,
+        "attrs": {
+          "min": 0,
+          "step": 1
+        }
+      },
+      {
+        "key": "trainer_name",
+        "type": "text",
+        "label": "Trainer name",
+        "required": true
+      },
+      {
+        "key": "agreed_to_terms",
+        "type": "checkbox",
+        "label": "I have read and understood the agreement and terms & conditions",
+        "required": true
+      },
+      {
+        "key": "client_signature",
+        "type": "signature",
+        "label": "Client signature",
+        "required": false
+      },
+      {
+        "key": "trainer_signature",
+        "type": "signature",
+        "label": "Trainer signature",
+        "required": false
+      }
+    ]
+  },
+  {
+    "id": "modify_contract",
+    "key": "modify_contract",
+    "name": "Modify contract",
+    "description": "Change an existing member's package, billing or term.",
+    "category": "Contracts",
+    "status": "active",
+    "schema": [
+      {
+        "key": "client_id",
+        "type": "client_select",
+        "label": "Client",
+        "required": true
+      },
+      {
+        "key": "current_package",
+        "type": "text",
+        "label": "Current package",
+        "required": true
+      },
+      {
+        "key": "new_package_id",
+        "type": "package_select",
+        "label": "New package",
+        "required": true
+      },
+      {
+        "key": "change_reason",
+        "type": "select",
+        "label": "Reason for change",
+        "required": true,
+        "options": [
+          "Upgrade",
+          "Downgrade",
+          "Add sessions",
+          "Reduce sessions",
+          "Billing change",
+          "Injury / hold return",
+          "Other"
+        ]
+      },
+      {
+        "key": "effective_date",
+        "type": "date",
+        "label": "Effective date",
+        "required": true
+      },
+      {
+        "key": "new_weekly_price",
+        "type": "number",
+        "label": "New weekly price ($)",
+        "required": true,
+        "attrs": {
+          "min": 0,
+          "step": "0.01"
+        }
+      },
+      {
+        "key": "trainer_name",
+        "type": "text",
+        "label": "Trainer name",
+        "required": true
+      },
+      {
+        "key": "notes",
+        "type": "textarea",
+        "label": "Notes / special terms",
+        "required": false
+      },
+      {
+        "key": "client_signature",
+        "type": "signature",
+        "label": "Client signature",
+        "required": false
+      },
+      {
+        "key": "trainer_signature",
+        "type": "signature",
+        "label": "Trainer signature",
+        "required": false
+      }
+    ]
+  },
+  {
+    "id": "cancellation",
+    "key": "cancellation",
+    "name": "Cancellation / DD stop",
+    "description": "Direct-debit cancellation request and final payment details.",
+    "category": "Contracts",
+    "status": "active",
+    "schema": [
+      {
+        "key": "client_id",
+        "type": "client_select",
+        "label": "Client",
+        "required": true
+      },
+      {
+        "key": "client_email",
+        "type": "email",
+        "label": "Client email",
+        "required": true
+      },
+      {
+        "key": "client_phone",
+        "type": "tel",
+        "label": "Client phone",
+        "required": true
+      },
+      {
+        "key": "trainer_name",
+        "type": "text",
+        "label": "Trainer name",
+        "required": true
+      },
+      {
+        "key": "club_name",
+        "type": "text",
+        "label": "Club / location",
+        "required": true
+      },
+      {
+        "key": "stop_debits_date",
+        "type": "date",
+        "label": "Stop all future debits from",
+        "required": true
+      },
+      {
+        "key": "amount_per_cycle",
+        "type": "number",
+        "label": "Amount per cycle ($)",
+        "required": true,
+        "attrs": {
+          "min": 0,
+          "step": "0.01"
+        }
+      },
+      {
+        "key": "billing_cycle",
+        "type": "select",
+        "label": "Billing cycle",
+        "required": true,
+        "options": [
+          "Weekly",
+          "Fortnightly"
+        ]
+      },
+      {
+        "key": "final_payment_date",
+        "type": "date",
+        "label": "Final payment date",
+        "required": true
+      },
+      {
+        "key": "outstanding_payments",
+        "type": "radio",
+        "label": "Are there any outstanding payments?",
+        "required": true,
+        "options": [
+          "Yes",
+          "No"
+        ]
+      },
+      {
+        "key": "proceed_with_cancellation",
+        "type": "radio",
+        "label": "Proceed with cancellation",
+        "required": true,
+        "options": [
+          "Yes - all payments settled",
+          "No - payment required first"
+        ]
+      },
+      {
+        "key": "progress_photos_taken",
+        "type": "radio",
+        "label": "Progress photos taken",
+        "required": true,
+        "options": [
+          "Yes",
+          "No"
+        ]
+      },
+      {
+        "key": "progress_photos_why",
+        "type": "textarea",
+        "label": "If progress photos not taken, why?",
+        "required": false
+      },
+      {
+        "key": "feedback",
+        "type": "textarea",
+        "label": "Feedback on how we can add more value",
+        "required": false
+      },
+      {
+        "key": "client_signature",
+        "type": "signature",
+        "label": "Client signature",
+        "required": false
+      },
+      {
+        "key": "trainer_signature",
+        "type": "signature",
+        "label": "Trainer signature",
+        "required": false
+      }
+    ]
+  },
+  {
+    "id": "dd_hold_form",
+    "key": "dd_hold_form",
+    "name": "DD hold form",
+    "description": "Temporarily suspend direct debits and preserve paid sessions.",
+    "category": "Finance",
+    "status": "active",
+    "schema": [
+      {
+        "key": "client_id",
+        "type": "client_select",
+        "label": "Client",
+        "required": true
+      },
+      {
+        "key": "hold_start",
+        "type": "date",
+        "label": "Hold start",
+        "required": true
+      },
+      {
+        "key": "hold_end",
+        "type": "date",
+        "label": "Hold end",
+        "required": true
+      },
+      {
+        "key": "reason",
+        "type": "select",
+        "label": "Reason",
+        "required": true,
+        "options": [
+          "Injury",
+          "Illness",
+          "Holiday",
+          "Financial",
+          "Other"
+        ]
+      },
+      {
+        "key": "weekly_freeze_fee",
+        "type": "number",
+        "label": "Weekly freeze fee ($)",
+        "required": true,
+        "attrs": {
+          "min": 0,
+          "step": "0.01"
+        }
+      },
+      {
+        "key": "sessions_preserved",
+        "type": "checkbox",
+        "label": "Paid sessions are preserved and remain available for use within the agreed timeframe",
+        "required": true
+      },
+      {
+        "key": "trainer_name",
+        "type": "text",
+        "label": "Trainer name",
+        "required": true
+      },
+      {
+        "key": "notes",
+        "type": "textarea",
+        "label": "Notes",
+        "required": false
+      },
+      {
+        "key": "client_signature",
+        "type": "signature",
+        "label": "Client signature",
+        "required": false
+      },
+      {
+        "key": "trainer_signature",
+        "type": "signature",
+        "label": "Trainer signature",
+        "required": false
+      }
+    ]
+  },
+  {
+    "id": "consult_questionnaire",
+    "key": "consult_questionnaire",
+    "name": "Consult questionnaire",
+    "description": "Initial consult goals, health history, 5 Whys, identity/vision and commitment.",
+    "category": "Questionnaires",
+    "status": "active",
+    "schema": [
+      {
+        "key": "static_intro",
+        "type": "static",
+        "label": "The Deep Why & Goal Discovery Form",
+        "content": "Please complete this form honestly. Your answers help us build a program that fits your goals, history and lifestyle.",
+        "required": false
+      },
+      {
+        "key": "client_id",
+        "type": "client_select",
+        "label": "Client",
+        "required": true
+      },
+      {
+        "key": "form_date",
+        "type": "date",
+        "label": "Date",
+        "required": true
+      },
+      {
+        "key": "dob",
+        "type": "date",
+        "label": "Date of birth",
+        "required": true
+      },
+      {
+        "key": "email",
+        "type": "email",
+        "label": "Email",
+        "required": true
+      },
+      {
+        "key": "mobile",
+        "type": "tel",
+        "label": "Mobile",
+        "required": true
+      },
+      {
+        "key": "occupation",
+        "type": "text",
+        "label": "Occupation",
+        "required": false
+      },
+      {
+        "key": "static_health",
+        "type": "static",
+        "label": "Health status",
+        "content": "Have you ever experienced any of the following? Tick all that apply.",
+        "required": false
+      },
+      {
+        "key": "health_conditions",
+        "type": "checkbox_group",
+        "label": "Health conditions / history",
+        "required": false,
+        "options": [
+          "Heart trouble",
+          "High blood pressure",
+          "Chest pains",
+          "Epilepsy",
+          "Back problems",
+          "Sports injury",
+          "Arthritis or joint pain",
+          "Asthma",
+          "Dizzy spells or fainting"
+        ]
+      },
+      {
+        "key": "health_conditions_other",
+        "type": "text",
+        "label": "Other health condition",
+        "required": false
+      },
+      {
+        "key": "postmenopausal",
+        "type": "radio",
+        "label": "Postmenopausal",
+        "required": false,
+        "options": [
+          "Yes",
+          "No"
+        ]
+      },
+      {
+        "key": "diabetic",
+        "type": "radio",
+        "label": "Diabetic",
+        "required": false,
+        "options": [
+          "Yes",
+          "No"
+        ]
+      },
+      {
+        "key": "joint_problems",
+        "type": "radio",
+        "label": "Do you have any joint problems, aches or pains we should be aware of?",
+        "required": false,
+        "options": [
+          "Yes",
+          "No"
+        ]
+      },
+      {
+        "key": "joint_problems_details",
+        "type": "textarea",
+        "label": "If yes, how does it affect your day-to-day life?",
+        "required": false
+      },
+      {
+        "key": "smoker",
+        "type": "radio",
+        "label": "Do you smoke?",
+        "required": false,
+        "options": [
+          "Yes",
+          "No"
+        ]
+      },
+      {
+        "key": "want_quit_smoking",
+        "type": "radio",
+        "label": "If yes, do you want to quit?",
+        "required": false,
+        "options": [
+          "Yes",
+          "No"
+        ]
+      },
+      {
+        "key": "smoking_why",
+        "type": "textarea",
+        "label": "If yes, why?",
+        "required": false
+      },
+      {
+        "key": "drink_alcohol",
+        "type": "radio",
+        "label": "Do you drink alcohol?",
+        "required": false,
+        "options": [
+          "Yes",
+          "No"
+        ]
+      },
+      {
+        "key": "alcohol_frequency",
+        "type": "text",
+        "label": "If yes, how frequently do you drink?",
+        "required": false
+      },
+      {
+        "key": "pregnant",
+        "type": "radio",
+        "label": "Are you pregnant?",
+        "required": false,
+        "options": [
+          "Yes",
+          "No"
+        ]
+      },
+      {
+        "key": "due_date",
+        "type": "date",
+        "label": "If yes, when are you due?",
+        "required": false
+      },
+      {
+        "key": "prescription_medication",
+        "type": "radio",
+        "label": "Do you take any prescription medication?",
+        "required": false,
+        "options": [
+          "Yes",
+          "No"
+        ]
+      },
+      {
+        "key": "medication_details",
+        "type": "textarea",
+        "label": "If yes, please specify",
+        "required": false
+      },
+      {
+        "key": "static_goals",
+        "type": "static",
+        "label": "Goals",
+        "content": "What is the No.1 goal you are looking to achieve and accomplish?",
+        "required": false
+      },
+      {
+        "key": "primary_goal",
+        "type": "textarea",
+        "label": "Primary goal",
+        "required": true
+      },
+      {
+        "key": "static_5whys",
+        "type": "static",
+        "label": "The 5 Whys",
+        "content": "Peeling back the layers to find your real why. Use the client's exact words.",
+        "required": false
+      },
+      {
+        "key": "why_1",
+        "type": "textarea",
+        "label": "Why #1: Why is that goal important to you?",
+        "required": false
+      },
+      {
+        "key": "why_2",
+        "type": "textarea",
+        "label": "Why #2: And why does that matter to you?",
+        "required": false
+      },
+      {
+        "key": "why_3",
+        "type": "textarea",
+        "label": "Why #3: Why is that significant in your life right now?",
+        "required": false
+      },
+      {
+        "key": "why_4",
+        "type": "textarea",
+        "label": "Why #4: What would that really give you, deep down?",
+        "required": false
+      },
+      {
+        "key": "why_5",
+        "type": "textarea",
+        "label": "Why #5: And ultimately, why does THAT matter more than anything?",
+        "required": false
+      },
+      {
+        "key": "core_why",
+        "type": "textarea",
+        "label": "Their Core Why (in their own words)",
+        "required": false
+      },
+      {
+        "key": "static_identity",
+        "type": "static",
+        "label": "Identity & Vision",
+        "content": "Who do you want to become?",
+        "required": false
+      },
+      {
+        "key": "best_version_12m",
+        "type": "textarea",
+        "label": "When you close your eyes and picture the best version of yourself 12 months from now — who is that person?",
+        "required": false
+      },
+      {
+        "key": "daily_differences",
+        "type": "textarea",
+        "label": "What does that version of you do differently on a daily basis?",
+        "required": false
+      },
+      {
+        "key": "future_self_message",
+        "type": "textarea",
+        "label": "If the best version of you could send a message back right now, what would they say?",
+        "required": false
+      },
+      {
+        "key": "static_pain",
+        "type": "static",
+        "label": "Pain vs Vision",
+        "content": "What are you running from and toward? Be honest.",
+        "required": false
+      },
+      {
+        "key": "current_frustration",
+        "type": "textarea",
+        "label": "What frustrates you MOST about where you are right now?",
+        "required": false
+      },
+      {
+        "key": "impact_on_life",
+        "type": "textarea",
+        "label": "How does your current situation affect your confidence, energy, relationships or daily life?",
+        "required": false
+      },
+      {
+        "key": "feeling_if_no_change",
+        "type": "textarea",
+        "label": "If absolutely NOTHING changes in the next 12 months, how does that honestly make you feel?",
+        "required": false
+      },
+      {
+        "key": "goal_unlock",
+        "type": "textarea",
+        "label": "What would achieving this goal unlock for you in your life that you don't currently have?",
+        "required": false
+      },
+      {
+        "key": "impact_on_loved_ones",
+        "type": "textarea",
+        "label": "How would it change the way you show up for the people you love?",
+        "required": false
+      },
+      {
+        "key": "achievement_feeling",
+        "type": "textarea",
+        "label": "Imagine you've achieved everything. What does it FEEL like?",
+        "required": false
+      },
+      {
+        "key": "static_investment",
+        "type": "static",
+        "label": "Investment & Commitment",
+        "content": "This goal deserves your time, energy and resources.",
+        "required": false
+      },
+      {
+        "key": "thinking_about_action",
+        "type": "textarea",
+        "label": "How long have you been thinking about taking action towards this goal?",
+        "required": false
+      },
+      {
+        "key": "previous_barriers",
+        "type": "textarea",
+        "label": "What has stopped you from achieving this before now? Be brutally honest.",
+        "required": false
+      },
+      {
+        "key": "two_hours_available",
+        "type": "radio",
+        "label": "If your goal could be achieved with only 2 hours per week, would you have the time?",
+        "required": false,
+        "options": [
+          "Yes",
+          "No"
+        ]
+      },
+      {
+        "key": "goal_priority",
+        "type": "radio",
+        "label": "You've said staying the same is not an option — this goal is a priority, correct?",
+        "required": false,
+        "options": [
+          "Yes",
+          "No"
+        ]
+      },
+      {
+        "key": "weekly_disposable_income",
+        "type": "number",
+        "label": "What amount per week are you prepared to allocate towards achieving your goals?",
+        "required": false,
+        "attrs": {
+          "min": 0,
+          "step": "0.01"
+        }
+      },
+      {
+        "key": "seeks_guidance",
+        "type": "radio",
+        "label": "99% of people with goals seek education and accountability. Are you the same?",
+        "required": false,
+        "options": [
+          "Yes",
+          "No"
+        ]
+      },
+      {
+        "key": "different_this_time",
+        "type": "textarea",
+        "label": "What will be different THIS time?",
+        "required": false
+      },
+      {
+        "key": "deep_why_connection",
+        "type": "number",
+        "label": "How emotionally connected are you to your Deep Why? (1 = Not at all / 10 = It moves me)",
+        "required": false,
+        "attrs": {
+          "min": 1,
+          "max": 10,
+          "step": 1
+        }
+      },
+      {
+        "key": "readiness",
+        "type": "number",
+        "label": "How ready are you to do what it takes, even on the hard days? (1 = Not ready / 10 = Absolutely)",
+        "required": false,
+        "attrs": {
+          "min": 1,
+          "max": 10,
+          "step": 1
+        }
+      },
+      {
+        "key": "static_statement",
+        "type": "static",
+        "label": "Your Deep Why Statement",
+        "content": "I am committed to [goal/transformation] because [deep why / core emotion] and I refuse to stay [pain point] because I deserve to feel [vision / identity / emotion].",
+        "required": false
+      },
+      {
+        "key": "deep_why_statement",
+        "type": "textarea",
+        "label": "Their Deep Why Statement",
+        "required": false
+      },
+      {
+        "key": "confirm_accuracy",
+        "type": "checkbox",
+        "label": "I confirm the above information is true and accurate",
+        "required": true
+      },
+      {
+        "key": "client_signature",
+        "type": "signature",
+        "label": "Client signature",
+        "required": false
+      },
+      {
+        "key": "client_name_printed",
+        "type": "text",
+        "label": "Name (printed)",
+        "required": false
+      },
+      {
+        "key": "trainer_signature",
+        "type": "signature",
+        "label": "Trainer signature",
+        "required": false
+      }
+    ]
+  },
+  {
+    "id": "movement_screen",
+    "key": "movement_screen",
+    "name": "Movement screen",
+    "description": "Movement and mobility assessment placeholder.",
+    "category": "Questionnaires",
+    "status": "draft",
+    "schema": []
+  }
+];
 
   const CATEGORY_ORDER = ['Contracts', 'Finance', 'Questionnaires'];
 
@@ -288,6 +1050,25 @@
       case 'signature':
         input = '<div class="signature-line"><input type="text" id="' + id + '" class="form-field-input signature-input" placeholder="Type full name to sign"' + requiredAttr + '></div>';
         break;
+      case 'static':
+        input = '<div class="form-static-block"><strong>' + ops.escapeHtml(field.label || '') + '</strong>' +
+          (field.content ? '<p>' + ops.escapeHtml(field.content) + '</p>' : '') + '</div>';
+        label = '';
+        break;
+      case 'checkbox_group':
+        input = '<div class="form-checkbox-group">' +
+          (field.options || []).map(function (o, i) {
+            return '<label class="form-checkbox"><input type="checkbox" name="' + ops.escapeHtml(field.key) + '" value="' + ops.escapeHtml(o) + '" id="' + id + '_' + i + '"> ' + ops.escapeHtml(o) + '</label>';
+          }).join('') +
+        '</div>';
+        break;
+      case 'radio':
+        input = '<div class="form-radio-group">' +
+          (field.options || []).map(function (o, i) {
+            return '<label class="form-radio"><input type="radio" name="' + ops.escapeHtml(field.key) + '" value="' + ops.escapeHtml(o) + '" id="' + id + '_' + i + '"' + requiredAttr + '> ' + ops.escapeHtml(o) + '</label>';
+          }).join('') +
+        '</div>';
+        break;
       default:
         input = '<input type="text" id="' + id + '" class="form-field-input"' + requiredAttr + '>';
     }
@@ -308,14 +1089,23 @@
 
     const answers = {};
     tmpl.schema.forEach(function (field) {
-      const el = document.getElementById('field_' + field.key);
-      if (!el) return;
       if (field.type === 'checkbox') {
-        answers[field.key] = el.checked;
+        const el = document.getElementById('field_' + field.key);
+        answers[field.key] = el ? el.checked : false;
+      } else if (field.type === 'checkbox_group') {
+        const checked = Array.from(document.querySelectorAll('input[name="' + field.key + '"]:checked'));
+        answers[field.key] = checked.map(function (c) { return c.value; });
+      } else if (field.type === 'radio') {
+        const selected = document.querySelector('input[name="' + field.key + '"]:checked');
+        answers[field.key] = selected ? selected.value : null;
       } else if (field.type === 'number') {
-        answers[field.key] = parseFloat(el.value) || null;
+        const el = document.getElementById('field_' + field.key);
+        answers[field.key] = el ? (parseFloat(el.value) || null) : null;
+      } else if (field.type === 'static') {
+        answers[field.key] = null;
       } else {
-        answers[field.key] = el.value || null;
+        const el = document.getElementById('field_' + field.key);
+        answers[field.key] = el ? (el.value || null) : null;
       }
     });
     return answers;
@@ -324,9 +1114,13 @@
   function validateAnswers(answers, schema) {
     const missing = [];
     schema.forEach(function (field) {
-      if (!field.required) return;
+      if (!field.required || field.type === 'static') return;
       const val = answers[field.key];
-      if (val === null || val === undefined || String(val).trim() === '') {
+      if (field.type === 'checkbox') {
+        if (!val) missing.push(field.label);
+      } else if (field.type === 'checkbox_group') {
+        if (!Array.isArray(val) || !val.length) missing.push(field.label);
+      } else if (val === null || val === undefined || String(val).trim() === '') {
         missing.push(field.label);
       }
     });
@@ -430,8 +1224,10 @@
 
     let rows = '';
     (tmpl.schema || []).forEach(function (field) {
-      if (field.type === 'client_select') return; // shown in header
+      if (field.type === 'client_select' || field.type === 'static') return; // shown in header or layout only
       let val = answers[field.key];
+      if (field.type === 'checkbox') val = val ? 'Yes' : 'No';
+      if (field.type === 'checkbox_group' && Array.isArray(val)) val = val.join(', ');
       if (field.type === 'package_select' && val) {
         const pkg = packageById(val);
         val = pkg ? pkg.name + ' (' + ops.formatCurrency(pkg.price) + ' ' + pkg.billing_frequency + ')' : val;

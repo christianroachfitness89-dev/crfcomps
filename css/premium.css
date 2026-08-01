@@ -1571,6 +1571,47 @@ textarea.form-field-input{
   border-color:var(--gold);
 }
 
+.form-static-block{
+  background:var(--paper-3);
+  border-left:3px solid var(--gold);
+  padding:12px 14px;
+  border-radius:var(--radius-sm);
+  font-size:14px;
+  line-height:1.5;
+  color:var(--ink);
+}
+.form-static-block strong{
+  display:block;
+  margin-bottom:6px;
+  font-family:'IBM Plex Mono',monospace;
+  font-size:11px;
+  text-transform:uppercase;
+  letter-spacing:0.06em;
+  color:var(--ink-soft);
+}
+.form-static-block p{
+  margin:0;
+}
+
+.form-checkbox-group,
+.form-radio-group{
+  display:flex;
+  flex-wrap:wrap;
+  gap:14px 22px;
+}
+.form-radio{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  font-size:14px;
+  cursor:pointer;
+}
+
+#pdfPreviewBody{
+  max-height:70vh;
+  overflow-y:auto;
+}
+
 .pdf-document{
   font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
   font-size:13px;
