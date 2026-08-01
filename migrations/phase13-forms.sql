@@ -101,8 +101,8 @@ values
      {"key":"client_signature","type":"signature","label":"Client signature","required":false},
      {"key":"trainer_signature","type":"signature","label":"Trainer signature","required":false}
    ]'::jsonb),
-  ('consult_questionnaire', 'Consult questionnaire', 'Initial consult goals, history and preferences.', 'Questionnaires', 'draft'),
-  ('movement_screen', 'Movement screen', 'Movement and mobility assessment placeholder.', 'Questionnaires', 'draft')
+  ('consult_questionnaire', 'Consult questionnaire', 'Initial consult goals, history and preferences.', 'Questionnaires', 'draft', '[]'::jsonb),
+  ('movement_screen', 'Movement screen', 'Movement and mobility assessment placeholder.', 'Questionnaires', 'draft', '[]'::jsonb)
 on conflict (key) do update set
   name = excluded.name,
   description = excluded.description,
