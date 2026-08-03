@@ -1217,22 +1217,17 @@
     const html = buildPdfHtml(tmpl, answers);
     const wrapper = document.createElement('div');
     wrapper.innerHTML = html;
-    wrapper.style.position = 'fixed';
-    wrapper.style.left = '0';
-    wrapper.style.top = '0';
-    wrapper.style.width = '210mm';
-    wrapper.style.minHeight = '297mm';
-    wrapper.style.background = '#fff';
-    wrapper.style.zIndex = '2147483647';
-    wrapper.style.opacity = '0';
-    wrapper.style.pointerEvents = 'none';
+    wrapper.className = 'pdf-export';
     document.body.appendChild(wrapper);
+
+    // Force a layout pass so html2canvas can measure content before it is off-screen.
+    void wrapper.offsetHeight;
 
     const opt = {
       margin: 0,
       filename: tmpl.key + '_' + new Date().toISOString().slice(0, 10) + '.pdf',
       image: { type: 'jpeg', quality: 1 },
-      html2canvas: { scale: 2, useCORS: true, scrollY: 0, windowWidth: wrapper.offsetWidth },
+      html2canvas: { scale: 2, useCORS: true, scrollY: 0, backgroundColor: '#ffffff' },
       jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
 

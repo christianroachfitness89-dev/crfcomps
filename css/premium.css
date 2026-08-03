@@ -1696,11 +1696,13 @@ textarea.form-field-input{
 
 .pdf-export{
   position:absolute;
-  left:0;
+  left:-9999px;
   top:0;
-  width:794px;
-  min-height:1123px;
+  width:210mm;
+  min-height:297mm;
   background:#fff;
+  opacity:1;
+  visibility:visible;
   z-index:-1000;
 }
 
