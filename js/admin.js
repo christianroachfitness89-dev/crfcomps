@@ -12,6 +12,7 @@
   let allCompetitions = [];
   let allLeads = [];
   let currentSettings = null;
+  let currentFeedbackStrategyId = null;
   let drawnWinner = null;
   let pendingUploadRows = [];
   let currentUser = null;
@@ -1638,10 +1639,81 @@
       document.getElementById('setFallbackSub').value = currentSettings.fallback_subheadline || '';
       document.getElementById('setFallbackValue').value = currentSettings.fallback_prize_value || 0;
       document.getElementById('setAdminEmail').value = currentSettings.admin_contact_email || '';
+      await loadFeedbackSettings();
     } catch (err) {
       console.error(err);
       const msg = document.getElementById('settingsMsg');
       showMsg(msg, 'Could not load settings: ' + err.message, 'error');
+    }
+  }
+
+  async function loadFeedbackSettings() {
+    try {
+      const { data, error } = await client
+        .from('marketing_strategies')
+        .select('*')
+        .eq('type', 'flawless_feedback');
+      if (error) throw error;
+      const list = data || [];
+      const s = list.find(function (x) { return x.status === 'active'; }) || list[0];
+      if (!s) {
+        currentFeedbackStrategyId = null;
+        const msg = document.getElementById('feedbackSettingsMsg');
+        showMsg(msg, 'No Flawless Feedback strategy found. Create one on the Strategies page first.', 'error');
+        return;
+      }
+      currentFeedbackStrategyId = s.id;
+      document.getElementById('feedbackSettingsHeadline').value = s.form_headline || '';
+      document.getElementById('feedbackSettingsSub').value = s.form_subheadline || '';
+      document.getElementById('feedbackSettingsVoucher').value = s.voucher_value || 0;
+      document.getElementById('feedbackSettingsBookingUrl').value = s.booking_url || '';
+      document.getElementById('feedbackSettingsClosingScript').value = s.closing_script || '';
+      document.getElementById('feedbackSettingsQuestions').value = stringifySurveyQuestions(s.survey_questions);
+    } catch (err) {
+      console.error(err);
+      const msg = document.getElementById('feedbackSettingsMsg');
+      showMsg(msg, 'Could not load feedback settings: ' + err.message, 'error');
+    }
+  }
+
+  async function saveFeedbackSettings() {
+    const btn = document.getElementById('saveFeedbackSettingsBtn');
+    const msg = document.getElementById('feedbackSettingsMsg');
+    msg.className = 'msg';
+
+    if (!currentFeedbackStrategyId) {
+      showMsg(msg, 'No Flawless Feedback strategy to update. Create one on the Strategies page first.', 'error');
+      return;
+    }
+
+    const voucher = parseFloat(document.getElementById('feedbackSettingsVoucher').value);
+
+    const payload = {
+      id: currentFeedbackStrategyId,
+      updated_at: new Date().toISOString(),
+      form_headline: document.getElementById('feedbackSettingsHeadline').value.trim(),
+      form_subheadline: document.getElementById('feedbackSettingsSub').value.trim(),
+      voucher_value: isNaN(voucher) ? 0 : voucher,
+      booking_url: document.getElementById('feedbackSettingsBookingUrl').value.trim() || null,
+      closing_script: document.getElementById('feedbackSettingsClosingScript').value.trim() || null,
+      survey_questions: parseSurveyQuestions(document.getElementById('feedbackSettingsQuestions').value)
+    };
+
+    btn.disabled = true;
+    btn.textContent = 'Saving...';
+
+    try {
+      const { error } = await client.from('marketing_strategies').update(payload).eq('id', currentFeedbackStrategyId);
+      if (error) throw error;
+      showMsg(msg, 'Feedback settings saved.', 'success');
+      await loadData();
+      await loadFeedbackSettings();
+    } catch (err) {
+      console.error(err);
+      showMsg(msg, err.message || 'Could not save feedback settings.', 'error');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Save Feedback Settings';
     }
   }
 
@@ -2087,6 +2159,7 @@
   window.messageBirthdaysToday = messageBirthdaysToday;
 
   window.saveSettings = saveSettings;
+  window.saveFeedbackSettings = saveFeedbackSettings;
   window.handleSignOut = handleSignOut;
   window.loadData = loadData;
 

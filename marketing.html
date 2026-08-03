@@ -926,6 +926,39 @@
           <button type="button" class="submit-btn" id="saveSettingsBtn" onclick="saveSettings()" style="width:auto;padding:14px 24px;">Save Settings</button>
         </div>
       </div>
+
+      <div class="card" style="max-width:760px; margin-top:24px;">
+        <div class="sec-eyebrow" style="margin-bottom:8px;">Flawless Feedback</div>
+        <div class="msg" id="feedbackSettingsMsg"></div>
+        <div class="form-row">
+          <label for="feedbackSettingsHeadline">Form headline</label>
+          <input type="text" id="feedbackSettingsHeadline" placeholder="Help us improve your gym">
+        </div>
+        <div class="form-row">
+          <label for="feedbackSettingsSub">Form subheadline</label>
+          <textarea id="feedbackSettingsSub" rows="2" placeholder="Quick feedback survey — claim your coaching voucher"></textarea>
+        </div>
+        <div class="form-row">
+          <label for="feedbackSettingsVoucher">Voucher value ($)</label>
+          <input type="number" id="feedbackSettingsVoucher" min="0" step="1" placeholder="100">
+        </div>
+        <div class="form-row">
+          <label for="feedbackSettingsBookingUrl">Calendly booking URL</label>
+          <input type="url" id="feedbackSettingsBookingUrl" placeholder="https://calendly.com/...">
+        </div>
+        <div class="form-row">
+          <label for="feedbackSettingsClosingScript">Closing script / confirmation message</label>
+          <textarea id="feedbackSettingsClosingScript" rows="3" placeholder="Thanks for your feedback. Here's your $100 voucher..."></textarea>
+        </div>
+        <div class="form-row">
+          <label for="feedbackSettingsQuestions">Survey questions</label>
+          <textarea id="feedbackSettingsQuestions" rows="8" placeholder="Paste a JSON array, or one question per line"></textarea>
+          <small>JSON array with section/question keys, or plain text (one question per line).</small>
+        </div>
+        <div class="form-row" style="margin-top:12px;">
+          <button type="button" class="submit-btn" id="saveFeedbackSettingsBtn" onclick="saveFeedbackSettings()" style="width:auto;padding:14px 24px;">Save Feedback Settings</button>
+        </div>
+      </div>
     </section>
 
   </main>
