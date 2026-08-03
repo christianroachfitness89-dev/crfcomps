@@ -944,6 +944,14 @@
       <div class="card" style="max-width:760px; margin-top:24px;">
         <div class="sec-eyebrow" style="margin-bottom:8px;">Flawless Feedback</div>
         <div class="msg" id="feedbackSettingsMsg"></div>
+        <div class="form-row" id="feedbackStatusRow" style="display:none;">
+          <label>Strategy status</label>
+          <div style="display:flex;align-items:center;gap:12px;">
+            <span id="feedbackSettingsStatus" style="font-weight:600;"></span>
+            <button type="button" class="admin-btn" id="feedbackActivateBtn" onclick="activateFeedbackStrategy()" style="display:none;">Activate</button>
+          </div>
+          <small id="feedbackSettingsStatusHint" style="color:var(--ink-soft);">The public feedback page only shows active strategies.</small>
+        </div>
         <div class="form-row">
           <label for="feedbackSettingsHeadline">Form headline</label>
           <input type="text" id="feedbackSettingsHeadline" placeholder="Help us improve your gym">

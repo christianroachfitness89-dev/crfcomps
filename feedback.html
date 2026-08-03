@@ -160,7 +160,12 @@
           .eq('id', id)
           .eq('status', 'active')
           .single();
-        if (!error) data = single;
+        if (error) {
+          console.warn('Feedback: could not load strategy by id', id, error.message);
+        } else {
+          data = single;
+          console.log('Feedback: loaded strategy by id', data.id, data.status);
+        }
       }
 
       if (!data) {
@@ -172,7 +177,12 @@
           .order('created_at', { ascending: false })
           .limit(1)
           .single();
-        if (!error) data = list;
+        if (error) {
+          console.warn('Feedback: no active flawless_feedback strategy found', error.message);
+        } else {
+          data = list;
+          console.log('Feedback: loaded active strategy', data.id, data.name);
+        }
       }
 
       strategy = data;

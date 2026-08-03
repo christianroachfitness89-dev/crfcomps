@@ -1663,7 +1663,8 @@
       const { data, error } = await client
         .from('marketing_strategies')
         .select('*')
-        .eq('type', 'flawless_feedback');
+        .eq('type', 'flawless_feedback')
+        .order('created_at', { ascending: false });
       if (error) throw error;
       const list = data || [];
       const s = list.find(function (x) { return x.status === 'active'; }) || list[0];
@@ -1674,6 +1675,16 @@
         return;
       }
       currentFeedbackStrategyId = s.id;
+      const statusRow = document.getElementById('feedbackStatusRow');
+      const statusEl = document.getElementById('feedbackSettingsStatus');
+      const activateBtn = document.getElementById('feedbackActivateBtn');
+      if (statusRow) statusRow.style.display = 'block';
+      if (statusEl) {
+        statusEl.textContent = (s.status || 'draft').replace('_', ' ');
+        statusEl.style.color = s.status === 'active' ? 'var(--success)' : 'var(--warning)';
+      }
+      if (activateBtn) activateBtn.style.display = s.status === 'active' ? 'none' : 'inline-block';
+
       document.getElementById('feedbackSettingsHeadline').value = s.form_headline || '';
       document.getElementById('feedbackSettingsSub').value = s.form_subheadline || '';
       document.getElementById('feedbackSettingsVoucher').value = s.voucher_value || 0;
@@ -1731,6 +1742,27 @@
     } finally {
       btn.disabled = false;
       btn.textContent = 'Save Feedback Settings';
+    }
+  }
+
+  async function activateFeedbackStrategy() {
+    const msg = document.getElementById('feedbackSettingsMsg');
+    if (!currentFeedbackStrategyId) {
+      showMsg(msg, 'No Flawless Feedback strategy to activate.', 'error');
+      return;
+    }
+    try {
+      const { error } = await client
+        .from('marketing_strategies')
+        .update({ status: 'active', updated_at: new Date().toISOString() })
+        .eq('id', currentFeedbackStrategyId);
+      if (error) throw error;
+      showMsg(msg, 'Strategy activated. The public feedback page will now reflect these settings.', 'success');
+      await loadData();
+      await loadFeedbackSettings();
+    } catch (err) {
+      console.error(err);
+      showMsg(msg, err.message || 'Could not activate strategy.', 'error');
     }
   }
 
@@ -2177,6 +2209,7 @@
 
   window.saveSettings = saveSettings;
   window.saveFeedbackSettings = saveFeedbackSettings;
+  window.activateFeedbackStrategy = activateFeedbackStrategy;
   window.handleSignOut = handleSignOut;
   window.loadData = loadData;
 
