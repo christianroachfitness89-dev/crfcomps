@@ -32,8 +32,13 @@
     ['sms_sent','SMS sent'],
     ['email_sent','Email sent'],
     ['follow_up','Follow up'],
+    ['callback_requested','Callback requested'],
+    ['booked','Booked'],
+    ['no_show','No show'],
     ['converted','Converted'],
     ['not_interested','Not interested'],
+    ['not_qualified','Not qualified'],
+    ['wrong_number','Wrong number'],
     ['contact_later','Contact later'],
     ['winner','Winner'],
     ['runner_up','Runner-up'],
@@ -41,8 +46,8 @@
     ['disqualified','Disqualified']
   ];
 
-  const ACTIVE_STATUSES = ['entered', 'called', 'no_answer', 'sms_sent', 'email_sent', 'follow_up', 'contact_later'];
-  const CLOSED_STATUSES = ['converted', 'not_interested', 'winner', 'runner_up', 'runner_up_2', 'disqualified'];
+  const ACTIVE_STATUSES = ['entered', 'called', 'no_answer', 'sms_sent', 'email_sent', 'follow_up', 'callback_requested', 'booked', 'no_show', 'contact_later'];
+  const CLOSED_STATUSES = ['converted', 'not_interested', 'not_qualified', 'wrong_number', 'winner', 'runner_up', 'runner_up_2', 'disqualified'];
 
   // ---------- utilities ----------
 

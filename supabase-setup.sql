@@ -117,7 +117,7 @@ create table if not exists public.leads (
   tags text[],
   referral_code text unique,
   referred_by uuid references public.leads on delete set null,
-  status text not null default 'entered' check (status in ('entered', 'called', 'no_answer', 'sms_sent', 'email_sent', 'follow_up', 'converted', 'not_interested', 'winner', 'runner_up', 'runner_up_2', 'contact_later', 'disqualified')),
+  status text not null default 'entered' check (status in ('entered', 'called', 'no_answer', 'sms_sent', 'email_sent', 'follow_up', 'callback_requested', 'booked', 'no_show', 'converted', 'not_interested', 'not_qualified', 'wrong_number', 'winner', 'runner_up', 'runner_up_2', 'contact_later', 'disqualified')),
   pool text not null default 'giveaway' check (pool in ('giveaway', 'new_member', 'non_attendance', 'birthday')),
   last_contact_at timestamptz,
   birthday date,
@@ -143,7 +143,7 @@ alter table public.leads alter column email drop not null;
 -- Migration: expand leads status constraint to include outreach pipeline stages.
 alter table public.leads drop constraint if exists leads_status_check;
 alter table public.leads add constraint leads_status_check
-  check (status in ('entered', 'called', 'no_answer', 'sms_sent', 'email_sent', 'follow_up', 'converted', 'not_interested', 'winner', 'runner_up', 'runner_up_2', 'contact_later', 'disqualified'));
+  check (status in ('entered', 'called', 'no_answer', 'sms_sent', 'email_sent', 'follow_up', 'callback_requested', 'booked', 'no_show', 'converted', 'not_interested', 'not_qualified', 'wrong_number', 'winner', 'runner_up', 'runner_up_2', 'contact_later', 'disqualified'));
 
 -- Migration: add pool column for separating giveaway, new-member and non-attendance leads.
 alter table public.leads
