@@ -193,11 +193,14 @@
       }
 
       strategy = data;
-      applyStrategy();
+      if (!strategy) {
+        fallbackToDefaults();
+      } else {
+        applyStrategy();
+      }
     } catch (err) {
       console.warn('Could not load Flawless Feedback strategy:', err);
-      strategy = null;
-      applyStrategy();
+      fallbackToDefaults();
     }
   }
 
@@ -210,6 +213,12 @@
       setText('fbEyebrow', 'Quick survey · ' + (strategy.name || 'Member feedback'));
     }
     renderQuestions();
+  }
+
+  function fallbackToDefaults() {
+    console.log('Feedback: no active strategy — falling back to default questions');
+    strategy = { survey_questions: DEFAULT_QUESTIONS };
+    applyStrategy();
   }
 
   async function handleSubmit(e) {
