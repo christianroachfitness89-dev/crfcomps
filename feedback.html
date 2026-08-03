@@ -36,6 +36,11 @@
       </div>
 
       <form class="form-card" id="feedbackForm" onsubmit="window.feedback.handleSubmit(event)">
+        <div class="form-row" id="fbPreface" style="display:none;">
+          <div style="background:var(--bg-soft);border-left:3px solid var(--brand);padding:12px 16px;border-radius:var(--radius);font-size:14px;color:var(--ink);">
+            <span id="fbPrefaceText">Hi there — this form is already set up with the details you provided. Your answers help us tailor your voucher and consultation.</span>
+          </div>
+        </div>
         <div class="form-row">
           <label for="fbName">Full name</label>
           <input type="text" id="fbName" required placeholder="Jordan Riley">
@@ -361,7 +366,26 @@
     }
   }
 
+  function prefillFromUrl() {
+    const params = new URLSearchParams(window.location.search);
+    const name = params.get('name') || '';
+    const phone = params.get('phone') || '';
+    const email = params.get('email') || '';
+
+    if (name) {
+      document.getElementById('fbName').value = name;
+      const first = splitName(name).first || 'there';
+      const preface = document.getElementById('fbPreface');
+      const prefaceText = document.getElementById('fbPrefaceText');
+      if (preface) preface.style.display = 'block';
+      if (prefaceText) prefaceText.textContent = 'Hi ' + first + ' — this form is already set up with the details you provided. Your answers help us tailor your voucher and consultation.';
+    }
+    if (phone) document.getElementById('fbPhone').value = phone;
+    if (email) document.getElementById('fbEmail').value = email;
+  }
+
   function init() {
+    prefillFromUrl();
     loadStrategy();
   }
 
