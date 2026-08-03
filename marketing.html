@@ -76,6 +76,10 @@
             <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 00.12-.61l-1.92-3.32a.488.488 0 00-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 00-.48-.41h-3.84a.484.484 0 00-.48.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96a.488.488 0 00-.59.22L2.74 8.87a.49.49 0 00.12.61l2.03 1.58c-.05.3-.07.63-.07.94s.02.64.07.94l-2.03 1.58a.49.49 0 00-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.27.41.48.41h3.84c.24 0 .44-.17.48-.41l.36-2.54c.59-.24 1.13-.56-1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32a.49.49 0 00-.12-.61l-2.03-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
             <span>Settings</span>
           </a>
+          <a href="#" data-nav="feedback_responses" onclick="navigate('feedback_responses'); return false;">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-7 12h-2v-2h2zm0-4h-2V6h2z"/></svg>
+            <span>Feedback Responses</span>
+          </a>
         </div>
         <div class="admin-nav-group">
           <div class="admin-nav-group-label">CRM</div>
@@ -996,6 +1000,40 @@
         <div class="form-row" style="margin-top:12px;">
           <button type="button" class="submit-btn" id="saveFeedbackSettingsBtn" onclick="saveFeedbackSettings()" style="width:auto;padding:14px 24px;">Save Feedback Settings</button>
         </div>
+      </div>
+    </section>
+
+    <section class="admin-page" id="page-feedback_responses">
+      <div class="page-head">
+        <div>
+          <div class="sec-eyebrow">Flawless Feedback</div>
+          <h2>Feedback Responses</h2>
+        </div>
+      </div>
+      <div class="admin-bar">
+        <div class="filter-row">
+          <input type="text" class="pool-search" id="feedbackSearch" placeholder="Search name, email or phone..." oninput="renderFeedbackResponses()">
+          <select class="pool-status" id="feedbackStatusFilter" onchange="renderFeedbackResponses()">
+            <option value="all">All statuses</option>
+            <option value="entered">Entered</option>
+            <option value="called">Called</option>
+            <option value="no_answer">No answer</option>
+            <option value="sms_sent">SMS sent</option>
+            <option value="email_sent">Email sent</option>
+            <option value="follow_up">Follow up</option>
+            <option value="converted">Converted</option>
+            <option value="not_interested">Not interested</option>
+            <option value="contact_later">Contact later</option>
+            <option value="disqualified">Disqualified</option>
+          </select>
+        </div>
+        <div class="admin-actions">
+          <button class="admin-btn" onclick="renderFeedbackResponses()">Refresh</button>
+          <button class="admin-btn" onclick="exportFeedbackResponses()">Export CSV</button>
+        </div>
+      </div>
+      <div class="pool-table-wrap" id="feedbackResponsesTable">
+        <div class="loading">Loading responses...</div>
       </div>
     </section>
 

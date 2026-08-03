@@ -221,6 +221,28 @@
     applyStrategy();
   }
 
+  function splitName(fullName) {
+    const parts = (fullName || '').trim().split(/\s+/);
+    const first = parts.shift() || '';
+    const last = parts.join(' ') || '';
+    return { first: first, last: last };
+  }
+
+  function encodeCalendlyUrl(base, params) {
+    try {
+      const url = new URL(base);
+      Object.keys(params).forEach(function (key) {
+        if (params[key] !== null && params[key] !== undefined && params[key] !== '') {
+          url.searchParams.set(key, params[key]);
+        }
+      });
+      return url.toString();
+    } catch (err) {
+      console.warn('Could not parse Calendly URL', base, err);
+      return base;
+    }
+  }
+
   async function handleSubmit(e) {
     e.preventDefault();
     const btn = document.getElementById('fbSubmitBtn');
@@ -298,14 +320,28 @@
         setText('fbConfirmText', 'Your ' + voucherText + ' voucher is ready.');
         bookArea.style.display = 'block';
 
+        const { first, last } = splitName(name);
         if (clubs.length === 1) {
           clubRow.style.display = 'none';
-          bookNow.href = clubs[0].url;
+          bookNow.href = encodeCalendlyUrl(clubs[0].url, {
+            first_name: first,
+            last_name: last,
+            email: email,
+            phone: phone
+          });
           bookNow.textContent = 'Book at ' + clubs[0].label;
         } else {
           clubRow.style.display = 'block';
           clubSelect.innerHTML = '<option value="" disabled selected>Choose a club...</option>' +
-            clubs.map(function (c) { return '<option value="' + escapeHtml(c.url) + '">' + escapeHtml(c.label) + '</option>'; }).join('');
+            clubs.map(function (c) {
+              const url = encodeCalendlyUrl(c.url, {
+                first_name: first,
+                last_name: last,
+                email: email,
+                phone: phone
+              });
+              return '<option value="' + escapeHtml(url) + '">' + escapeHtml(c.label) + '</option>';
+            }).join('');
           bookNow.href = '#';
           bookNow.textContent = 'Book my consultation';
           clubSelect.onchange = function () {

@@ -159,6 +159,7 @@
     if (key === 'strategies') renderStrategies();
     if (key === 'competitions') renderCompetitions();
     if (key === 'settings') loadSettingsPanel();
+    if (key === 'feedback_responses') renderFeedbackResponses();
     closeMobileNav();
   }
 
@@ -1766,6 +1767,122 @@
     }
   }
 
+  function parseFeedbackTags(tags) {
+    if (!Array.isArray(tags)) return [];
+    return tags.map(function (t) {
+      const colon = String(t).indexOf(':');
+      if (colon > 0) {
+        const section = String(t).slice(0, colon).trim();
+        const rest = String(t).slice(colon + 1).trim();
+        const arrow = rest.indexOf('→');
+        const question = arrow > 0 ? rest.slice(0, arrow).trim() : rest;
+        const answer = arrow > 0 ? rest.slice(arrow + 1).trim() : '';
+        return { section: section, question: question, answer: answer };
+      }
+      return { section: 'feedback', question: String(t), answer: '' };
+    });
+  }
+
+  function renderFeedbackResponses() {
+    const search = (document.getElementById('feedbackSearch').value || '').toLowerCase();
+    const statusFilter = document.getElementById('feedbackStatusFilter').value;
+
+    let filtered = allLeads.filter(function (l) {
+      return l.source === 'flawless_feedback';
+    });
+
+    filtered = filtered.filter(function (l) {
+      const matchesSearch = !search ||
+        (l.full_name || '').toLowerCase().includes(search) ||
+        (l.email || '').toLowerCase().includes(search) ||
+        (l.phone || '').toLowerCase().includes(search);
+      const matchesStatus = statusFilter === 'all' || l.status === statusFilter;
+      return matchesSearch && matchesStatus;
+    });
+
+    const container = document.getElementById('feedbackResponsesTable');
+    if (!filtered.length) {
+      container.innerHTML = '<div class="empty">No feedback responses match your filters.</div>';
+      return;
+    }
+
+    let html = '<table class="data-table">' +
+      '<thead><tr>' +
+        '<th>Name</th>' +
+        '<th>Phone</th>' +
+        '<th>Email</th>' +
+        '<th>Submitted</th>' +
+        '<th>Status</th>' +
+        '<th>Responses</th>' +
+      '</tr></thead><tbody>';
+
+    filtered.forEach(function (l) {
+      const responses = parseFeedbackTags(l.tags);
+      let responseHtml = '';
+      if (responses.length) {
+        responseHtml = '<ul style="margin:0;padding-left:18px;font-size:12px;">' +
+          responses.map(function (r) {
+            return '<li><b>' + escapeHtml(r.question) + '</b><br>' + escapeHtml(r.answer) + '</li>';
+          }).join('') +
+          '</ul>';
+      } else {
+        responseHtml = '<span style="color:var(--ink-soft);font-size:12px;">No responses captured.</span>';
+      }
+
+      html += '<tr>' +
+        '<td>' + escapeHtml(l.full_name || '-') + '</td>' +
+        '<td>' + renderPhoneLinks(l.phone) + '</td>' +
+        '<td>' + escapeHtml(l.email || '-') + '</td>' +
+        '<td>' + fmtDateShort(l.created_at) + '</td>' +
+        '<td><select onchange="updateLeadStatus(\'' + l.id + '\', this.value)" style="font-size:12px;padding:4px 8px;border-radius:var(--radius);border:1.5px solid var(--line);">' + renderStatusOptions(l.status) + '</select></td>' +
+        '<td>' + responseHtml + '</td>' +
+      '</tr>';
+    });
+
+    html += '</tbody></table>';
+    container.innerHTML = html;
+  }
+
+  function exportFeedbackResponses() {
+    const search = (document.getElementById('feedbackSearch').value || '').toLowerCase();
+    const statusFilter = document.getElementById('feedbackStatusFilter').value;
+
+    let filtered = allLeads.filter(function (l) {
+      return l.source === 'flawless_feedback';
+    }).filter(function (l) {
+      const matchesSearch = !search ||
+        (l.full_name || '').toLowerCase().includes(search) ||
+        (l.email || '').toLowerCase().includes(search) ||
+        (l.phone || '').toLowerCase().includes(search);
+      const matchesStatus = statusFilter === 'all' || l.status === statusFilter;
+      return matchesSearch && matchesStatus;
+    });
+
+    const headers = ['Name', 'Phone', 'Email', 'Submitted', 'Status', 'Question', 'Answer'];
+    const rows = [headers];
+    filtered.forEach(function (l) {
+      const responses = parseFeedbackTags(l.tags);
+      if (!responses.length) {
+        rows.push([l.full_name || '', l.phone || '', l.email || '', l.created_at || '', l.status || '', '', '']);
+      } else {
+        responses.forEach(function (r) {
+          rows.push([l.full_name || '', l.phone || '', l.email || '', l.created_at || '', l.status || '', r.question, r.answer]);
+        });
+      }
+    });
+
+    const csv = rows.map(function (r) { return r.map(escapeCsv).join(','); }).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'crfcomps-feedback-responses-' + new Date().toISOString().slice(0, 10) + '.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
   async function saveSettings() {
     const btn = document.getElementById('saveSettingsBtn');
     const msg = document.getElementById('settingsMsg');
@@ -2210,6 +2327,8 @@
   window.saveSettings = saveSettings;
   window.saveFeedbackSettings = saveFeedbackSettings;
   window.activateFeedbackStrategy = activateFeedbackStrategy;
+  window.renderFeedbackResponses = renderFeedbackResponses;
+  window.exportFeedbackResponses = exportFeedbackResponses;
   window.handleSignOut = handleSignOut;
   window.loadData = loadData;
 
