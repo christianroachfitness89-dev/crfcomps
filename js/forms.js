@@ -1217,21 +1217,23 @@
     const html = buildPdfHtml(tmpl, answers);
     const wrapper = document.createElement('div');
     wrapper.innerHTML = html;
-    wrapper.style.position = 'absolute';
+    wrapper.style.position = 'fixed';
     wrapper.style.left = '0';
     wrapper.style.top = '0';
-    wrapper.style.width = '794px';
-    wrapper.style.minHeight = '1123px';
+    wrapper.style.width = '210mm';
+    wrapper.style.minHeight = '297mm';
     wrapper.style.background = '#fff';
-    wrapper.style.zIndex = '-1000';
+    wrapper.style.zIndex = '2147483647';
+    wrapper.style.opacity = '0';
+    wrapper.style.pointerEvents = 'none';
     document.body.appendChild(wrapper);
 
     const opt = {
       margin: 0,
       filename: tmpl.key + '_' + new Date().toISOString().slice(0, 10) + '.pdf',
       image: { type: 'jpeg', quality: 1 },
-      html2canvas: { scale: 2, useCORS: true, scrollY: 0, windowWidth: 794 },
-      jsPDF: { unit: 'px', format: [794, 1123], orientation: 'portrait' }
+      html2canvas: { scale: 2, useCORS: true, scrollY: 0, windowWidth: wrapper.offsetWidth },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
 
     html2pdf().set(opt).from(wrapper).save().then(function () {
