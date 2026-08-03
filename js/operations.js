@@ -157,8 +157,19 @@
   }
 
   async function promoteLeadToClient(leadId) {
-    const lead = window.opsData.leads.find(function (l) { return l.id === leadId; });
-    if (!lead) throw new Error('Lead not found');
+    let lead = window.opsData.leads.find(function (l) { return l.id === leadId; });
+
+    // Fallback: admin.js keeps its own lead cache (e.g. feedback responses page).
+    if (!lead && window.allLeads) {
+      lead = window.allLeads.find(function (l) { return l.id === leadId; });
+    }
+
+    // Last resort: fetch directly from Supabase.
+    if (!lead) {
+      const { data, error } = await client.from('leads').select('*').eq('id', leadId).single();
+      if (error || !data) throw new Error('Lead not found');
+      lead = data;
+    }
 
     const existing = window.opsData.clients.find(function (c) { return c.lead_id === leadId; });
     if (existing) {
