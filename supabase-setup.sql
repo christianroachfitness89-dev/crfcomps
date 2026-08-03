@@ -17,7 +17,7 @@ create table if not exists public.profiles (
 create table if not exists public.marketing_strategies (
   id uuid default gen_random_uuid() primary key,
   name text not null,
-  type text not null default 'giveaway' check (type in ('giveaway', 'lead_magnet', 'challenge', 'webinar', 'funnel', 'other')),
+  type text not null default 'giveaway' check (type in ('giveaway', 'lead_magnet', 'challenge', 'webinar', 'funnel', 'flawless_feedback', 'other')),
   status text not null default 'draft' check (status in ('draft', 'active', 'paused', 'archived')),
   description text,
   starts_at timestamptz,
@@ -28,6 +28,10 @@ create table if not exists public.marketing_strategies (
   sms_template text,
   form_headline text,
   form_subheadline text,
+  voucher_value numeric not null default 100,
+  booking_url text,
+  survey_questions jsonb default '[]'::jsonb,
+  closing_script text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -35,6 +39,18 @@ create table if not exists public.marketing_strategies (
 -- Migration: add SMS template column to strategies if created before this update.
 alter table public.marketing_strategies
   add column if not exists sms_template text;
+
+-- Migration: add Flawless Feedback columns to strategies if they don't exist.
+alter table public.marketing_strategies
+  add column if not exists voucher_value numeric not null default 100,
+  add column if not exists booking_url text,
+  add column if not exists survey_questions jsonb default '[]'::jsonb,
+  add column if not exists closing_script text;
+
+-- Migration: expand type enum to include flawless_feedback.
+alter table public.marketing_strategies drop constraint if exists marketing_strategies_type_check;
+alter table public.marketing_strategies add constraint marketing_strategies_type_check
+  check (type in ('giveaway', 'lead_magnet', 'challenge', 'webinar', 'funnel', 'flawless_feedback', 'other'));
 
 -- Competitions / giveaway rounds. Each belongs to a marketing strategy.
 create table if not exists public.competitions (

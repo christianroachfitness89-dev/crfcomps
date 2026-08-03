@@ -75,6 +75,7 @@
     if (type === 'challenge') return 'Challenge';
     if (type === 'webinar') return 'Webinar';
     if (type === 'funnel') return 'Funnel';
+    if (type === 'flawless_feedback') return 'Flawless Feedback';
     return 'Other';
   }
 
@@ -334,12 +335,13 @@
       return;
     }
     let html = '<table class="dash-table">' +
-      '<thead><tr><th>Name</th><th>Phone</th><th>Pool</th><th>Status</th><th>Entered</th></tr></thead><tbody>';
+      '<thead><tr><th>Name</th><th>Phone</th><th>Pool</th><th>Source</th><th>Status</th><th>Entered</th></tr></thead><tbody>';
     leads.forEach(function (l) {
       html += '<tr>' +
         '<td>' + escapeHtml(l.full_name || '-') + '</td>' +
         '<td>' + escapeHtml(l.phone || '-') + '</td>' +
         '<td>' + poolLabel(l.pool) + '</td>' +
+        '<td>' + escapeHtml(l.source || '-') + '</td>' +
         '<td>' + statusBadge(l.status) + '</td>' +
         '<td>' + fmtDateShort(l.created_at) + '</td>' +
         '</tr>';
@@ -370,12 +372,36 @@
       starts_at: ongoing ? null : (document.getElementById('stratStarts').value ? new Date(document.getElementById('stratStarts').value).toISOString() : null),
       ends_at: ongoing ? null : (document.getElementById('stratEnds').value ? new Date(document.getElementById('stratEnds').value).toISOString() : null),
       description: document.getElementById('stratDesc').value.trim() || null,
+      form_headline: document.getElementById('stratFormHeadline').value.trim() || null,
+      form_subheadline: document.getElementById('stratFormSubheadline').value.trim() || null,
       utm_source: document.getElementById('stratUtmSource').value.trim() || null,
       utm_medium: document.getElementById('stratUtmMedium').value.trim() || null,
       utm_campaign: document.getElementById('stratUtmCampaign').value.trim() || null,
+      voucher_value: parseFloat(document.getElementById('stratVoucherValue').value) || 100,
+      booking_url: document.getElementById('stratBookingUrl').value.trim() || null,
+      closing_script: document.getElementById('stratClosingScript').value.trim() || null,
+      survey_questions: parseSurveyQuestions(document.getElementById('stratSurveyQuestions').value),
       sms_template: document.getElementById('stratSmsTemplate').value.trim() || null,
       updated_at: new Date().toISOString()
     };
+  }
+
+  function parseSurveyQuestions(text) {
+    if (!text || !text.trim()) return [];
+    try {
+      const parsed = JSON.parse(text);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (err) {
+      // Allow one question per line if not valid JSON.
+      return text.split('\n').map(function (line) { return line.trim(); }).filter(Boolean).map(function (q) {
+        return { section: 'feedback', question: q };
+      });
+    }
+  }
+
+  function stringifySurveyQuestions(questions) {
+    if (!Array.isArray(questions) || !questions.length) return '';
+    return JSON.stringify(questions, null, 2);
   }
 
   async function createStrategy() {
@@ -415,9 +441,15 @@
     document.getElementById('stratStarts').value = '';
     document.getElementById('stratEnds').value = '';
     document.getElementById('stratDesc').value = '';
+    document.getElementById('stratFormHeadline').value = '';
+    document.getElementById('stratFormSubheadline').value = '';
     document.getElementById('stratUtmSource').value = '';
     document.getElementById('stratUtmMedium').value = '';
     document.getElementById('stratUtmCampaign').value = '';
+    document.getElementById('stratVoucherValue').value = '100';
+    document.getElementById('stratBookingUrl').value = '';
+    document.getElementById('stratClosingScript').value = '';
+    document.getElementById('stratSurveyQuestions').value = '';
     document.getElementById('stratSmsTemplate').value = '';
   }
 
@@ -513,6 +545,7 @@
       ['challenge','Challenge'],
       ['webinar','Webinar'],
       ['funnel','Funnel'],
+      ['flawless_feedback','Flawless Feedback'],
       ['other','Other']
     ].map(function (o) {
       return '<option value="' + o[0] + '"' + (s.type === o[0] ? ' selected' : '') + '>' + o[1] + '</option>';
@@ -531,6 +564,10 @@
         '</select></div>' +
       '</div>' +
       '<div class="form-row"><label>Description / notes</label><textarea id="edit-strat-desc-' + id + '" rows="2">' + escapeHtml(s.description || '') + '</textarea></div>' +
+      '<div class="two-col">' +
+        '<div class="form-row"><label>Form headline (optional)</label><input type="text" id="edit-strat-form-headline-' + id + '" value="' + escapeHtml(s.form_headline || '') + '" placeholder="Quick member feedback"></div>' +
+        '<div class="form-row"><label>Form subheadline (optional)</label><input type="text" id="edit-strat-form-subheadline-' + id + '" value="' + escapeHtml(s.form_subheadline || '') + '" placeholder="Help us improve + claim your voucher"></div>' +
+      '</div>' +
       '<div class="check-row" style="margin-bottom:14px;">' +
         '<input type="checkbox" id="edit-strat-ongoing-' + id + '"' + (ongoing ? ' checked' : '') + ' onchange="document.getElementById(\'edit-strat-dates-' + id + '\').style.display = this.checked ? \'none\' : \'grid\'; if(this.checked){ document.getElementById(\'edit-strat-starts-' + id + '\').value=\'\'; document.getElementById(\'edit-strat-ends-' + id + '\').value=\'\'; }">' +
         '<label for="edit-strat-ongoing-' + id + '" style="display:inline;margin:0;">Ongoing strategy — no fixed start/end dates</label>' +
@@ -544,6 +581,13 @@
         '<div class="form-row"><label>UTM medium</label><input type="text" id="edit-strat-utm-medium-' + id + '" value="' + escapeHtml(s.utm_medium || '') + '"></div>' +
       '</div>' +
       '<div class="form-row"><label>UTM campaign</label><input type="text" id="edit-strat-utm-campaign-' + id + '" value="' + escapeHtml(s.utm_campaign || '') + '"></div>' +
+      '<div class="two-col">' +
+        '<div class="form-row"><label>Voucher value ($)</label><input type="number" id="edit-strat-voucher-' + id + '" value="' + (s.voucher_value === null || s.voucher_value === undefined ? 100 : Number(s.voucher_value)) + '" min="0" step="1"></div>' +
+        '<div class="form-row"><label>Booking URL (Calendly etc.)</label><input type="url" id="edit-strat-booking-' + id + '" value="' + escapeHtml(s.booking_url || '') + '" placeholder="https://calendly.com/..."></div>' +
+      '</div>' +
+      '<div class="form-row"><label>Closing script / voucher offer</label><textarea id="edit-strat-closing-' + id + '" rows="2" placeholder="For your voucher, let\'s book you in to address your goals...">' + escapeHtml(s.closing_script || '') + '</textarea></div>' +
+      '<div class="form-row"><label>Survey questions</label><textarea id="edit-strat-questions-' + id + '" rows="6" placeholder="Paste JSON array, or one question per line">' + escapeHtml(stringifySurveyQuestions(s.survey_questions)) + '</textarea>' +
+        '<p style="font-size:13px;color:var(--ink-soft);margin-top:6px;">JSON format: <b>[{&quot;section&quot;:&quot;gym&quot;,&quot;question&quot;:&quot;...&quot;}]</b>. Leave blank for default Flawless Feedback questions.</p></div>' +
       '<div class="form-row"><label>SMS template</label><textarea id="edit-strat-sms-' + id + '" rows="3" placeholder="Hi {first_name}, this is CRF Comps about the {strategy_name}...">' + escapeHtml(s.sms_template || '') + '</textarea>' +
         '<p style="font-size:13px;color:var(--ink-soft);margin-top:6px;">Placeholders: <b>{first_name}</b>, <b>{last_name}</b>, <b>{full_name}</b>, <b>{phone}</b>, <b>{email}</b>, <b>{strategy_name}</b>, plus any extra upload column such as <b>{age}</b> or <b>{birth_month}</b>.</p></div>' +
       '<div class="admin-actions">' +
@@ -565,11 +609,17 @@
       type: document.getElementById('edit-strat-type-' + id).value,
       status: document.getElementById('edit-strat-status-' + id).value,
       description: document.getElementById('edit-strat-desc-' + id).value.trim() || null,
+      form_headline: document.getElementById('edit-strat-form-headline-' + id).value.trim() || null,
+      form_subheadline: document.getElementById('edit-strat-form-subheadline-' + id).value.trim() || null,
       starts_at: ongoing ? null : (document.getElementById('edit-strat-starts-' + id).value ? new Date(document.getElementById('edit-strat-starts-' + id).value).toISOString() : null),
       ends_at: ongoing ? null : (document.getElementById('edit-strat-ends-' + id).value ? new Date(document.getElementById('edit-strat-ends-' + id).value).toISOString() : null),
       utm_source: document.getElementById('edit-strat-utm-source-' + id).value.trim() || null,
       utm_medium: document.getElementById('edit-strat-utm-medium-' + id).value.trim() || null,
       utm_campaign: document.getElementById('edit-strat-utm-campaign-' + id).value.trim() || null,
+      voucher_value: parseFloat(document.getElementById('edit-strat-voucher-' + id).value) || 100,
+      booking_url: document.getElementById('edit-strat-booking-' + id).value.trim() || null,
+      closing_script: document.getElementById('edit-strat-closing-' + id).value.trim() || null,
+      survey_questions: parseSurveyQuestions(document.getElementById('edit-strat-questions-' + id).value),
       sms_template: document.getElementById('edit-strat-sms-' + id).value.trim() || null,
       updated_at: new Date().toISOString()
     };
@@ -939,6 +989,8 @@
     const search = page.querySelector('.pool-search').value.toLowerCase();
     const strategyFilter = page.querySelector('.pool-strategy').value;
     const compFilter = page.querySelector('.pool-comp').value;
+    const sourceFilterEl = page.querySelector('.pool-source');
+    const sourceFilter = sourceFilterEl ? sourceFilterEl.value : 'all';
     const statusFilter = page.querySelector('.pool-status').value;
 
     let filtered = allLeads.filter(function (l) {
@@ -952,9 +1004,10 @@
         (l.phone || '').toLowerCase().includes(search);
       const matchesStrategy = strategyFilter === 'all' || l.strategy_id === strategyFilter;
       const matchesComp = compFilter === 'all' || l.competition_id === compFilter;
+      const matchesSource = sourceFilter === 'all' || l.source === sourceFilter;
       const matchesStatus = statusFilter === 'all' || l.status === statusFilter;
       const matchesBirthdayToday = pool !== 'birthday' || !birthdayTodayFilterActive || isBirthdayToday(l.birthday);
-      return matchesSearch && matchesStrategy && matchesComp && matchesStatus && matchesBirthdayToday;
+      return matchesSearch && matchesStrategy && matchesComp && matchesSource && matchesStatus && matchesBirthdayToday;
     });
 
     // Stats
@@ -984,6 +1037,7 @@
         '<th>Phone</th>' +
         '<th>Strategy</th>' +
         '<th>Giveaway</th>' +
+        '<th>Source</th>' +
         '<th>Entered</th>' +
         (isBirthdayPool ? '<th>Birthday</th>' : '') +
         '<th>Status</th>' +
@@ -998,6 +1052,7 @@
         '<td>' + renderPhoneLinks(l.phone) + '</td>' +
         '<td>' + escapeHtml(getStrategyName(l.strategy_id)) + '</td>' +
         '<td>' + escapeHtml(getCompName(l.competition_id)) + '</td>' +
+        '<td>' + escapeHtml(l.source || '-') + '</td>' +
         '<td>' + fmtDateShort(l.created_at) + '</td>' +
         (isBirthdayPool ? '<td>' + formatBirthday(l.birthday) + (isBirthdayToday(l.birthday) ? ' <span class="tag tag-hot">Today</span>' : '') + '</td>' : '') +
         '<td><select onchange="updateLeadStatus(\'' + l.id + '\', this.value)" style="font-size:12px;padding:4px 8px;border-radius:var(--radius);border:1.5px solid var(--line);">' + renderStatusOptions(l.status) + '</select></td>' +
@@ -1469,14 +1524,17 @@
     const page = document.getElementById('page-' + pool);
     const strategyFilter = page.querySelector('.pool-strategy').value;
     const compFilter = page.querySelector('.pool-comp').value;
+    const sourceFilterEl = page.querySelector('.pool-source');
+    const sourceFilter = sourceFilterEl ? sourceFilterEl.value : 'all';
     const statusFilter = page.querySelector('.pool-status').value;
 
     let poolLeads = allLeads.filter(function (l) { return (l.pool || 'giveaway') === pool; });
     poolLeads = poolLeads.filter(function (l) {
       const matchesStrategy = strategyFilter === 'all' || l.strategy_id === strategyFilter;
       const matchesComp = compFilter === 'all' || l.competition_id === compFilter;
+      const matchesSource = sourceFilter === 'all' || l.source === sourceFilter;
       const matchesStatus = statusFilter === 'all' || l.status === statusFilter;
-      return matchesStrategy && matchesComp && matchesStatus;
+      return matchesStrategy && matchesComp && matchesSource && matchesStatus;
     });
 
     if (!poolLeads.length) {
@@ -1519,12 +1577,14 @@
     const search = page.querySelector('.pool-search').value.toLowerCase();
     const strategyFilter = page.querySelector('.pool-strategy').value;
     const compFilter = page.querySelector('.pool-comp').value;
+    const sourceFilterEl = page.querySelector('.pool-source');
+    const sourceFilter = sourceFilterEl ? sourceFilterEl.value : 'all';
     const statusFilter = page.querySelector('.pool-status').value;
 
     const isBirthdayPool = pool === 'birthday';
     const headers = isBirthdayPool
-      ? ['Name', 'Email', 'Phone', 'Strategy', 'Giveaway', 'Status', 'Opt In', 'Entered At', 'Birthday', 'Tags']
-      : ['Name', 'Email', 'Phone', 'Strategy', 'Giveaway', 'Status', 'Opt In', 'Entered At', 'Tags'];
+      ? ['Name', 'Email', 'Phone', 'Strategy', 'Giveaway', 'Source', 'Status', 'Opt In', 'Entered At', 'Birthday', 'Tags']
+      : ['Name', 'Email', 'Phone', 'Strategy', 'Giveaway', 'Source', 'Status', 'Opt In', 'Entered At', 'Tags'];
     const rows = [headers];
 
     allLeads.forEach(function (l) {
@@ -1535,8 +1595,9 @@
         (l.phone || '').toLowerCase().includes(search);
       const matchesStrategy = strategyFilter === 'all' || l.strategy_id === strategyFilter;
       const matchesComp = compFilter === 'all' || l.competition_id === compFilter;
+      const matchesSource = sourceFilter === 'all' || l.source === sourceFilter;
       const matchesStatus = statusFilter === 'all' || l.status === statusFilter;
-      if (!matchesSearch || !matchesStrategy || !matchesComp || !matchesStatus) return;
+      if (!matchesSearch || !matchesStrategy || !matchesComp || !matchesSource || !matchesStatus) return;
 
       const base = [
         l.full_name || '',
@@ -1544,6 +1605,7 @@
         l.phone || '',
         getStrategyName(l.strategy_id),
         getCompName(l.competition_id),
+        l.source || '',
         l.status || '',
         l.opt_in ? 'Yes' : 'No',
         l.created_at || ''

@@ -359,6 +359,10 @@
           <select class="pool-comp" onchange="renderLeadPool('new_member')">
             <option value="all">All giveaways</option>
           </select>
+          <select class="pool-source" onchange="renderLeadPool('new_member')">
+            <option value="all">All sources</option>
+            <option value="flawless_feedback">Flawless Feedback</option>
+          </select>
           <select class="pool-status" onchange="renderLeadPool('new_member')">
             <option value="all">All statuses</option>
             <option value="entered">Entered</option>
@@ -686,6 +690,7 @@
               <option value="challenge">Challenge</option>
               <option value="webinar">Webinar</option>
               <option value="funnel">Funnel</option>
+              <option value="flawless_feedback">Flawless Feedback</option>
               <option value="other">Other</option>
             </select>
           </div>
@@ -702,6 +707,16 @@
           <div class="form-row">
             <label for="stratEnds">End date</label>
             <input type="datetime-local" id="stratEnds">
+          </div>
+        </div>
+        <div class="two-col">
+          <div class="form-row">
+            <label for="stratFormHeadline">Form headline (optional)</label>
+            <input type="text" id="stratFormHeadline" placeholder="e.g. Quick member feedback">
+          </div>
+          <div class="form-row">
+            <label for="stratFormSubheadline">Form subheadline (optional)</label>
+            <input type="text" id="stratFormSubheadline" placeholder="e.g. Help us improve + claim your voucher">
           </div>
         </div>
         <div class="form-row">
@@ -721,6 +736,25 @@
         <div class="form-row">
           <label for="stratUtmCampaign">UTM campaign (optional)</label>
           <input type="text" id="stratUtmCampaign" placeholder="e.g. summer_challenge_2026">
+        </div>
+        <div class="two-col">
+          <div class="form-row">
+            <label for="stratVoucherValue">Voucher value ($)</label>
+            <input type="number" id="stratVoucherValue" value="100" min="0" step="1">
+          </div>
+          <div class="form-row">
+            <label for="stratBookingUrl">Booking URL (Calendly etc.)</label>
+            <input type="url" id="stratBookingUrl" placeholder="https://calendly.com/...">
+          </div>
+        </div>
+        <div class="form-row">
+          <label for="stratClosingScript">Closing script / voucher offer</label>
+          <textarea id="stratClosingScript" rows="2" placeholder="For your voucher, let's book you in to address your goals..."></textarea>
+        </div>
+        <div class="form-row">
+          <label for="stratSurveyQuestions">Survey questions</label>
+          <textarea id="stratSurveyQuestions" rows="6" placeholder="Paste JSON array, or one question per line"></textarea>
+          <p style="font-size:13px;color:var(--ink-soft);margin-top:6px;">JSON format: <b>[{&quot;section&quot;:&quot;gym&quot;,&quot;question&quot;:&quot;...&quot;}]</b>. Leave blank for default Flawless Feedback questions.</p>
         </div>
         <div class="form-row">
           <label for="stratSmsTemplate">SMS template (optional)</label>

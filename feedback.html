@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CRF Comps · Member Feedback</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/main.css">
+</head>
+<body>
+
+<header>
+  <div class="nav">
+    <a href="index.html" class="brand"><span class="dot"></span>CRF Comps</a>
+    <nav class="nav-links">
+      <a href="feedback.html">Feedback</a>
+    </nav>
+  </div>
+</header>
+
+<section class="hero" style="padding:100px 0 80px;">
+  <div class="wrap">
+    <div class="hero-grid" style="grid-template-columns:1fr 1.2fr;align-items:start;">
+      <div>
+        <div class="hero-eyebrow" id="fbEyebrow">Quick survey</div>
+        <h1 id="fbHeadline">Help us improve <em>your gym.</em></h1>
+        <p class="hero-sub" id="fbSub">
+          We're collecting honest feedback from members. It takes 90 seconds, and as a thank-you we'll give you a voucher to put toward a coaching consultation.
+        </p>
+        <div class="prize-card" style="margin-top:24px;max-width:100%;">
+          <div class="prize-label">Member benefit</div>
+          <div class="prize-amount" id="fbVoucher">$100 voucher</div>
+          <div class="prize-desc" id="fbVoucherDesc">Use it toward a 1:1 goal-setting session when you book through the link at the end.</div>
+        </div>
+      </div>
+
+      <form class="form-card" id="feedbackForm" onsubmit="window.feedback.handleSubmit(event)">
+        <div class="form-row">
+          <label for="fbName">Full name</label>
+          <input type="text" id="fbName" required placeholder="Jordan Riley">
+        </div>
+        <div class="form-row">
+          <label for="fbPhone">Phone</label>
+          <input type="tel" id="fbPhone" required placeholder="0412 345 678">
+        </div>
+        <div class="form-row">
+          <label for="fbEmail">Email (optional)</label>
+          <input type="email" id="fbEmail" placeholder="you@email.com">
+        </div>
+
+        <div id="fbQuestions"></div>
+
+        <div class="check-row">
+          <input type="checkbox" id="fbOptin" checked>
+          <label for="fbOptin">I agree to be contacted about my feedback and the coaching voucher. I can unsubscribe at any time.</label>
+        </div>
+
+        <button type="submit" class="submit-btn" id="fbSubmitBtn">Submit feedback</button>
+        <div class="msg" id="fbMsg"></div>
+      </form>
+
+      <div class="confirm" id="fbConfirm" style="grid-column:1 / -1;">
+        <div class="confirm-mark">✓</div>
+        <h3>Thank you for your feedback.</h3>
+        <p id="fbConfirmText">Your voucher is ready. Use the button below to book your consultation.</p>
+        <p class="mt-2">
+          <a id="fbBookLink" href="#" target="_blank" class="btn-primary" style="display:inline-block;">Book my consultation</a>
+        </p>
+        <p class="mt-2"><a href="index.html" class="btn-ghost">Back to home</a></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <p class="foot-text">By submitting feedback you consent to being contacted about your voucher and coaching services. CRF Comps will not share your details with third parties.</p>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="js/supabase-client.js"></script>
+<script src="js/site-settings.js"></script>
+<script>
+(function () {
+  const client = window.sb;
+  const DEFAULT_QUESTIONS = [
+    { section: 'gym', question: 'How long have you been a member?' },
+    { section: 'gym', question: 'What would you like to see improved at the club?' },
+    { section: 'gym', question: 'Are you happy with the service from gym staff?' },
+    { section: 'fitness', question: 'How often do you come to the gym?' },
+    { section: 'fitness', question: 'Are you 100% satisfied with your gym journey and results?' },
+    { section: 'fitness', question: 'If we could help you achieve one goal with your health and fitness, what would it be?' }
+  ];
+
+  let strategy = null;
+
+  function setText(id, text) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = text;
+  }
+  function setHtml(id, html) {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = html;
+  }
+  function escapeHtml(str) {
+    const d = document.createElement('div');
+    d.textContent = String(str || '');
+    return d.innerHTML;
+  }
+  function formatCurrency(amount) {
+    if (amount === null || amount === undefined || isNaN(amount)) return '$0';
+    return '$' + Number(amount).toLocaleString(undefined, { maximumFractionDigits: 0 });
+  }
+  function showMsg(el, text, type) {
+    el.textContent = text;
+    el.className = 'msg show ' + type;
+  }
+
+  function getQuestions() {
+    let raw = strategy && strategy.survey_questions;
+    if (!raw) return DEFAULT_QUESTIONS;
+    if (Array.isArray(raw)) return raw;
+    if (typeof raw === 'string') {
+      try { return JSON.parse(raw); } catch (e) { return DEFAULT_QUESTIONS; }
+    }
+    return DEFAULT_QUESTIONS;
+  }
+
+  function renderQuestions() {
+    const questions = getQuestions();
+    let html = '';
+    let currentSection = null;
+    questions.forEach(function (q, i) {
+      const section = q && q.section ? q.section : 'feedback';
+      if (section !== currentSection) {
+        html += '<h3 style="font-size:18px;margin:28px 0 14px;text-transform:uppercase;">' + escapeHtml(section) + '</h3>';
+        currentSection = section;
+      }
+      html += '<div class="form-row">' +
+        '<label for="fbQ' + i + '">' + escapeHtml(q.question) + '</label>' +
+        '<textarea id="fbQ' + i + '" name="fbQ' + i + '" rows="3" required placeholder="Your answer..."></textarea>' +
+      '</div>';
+    });
+    setHtml('fbQuestions', html);
+  }
+
+  async function loadStrategy() {
+    try {
+      let data = null;
+      const urlParams = new URLSearchParams(window.location.search);
+      const id = urlParams.get('strategy');
+
+      if (id) {
+        const { data: single, error } = await client
+          .from('marketing_strategies')
+          .select('*')
+          .eq('id', id)
+          .eq('status', 'active')
+          .single();
+        if (!error) data = single;
+      }
+
+      if (!data) {
+        const { data: list, error } = await client
+          .from('marketing_strategies')
+          .select('*')
+          .eq('type', 'flawless_feedback')
+          .eq('status', 'active')
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .single();
+        if (!error) data = list;
+      }
+
+      strategy = data;
+      applyStrategy();
+    } catch (err) {
+      console.warn('Could not load Flawless Feedback strategy:', err);
+      strategy = null;
+      applyStrategy();
+    }
+  }
+
+  function applyStrategy() {
+    if (strategy) {
+      setText('fbHeadline', strategy.form_headline || 'Help us improve your gym.');
+      setText('fbSub', strategy.form_subheadline || "We're collecting honest feedback from members. It takes 90 seconds, and as a thank-you we'll give you a voucher to put toward a coaching consultation.");
+      setText('fbVoucher', formatCurrency(strategy.voucher_value || 100) + ' voucher');
+      setText('fbVoucherDesc', 'Use it toward a 1:1 goal-setting session' + (strategy.booking_url ? ' when you book through the link at the end.' : '.'));
+      setText('fbEyebrow', 'Quick survey · ' + (strategy.name || 'Member feedback'));
+    }
+    renderQuestions();
+  }
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    const btn = document.getElementById('fbSubmitBtn');
+    const msg = document.getElementById('fbMsg');
+    msg.className = 'msg';
+
+    const name = document.getElementById('fbName').value.trim();
+    const phone = document.getElementById('fbPhone').value.trim();
+    const email = document.getElementById('fbEmail').value.trim();
+    const optIn = document.getElementById('fbOptin').checked;
+
+    if (!name || !phone) {
+      showMsg(msg, 'Please enter your name and phone number.', 'error');
+      return;
+    }
+
+    const questions = getQuestions();
+    const answers = [];
+    for (let i = 0; i < questions.length; i++) {
+      const val = document.getElementById('fbQ' + i).value.trim();
+      if (!val) {
+        showMsg(msg, 'Please answer all the questions.', 'error');
+        document.getElementById('fbQ' + i).focus();
+        return;
+      }
+      answers.push({
+        section: questions[i].section || 'feedback',
+        question: questions[i].question,
+        answer: val
+      });
+    }
+
+    if (!strategy || !strategy.id) {
+      showMsg(msg, 'This feedback form is not active right now. Please check back later.', 'error');
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'Submitting...';
+
+    try {
+      const { error } = await client.from('leads').insert({
+        strategy_id: strategy.id,
+        full_name: name,
+        email: email || null,
+        phone: phone,
+        opt_in: optIn,
+        source: 'flawless_feedback',
+        pool: 'new_member',
+        status: 'entered',
+        tags: answers.map(function (a) { return a.section + ': ' + a.question + ' → ' + a.answer; })
+      });
+
+      if (error) throw error;
+
+      document.getElementById('feedbackForm').style.display = 'none';
+      const confirm = document.getElementById('fbConfirm');
+      confirm.classList.add('show');
+
+      const voucherText = formatCurrency(strategy.voucher_value || 100);
+      const bookLink = document.getElementById('fbBookLink');
+      if (strategy.booking_url) {
+        bookLink.href = strategy.booking_url;
+        setText('fbConfirmText', 'Your ' + voucherText + ' voucher is ready. Click below to book your consultation.');
+        bookLink.style.display = 'inline-block';
+      } else {
+        setText('fbConfirmText', 'Your ' + voucherText + ' voucher is ready. We will be in touch shortly to arrange your consultation.');
+        bookLink.style.display = 'none';
+      }
+      window.scrollTo({ top: document.getElementById('fbConfirm').offsetTop, behavior: 'smooth' });
+    } catch (err) {
+      console.error(err);
+      showMsg(msg, err.message || 'Something went wrong. Please try again.', 'error');
+      btn.disabled = false;
+      btn.textContent = 'Submit feedback';
+    }
+  }
+
+  function init() {
+    loadStrategy();
+  }
+
+  window.feedback = { init, handleSubmit, getQuestions };
+  init();
+})();
+</script>
+
+</body>
+</html>
