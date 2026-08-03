@@ -35,7 +35,9 @@ values (
     {"section":"fitness","question":"Are you 100% satisfied with your gym journey and results?"},
     {"section":"fitness","question":"If we could help you achieve one goal with your health and fitness, what would it be?"}
   ]'::jsonb,
-  'For your voucher, let''s book you in to address your goals. The consultation is fully paid for thanks to your feedback.'
+  'For your voucher, let''s book you in to address your goals. The consultation is fully paid for thanks to your feedback.',
+  'Help us improve your gym',
+  'Quick feedback survey — claim your coaching voucher'
 )
 on conflict (id) do update set
   name = excluded.name,
