@@ -64,10 +64,17 @@
         <div class="confirm-mark">✓</div>
         <h3>Thank you for your feedback.</h3>
         <p id="fbConfirmText">Your voucher is ready. Use the button below to book your consultation.</p>
-        <p id="fbBookButtons" class="mt-2" style="display:none;">
-          <a id="fbBookLink" href="#" target="_blank" class="btn-primary" style="display:inline-block;">Book my consultation</a>
-          <a id="fbBookLink2" href="#" target="_blank" class="btn-primary" style="display:none; margin-left:8px;">Book at Gym 2</a>
-        </p>
+        <div id="fbBookArea" class="mt-2" style="display:none;">
+          <div class="form-row" id="fbClubRow" style="display:none;">
+            <label for="fbClubSelect">Select the club you would like to book into</label>
+            <select id="fbClubSelect">
+              <option value="" disabled selected>Choose a club...</option>
+            </select>
+          </div>
+          <p class="mt-2">
+            <a id="fbBookNow" href="#" target="_blank" class="btn-primary" style="display:inline-block;">Book my consultation</a>
+          </p>
+        </div>
         <p class="mt-2"><a href="index.html" class="btn-ghost">Back to home</a></p>
       </div>
     </div>
@@ -199,7 +206,7 @@
       setText('fbHeadline', strategy.form_headline || 'Help us improve your gym.');
       setText('fbSub', strategy.form_subheadline || "We're collecting honest feedback from members. It takes 90 seconds, and as a thank-you we'll give you a voucher to put toward a coaching consultation.");
       setText('fbVoucher', formatCurrency(strategy.voucher_value || 100) + ' voucher');
-      setText('fbVoucherDesc', 'Use it toward a 1:1 goal-setting session' + ((strategy.booking_url || strategy.booking_url_2) ? ' when you book through the link at the end.' : '.'));
+      setText('fbVoucherDesc', 'Use it toward a 1:1 goal-setting session' + ((strategy.booking_url || strategy.booking_url_2) ? ' when you book through the link after submitting.' : '.'));
       setText('fbEyebrow', 'Quick survey · ' + (strategy.name || 'Member feedback'));
     }
     renderQuestions();
@@ -265,34 +272,40 @@
       confirm.classList.add('show');
 
       const voucherText = formatCurrency(strategy.voucher_value || 100);
-      const bookLink = document.getElementById('fbBookLink');
-      const bookLink2 = document.getElementById('fbBookLink2');
-      const bookButtons = document.getElementById('fbBookButtons');
-      const hasPrimary = strategy.booking_url;
-      const hasSecondary = strategy.booking_url_2;
+      const bookArea = document.getElementById('fbBookArea');
+      const clubRow = document.getElementById('fbClubRow');
+      const clubSelect = document.getElementById('fbClubSelect');
+      const bookNow = document.getElementById('fbBookNow');
 
-      if (hasPrimary || hasSecondary) {
-        setText('fbConfirmText', 'Your ' + voucherText + ' voucher is ready. Choose the gym you would like to book at.');
-        bookButtons.style.display = 'block';
+      const clubs = [];
+      if (strategy.booking_url) {
+        clubs.push({ label: strategy.booking_label || 'Club 1', url: strategy.booking_url });
+      }
+      if (strategy.booking_url_2) {
+        clubs.push({ label: strategy.booking_label_2 || 'Club 2', url: strategy.booking_url_2 });
+      }
+
+      if (clubs.length) {
+        setText('fbConfirmText', 'Your ' + voucherText + ' voucher is ready.');
+        bookArea.style.display = 'block';
+
+        if (clubs.length === 1) {
+          clubRow.style.display = 'none';
+          bookNow.href = clubs[0].url;
+          bookNow.textContent = 'Book at ' + clubs[0].label;
+        } else {
+          clubRow.style.display = 'block';
+          clubSelect.innerHTML = '<option value="" disabled selected>Choose a club...</option>' +
+            clubs.map(function (c) { return '<option value="' + escapeHtml(c.url) + '"'>' + escapeHtml(c.label) + '</option>'; }).join('');
+          bookNow.href = '#';
+          bookNow.textContent = 'Book my consultation';
+          clubSelect.onchange = function () {
+            bookNow.href = clubSelect.value || '#';
+          };
+        }
       } else {
         setText('fbConfirmText', 'Your ' + voucherText + ' voucher is ready. We will be in touch shortly to arrange your consultation.');
-        bookButtons.style.display = 'none';
-      }
-
-      if (hasPrimary) {
-        bookLink.href = strategy.booking_url;
-        bookLink.textContent = strategy.booking_label || 'Book my consultation';
-        bookLink.style.display = 'inline-block';
-      } else {
-        bookLink.style.display = 'none';
-      }
-
-      if (hasSecondary) {
-        bookLink2.href = strategy.booking_url_2;
-        bookLink2.textContent = strategy.booking_label_2 || 'Book at Gym 2';
-        bookLink2.style.display = 'inline-block';
-      } else {
-        bookLink2.style.display = 'none';
+        bookArea.style.display = 'none';
       }
       window.scrollTo({ top: document.getElementById('fbConfirm').offsetTop, behavior: 'smooth' });
     } catch (err) {
