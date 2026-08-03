@@ -305,7 +305,7 @@
         } else {
           clubRow.style.display = 'block';
           clubSelect.innerHTML = '<option value="" disabled selected>Choose a club...</option>' +
-            clubs.map(function (c) { return '<option value="' + escapeHtml(c.url) + '"'>' + escapeHtml(c.label) + '</option>'; }).join('');
+            clubs.map(function (c) { return '<option value="' + escapeHtml(c.url) + "">" + escapeHtml(c.label) + '</option>'; }).join('');
           bookNow.href = '#';
           bookNow.textContent = 'Book my consultation';
           clubSelect.onchange = function () {
