@@ -64,8 +64,9 @@
         <div class="confirm-mark">✓</div>
         <h3>Thank you for your feedback.</h3>
         <p id="fbConfirmText">Your voucher is ready. Use the button below to book your consultation.</p>
-        <p class="mt-2">
+        <p id="fbBookButtons" class="mt-2" style="display:none;">
           <a id="fbBookLink" href="#" target="_blank" class="btn-primary" style="display:inline-block;">Book my consultation</a>
+          <a id="fbBookLink2" href="#" target="_blank" class="btn-primary" style="display:none; margin-left:8px;">Book at Gym 2</a>
         </p>
         <p class="mt-2"><a href="index.html" class="btn-ghost">Back to home</a></p>
       </div>
@@ -188,7 +189,7 @@
       setText('fbHeadline', strategy.form_headline || 'Help us improve your gym.');
       setText('fbSub', strategy.form_subheadline || "We're collecting honest feedback from members. It takes 90 seconds, and as a thank-you we'll give you a voucher to put toward a coaching consultation.");
       setText('fbVoucher', formatCurrency(strategy.voucher_value || 100) + ' voucher');
-      setText('fbVoucherDesc', 'Use it toward a 1:1 goal-setting session' + (strategy.booking_url ? ' when you book through the link at the end.' : '.'));
+      setText('fbVoucherDesc', 'Use it toward a 1:1 goal-setting session' + ((strategy.booking_url || strategy.booking_url_2) ? ' when you book through the link at the end.' : '.'));
       setText('fbEyebrow', 'Quick survey · ' + (strategy.name || 'Member feedback'));
     }
     renderQuestions();
@@ -255,13 +256,33 @@
 
       const voucherText = formatCurrency(strategy.voucher_value || 100);
       const bookLink = document.getElementById('fbBookLink');
-      if (strategy.booking_url) {
-        bookLink.href = strategy.booking_url;
-        setText('fbConfirmText', 'Your ' + voucherText + ' voucher is ready. Click below to book your consultation.');
-        bookLink.style.display = 'inline-block';
+      const bookLink2 = document.getElementById('fbBookLink2');
+      const bookButtons = document.getElementById('fbBookButtons');
+      const hasPrimary = strategy.booking_url;
+      const hasSecondary = strategy.booking_url_2;
+
+      if (hasPrimary || hasSecondary) {
+        setText('fbConfirmText', 'Your ' + voucherText + ' voucher is ready. Choose the gym you would like to book at.');
+        bookButtons.style.display = 'block';
       } else {
         setText('fbConfirmText', 'Your ' + voucherText + ' voucher is ready. We will be in touch shortly to arrange your consultation.');
+        bookButtons.style.display = 'none';
+      }
+
+      if (hasPrimary) {
+        bookLink.href = strategy.booking_url;
+        bookLink.textContent = strategy.booking_label || 'Book my consultation';
+        bookLink.style.display = 'inline-block';
+      } else {
         bookLink.style.display = 'none';
+      }
+
+      if (hasSecondary) {
+        bookLink2.href = strategy.booking_url_2;
+        bookLink2.textContent = strategy.booking_label_2 || 'Book at Gym 2';
+        bookLink2.style.display = 'inline-block';
+      } else {
+        bookLink2.style.display = 'none';
       }
       window.scrollTo({ top: document.getElementById('fbConfirm').offsetTop, behavior: 'smooth' });
     } catch (err) {

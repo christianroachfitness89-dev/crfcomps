@@ -380,6 +380,9 @@
       utm_campaign: document.getElementById('stratUtmCampaign').value.trim() || null,
       voucher_value: parseFloat(document.getElementById('stratVoucherValue').value) || 100,
       booking_url: document.getElementById('stratBookingUrl').value.trim() || null,
+      booking_url_2: document.getElementById('stratBookingUrl2').value.trim() || null,
+      booking_label: document.getElementById('stratBookingLabel').value.trim() || null,
+      booking_label_2: document.getElementById('stratBookingLabel2').value.trim() || null,
       closing_script: document.getElementById('stratClosingScript').value.trim() || null,
       survey_questions: parseSurveyQuestions(document.getElementById('stratSurveyQuestions').value),
       sms_template: document.getElementById('stratSmsTemplate').value.trim() || null,
@@ -584,8 +587,13 @@
       '<div class="form-row"><label>UTM campaign</label><input type="text" id="edit-strat-utm-campaign-' + id + '" value="' + escapeHtml(s.utm_campaign || '') + '"></div>' +
       '<div class="two-col">' +
         '<div class="form-row"><label>Voucher value ($)</label><input type="number" id="edit-strat-voucher-' + id + '" value="' + (s.voucher_value === null || s.voucher_value === undefined ? 100 : Number(s.voucher_value)) + '" min="0" step="1"></div>' +
-        '<div class="form-row"><label>Booking URL (Calendly etc.)</label><input type="url" id="edit-strat-booking-' + id + '" value="' + escapeHtml(s.booking_url || '') + '" placeholder="https://calendly.com/..."></div>' +
+        '<div class="form-row"><label>Booking URL (Gym 1)</label><input type="url" id="edit-strat-booking-' + id + '" value="' + escapeHtml(s.booking_url || '') + '" placeholder="https://calendly.com/..."></div>' +
       '</div>' +
+      '<div class="two-col">' +
+        '<div class="form-row"><label>Booking label (Gym 1)</label><input type="text" id="edit-strat-booking-label-' + id + '" value="' + escapeHtml(s.booking_label || '') + '" placeholder="e.g. North Gym"></div>' +
+        '<div class="form-row"><label>Booking URL (Gym 2)</label><input type="url" id="edit-strat-booking-2-' + id + '" value="' + escapeHtml(s.booking_url_2 || '') + '" placeholder="https://calendly.com/..."></div>' +
+      '</div>' +
+      '<div class="form-row"><label>Booking label (Gym 2)</label><input type="text" id="edit-strat-booking-label-2-' + id + '" value="' + escapeHtml(s.booking_label_2 || '') + '" placeholder="e.g. South Gym"></div>' +
       '<div class="form-row"><label>Closing script / voucher offer</label><textarea id="edit-strat-closing-' + id + '" rows="2" placeholder="For your voucher, let\'s book you in to address your goals...">' + escapeHtml(s.closing_script || '') + '</textarea></div>' +
       '<div class="form-row"><label>Survey questions</label><textarea id="edit-strat-questions-' + id + '" rows="6" placeholder="Paste JSON array, or one question per line">' + escapeHtml(stringifySurveyQuestions(s.survey_questions)) + '</textarea>' +
         '<p style="font-size:13px;color:var(--ink-soft);margin-top:6px;">JSON format: <b>[{&quot;section&quot;:&quot;gym&quot;,&quot;question&quot;:&quot;...&quot;}]</b>. Leave blank for default Flawless Feedback questions.</p></div>' +
@@ -619,6 +627,9 @@
       utm_campaign: document.getElementById('edit-strat-utm-campaign-' + id).value.trim() || null,
       voucher_value: parseFloat(document.getElementById('edit-strat-voucher-' + id).value) || 100,
       booking_url: document.getElementById('edit-strat-booking-' + id).value.trim() || null,
+      booking_url_2: document.getElementById('edit-strat-booking-2-' + id).value.trim() || null,
+      booking_label: document.getElementById('edit-strat-booking-label-' + id).value.trim() || null,
+      booking_label_2: document.getElementById('edit-strat-booking-label-2-' + id).value.trim() || null,
       closing_script: document.getElementById('edit-strat-closing-' + id).value.trim() || null,
       survey_questions: parseSurveyQuestions(document.getElementById('edit-strat-questions-' + id).value),
       sms_template: document.getElementById('edit-strat-sms-' + id).value.trim() || null,
@@ -1667,6 +1678,9 @@
       document.getElementById('feedbackSettingsSub').value = s.form_subheadline || '';
       document.getElementById('feedbackSettingsVoucher').value = s.voucher_value || 0;
       document.getElementById('feedbackSettingsBookingUrl').value = s.booking_url || '';
+      document.getElementById('feedbackSettingsBookingUrl2').value = s.booking_url_2 || '';
+      document.getElementById('feedbackSettingsBookingLabel').value = s.booking_label || '';
+      document.getElementById('feedbackSettingsBookingLabel2').value = s.booking_label_2 || '';
       document.getElementById('feedbackSettingsClosingScript').value = s.closing_script || '';
       document.getElementById('feedbackSettingsQuestions').value = stringifySurveyQuestions(s.survey_questions);
     } catch (err) {
@@ -1695,6 +1709,9 @@
       form_subheadline: document.getElementById('feedbackSettingsSub').value.trim(),
       voucher_value: isNaN(voucher) ? 0 : voucher,
       booking_url: document.getElementById('feedbackSettingsBookingUrl').value.trim() || null,
+      booking_url_2: document.getElementById('feedbackSettingsBookingUrl2').value.trim() || null,
+      booking_label: document.getElementById('feedbackSettingsBookingLabel').value.trim() || null,
+      booking_label_2: document.getElementById('feedbackSettingsBookingLabel2').value.trim() || null,
       closing_script: document.getElementById('feedbackSettingsClosingScript').value.trim() || null,
       survey_questions: parseSurveyQuestions(document.getElementById('feedbackSettingsQuestions').value)
     };

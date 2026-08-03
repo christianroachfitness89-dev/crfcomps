@@ -743,9 +743,23 @@
             <input type="number" id="stratVoucherValue" value="100" min="0" step="1">
           </div>
           <div class="form-row">
-            <label for="stratBookingUrl">Booking URL (Calendly etc.)</label>
+            <label for="stratBookingUrl">Booking URL — Gym 1</label>
             <input type="url" id="stratBookingUrl" placeholder="https://calendly.com/...">
           </div>
+        </div>
+        <div class="two-col">
+          <div class="form-row">
+            <label for="stratBookingLabel">Gym 1 label</label>
+            <input type="text" id="stratBookingLabel" placeholder="e.g. North Gym">
+          </div>
+          <div class="form-row">
+            <label for="stratBookingUrl2">Booking URL — Gym 2</label>
+            <input type="url" id="stratBookingUrl2" placeholder="https://calendly.com/...">
+          </div>
+        </div>
+        <div class="form-row">
+          <label for="stratBookingLabel2">Gym 2 label</label>
+          <input type="text" id="stratBookingLabel2" placeholder="e.g. South Gym">
         </div>
         <div class="form-row">
           <label for="stratClosingScript">Closing script / voucher offer</label>
@@ -942,9 +956,25 @@
           <label for="feedbackSettingsVoucher">Voucher value ($)</label>
           <input type="number" id="feedbackSettingsVoucher" min="0" step="1" placeholder="100">
         </div>
-        <div class="form-row">
-          <label for="feedbackSettingsBookingUrl">Calendly booking URL</label>
-          <input type="url" id="feedbackSettingsBookingUrl" placeholder="https://calendly.com/...">
+        <div class="two-col">
+          <div class="form-row">
+            <label for="feedbackSettingsBookingUrl">Booking URL — Gym 1</label>
+            <input type="url" id="feedbackSettingsBookingUrl" placeholder="https://calendly.com/...">
+          </div>
+          <div class="form-row">
+            <label for="feedbackSettingsBookingLabel">Gym 1 label</label>
+            <input type="text" id="feedbackSettingsBookingLabel" placeholder="e.g. North Gym">
+          </div>
+        </div>
+        <div class="two-col">
+          <div class="form-row">
+            <label for="feedbackSettingsBookingUrl2">Booking URL — Gym 2 (optional)</label>
+            <input type="url" id="feedbackSettingsBookingUrl2" placeholder="https://calendly.com/...">
+          </div>
+          <div class="form-row">
+            <label for="feedbackSettingsBookingLabel2">Gym 2 label</label>
+            <input type="text" id="feedbackSettingsBookingLabel2" placeholder="e.g. South Gym">
+          </div>
         </div>
         <div class="form-row">
           <label for="feedbackSettingsClosingScript">Closing script / confirmation message</label>

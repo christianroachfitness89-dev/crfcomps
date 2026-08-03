@@ -30,6 +30,9 @@ create table if not exists public.marketing_strategies (
   form_subheadline text,
   voucher_value numeric not null default 100,
   booking_url text,
+  booking_url_2 text,
+  booking_label text,
+  booking_label_2 text,
   survey_questions jsonb default '[]'::jsonb,
   closing_script text,
   created_at timestamptz not null default now(),
@@ -44,6 +47,9 @@ alter table public.marketing_strategies
 alter table public.marketing_strategies
   add column if not exists voucher_value numeric not null default 100,
   add column if not exists booking_url text,
+  add column if not exists booking_url_2 text,
+  add column if not exists booking_label text,
+  add column if not exists booking_label_2 text,
   add column if not exists survey_questions jsonb default '[]'::jsonb,
   add column if not exists closing_script text;
 
