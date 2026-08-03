@@ -1214,29 +1214,32 @@
   function downloadPdf() {
     const tmpl = state.templates.find(function (t) { return t.key === state.currentKey; });
     const answers = collectAnswers();
-    const element = document.createElement('div');
-    element.innerHTML = buildPdfHtml(tmpl, answers);
-    element.className = 'pdf-export-visible';
-    element.style.position = 'fixed';
-    element.style.left = '-9999px';
-    element.style.top = '0';
-    element.style.width = '210mm';
-    document.body.appendChild(element);
+    const html = buildPdfHtml(tmpl, answers);
+    const wrapper = document.createElement('div');
+    wrapper.innerHTML = html;
+    wrapper.style.position = 'absolute';
+    wrapper.style.left = '0';
+    wrapper.style.top = '0';
+    wrapper.style.width = '794px';
+    wrapper.style.minHeight = '1123px';
+    wrapper.style.background = '#fff';
+    wrapper.style.zIndex = '-1000';
+    document.body.appendChild(wrapper);
 
     const opt = {
-      margin: 10,
+      margin: 0,
       filename: tmpl.key + '_' + new Date().toISOString().slice(0, 10) + '.pdf',
-      image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { scale: 2, useCORS: true, scrollY: 0 },
-      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      image: { type: 'jpeg', quality: 1 },
+      html2canvas: { scale: 2, useCORS: true, scrollY: 0, windowWidth: 794 },
+      jsPDF: { unit: 'px', format: [794, 1123], orientation: 'portrait' }
     };
 
-    html2pdf().set(opt).from(element).save().then(function () {
-      element.remove();
+    html2pdf().set(opt).from(wrapper).save().then(function () {
+      wrapper.remove();
     }).catch(function (err) {
       console.error('PDF error:', err);
       alert('Could not generate PDF: ' + err.message);
-      element.remove();
+      wrapper.remove();
     });
   }
 
