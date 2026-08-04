@@ -236,6 +236,7 @@
       allLeads = leadsRes.data || [];
 
       populateStrategySelects();
+      populateClubSelects();
       renderDashboard();
       renderStrategies();
       renderCompetitions();
@@ -342,11 +343,12 @@
       return;
     }
     let html = '<table class="dash-table">' +
-      '<thead><tr><th>Name</th><th>Phone</th><th>Pool</th><th>Source</th><th>Status</th><th>Entered</th></tr></thead><tbody>';
+      '<thead><tr><th>Name</th><th>Phone</th><th>Club</th><th>Pool</th><th>Source</th><th>Status</th><th>Entered</th></tr></thead><tbody>';
     leads.forEach(function (l) {
       html += '<tr>' +
-        '<td>' + escapeHtml(l.full_name || '-') + '</td>' +
+        '<td><a href="#" onclick="openLeadProfile(\'' + l.id + '\'); return false;" style="font-weight:600;color:var(--brand);">' + escapeHtml(l.full_name || '-') + '</a></td>' +
         '<td>' + escapeHtml(l.phone || '-') + '</td>' +
+        '<td>' + escapeHtml(l.club || '-') + '</td>' +
         '<td>' + poolLabel(l.pool) + '</td>' +
         '<td>' + escapeHtml(l.source || '-') + '</td>' +
         '<td>' + statusBadge(l.status) + '</td>' +
@@ -1001,6 +1003,24 @@
     setTimeout(function () { openBulkSmsPanel('birthday'); }, 50);
   }
 
+  function getUniqueClubs() {
+    const clubs = new Set();
+    allLeads.forEach(function (l) {
+      if (l.club) clubs.add(l.club);
+    });
+    return Array.from(clubs).sort();
+  }
+
+  function populateClubSelects() {
+    const clubs = getUniqueClubs();
+    document.querySelectorAll('.pool-club').forEach(function (sel) {
+      const current = sel.value;
+      sel.innerHTML = '<option value="all">All clubs</option>' +
+        clubs.map(function (c) { return '<option value="' + escapeHtml(c) + '">' + escapeHtml(c) + '</option>'; }).join('');
+      sel.value = clubs.includes(current) ? current : 'all';
+    });
+  }
+
   function renderLeadPool(pool) {
     const page = document.getElementById('page-' + pool);
     if (!page) return;
@@ -1009,6 +1029,8 @@
     const compFilter = page.querySelector('.pool-comp').value;
     const sourceFilterEl = page.querySelector('.pool-source');
     const sourceFilter = sourceFilterEl ? sourceFilterEl.value : 'all';
+    const clubFilterEl = page.querySelector('.pool-club');
+    const clubFilter = clubFilterEl ? clubFilterEl.value : 'all';
     const statusFilter = page.querySelector('.pool-status').value;
 
     let filtered = allLeads.filter(function (l) {
@@ -1023,9 +1045,10 @@
       const matchesStrategy = strategyFilter === 'all' || l.strategy_id === strategyFilter;
       const matchesComp = compFilter === 'all' || l.competition_id === compFilter;
       const matchesSource = sourceFilter === 'all' || l.source === sourceFilter;
+      const matchesClub = clubFilter === 'all' || l.club === clubFilter;
       const matchesStatus = statusFilter === 'all' || l.status === statusFilter;
       const matchesBirthdayToday = pool !== 'birthday' || !birthdayTodayFilterActive || isBirthdayToday(l.birthday);
-      return matchesSearch && matchesStrategy && matchesComp && matchesSource && matchesStatus && matchesBirthdayToday;
+      return matchesSearch && matchesStrategy && matchesComp && matchesSource && matchesClub && matchesStatus && matchesBirthdayToday;
     });
 
     // Stats
@@ -1053,6 +1076,7 @@
         '<th>Name</th>' +
         '<th>Email</th>' +
         '<th>Phone</th>' +
+        '<th>Club</th>' +
         '<th>Strategy</th>' +
         '<th>Giveaway</th>' +
         '<th>Source</th>' +
@@ -1065,9 +1089,10 @@
     filtered.forEach(function (l) {
       html += '<tr>' +
         '<td><input type="checkbox" class="lead-check lead-check-' + pool + '" value="' + escapeHtml(l.id) + '" onchange="updateSelectAllState(\'' + pool + '\')"></td>' +
-        '<td>' + escapeHtml(l.full_name || '-') + '</td>' +
+        '<td><a href="#" onclick="openLeadProfile(\'' + l.id + '\'); return false;" style="font-weight:600;color:var(--brand);">' + escapeHtml(l.full_name || '-') + '</a></td>' +
         '<td>' + escapeHtml(l.email || '') + '</td>' +
         '<td>' + renderPhoneLinks(l.phone) + '</td>' +
+        '<td>' + escapeHtml(l.club || '-') + '</td>' +
         '<td>' + escapeHtml(getStrategyName(l.strategy_id)) + '</td>' +
         '<td>' + escapeHtml(getCompName(l.competition_id)) + '</td>' +
         '<td>' + escapeHtml(l.source || '-') + '</td>' +
@@ -1506,6 +1531,46 @@
     }
   }
 
+  function openLeadProfile(id) {
+    const lead = allLeads.find(function (x) { return x.id === id; });
+    if (!lead) return;
+    document.getElementById('leadProfileId').value = lead.id;
+    document.getElementById('leadProfileName').textContent = lead.full_name || 'Lead Profile';
+    document.getElementById('leadProfilePhone').innerHTML = renderPhoneLinks(lead.phone) || '-';
+    document.getElementById('leadProfileEmail').textContent = lead.email || '-';
+    document.getElementById('leadProfileClub').value = lead.club || '';
+    document.getElementById('leadProfileNotes').value = lead.notes || '';
+    document.getElementById('leadProfileStatus').innerHTML = renderStatusOptions(lead.status);
+    document.getElementById('leadProfileModal').style.display = 'flex';
+  }
+
+  function closeLeadProfile() {
+    document.getElementById('leadProfileModal').style.display = 'none';
+  }
+
+  async function saveLeadProfile() {
+    const id = document.getElementById('leadProfileId').value;
+    const lead = allLeads.find(function (x) { return x.id === id; });
+    if (!lead) return;
+
+    const payload = {
+      club: document.getElementById('leadProfileClub').value.trim() || null,
+      notes: document.getElementById('leadProfileNotes').value.trim() || null,
+      status: document.getElementById('leadProfileStatus').value,
+      updated_at: new Date().toISOString()
+    };
+
+    try {
+      const { error } = await client.from('leads').update(payload).eq('id', id);
+      if (error) throw error;
+      await loadData();
+      closeLeadProfile();
+    } catch (err) {
+      alert('Could not save lead profile: ' + (err.message || err));
+      console.error(err);
+    }
+  }
+
   async function logCall(id) {
     const note = prompt('Call note (optional):');
     if (note === null) return;
@@ -1544,6 +1609,8 @@
     const compFilter = page.querySelector('.pool-comp').value;
     const sourceFilterEl = page.querySelector('.pool-source');
     const sourceFilter = sourceFilterEl ? sourceFilterEl.value : 'all';
+    const clubFilterEl = page.querySelector('.pool-club');
+    const clubFilter = clubFilterEl ? clubFilterEl.value : 'all';
     const statusFilter = page.querySelector('.pool-status').value;
 
     let poolLeads = allLeads.filter(function (l) { return (l.pool || 'giveaway') === pool; });
@@ -1551,8 +1618,9 @@
       const matchesStrategy = strategyFilter === 'all' || l.strategy_id === strategyFilter;
       const matchesComp = compFilter === 'all' || l.competition_id === compFilter;
       const matchesSource = sourceFilter === 'all' || l.source === sourceFilter;
+      const matchesClub = clubFilter === 'all' || l.club === clubFilter;
       const matchesStatus = statusFilter === 'all' || l.status === statusFilter;
-      return matchesStrategy && matchesComp && matchesSource && matchesStatus;
+      return matchesStrategy && matchesComp && matchesSource && matchesClub && matchesStatus;
     });
 
     if (!poolLeads.length) {
@@ -1597,12 +1665,15 @@
     const compFilter = page.querySelector('.pool-comp').value;
     const sourceFilterEl = page.querySelector('.pool-source');
     const sourceFilter = sourceFilterEl ? sourceFilterEl.value : 'all';
+    const clubFilterEl = page.querySelector('.pool-club');
+    const clubFilter = clubFilterEl ? clubFilterEl.value : 'all';
     const statusFilter = page.querySelector('.pool-status').value;
 
     const isBirthdayPool = pool === 'birthday';
+    const baseHeaders = ['Name', 'Email', 'Phone', 'Club', 'Strategy', 'Giveaway', 'Source', 'Status', 'Opt In', 'Entered At', 'Notes'];
     const headers = isBirthdayPool
-      ? ['Name', 'Email', 'Phone', 'Strategy', 'Giveaway', 'Source', 'Status', 'Opt In', 'Entered At', 'Birthday', 'Tags']
-      : ['Name', 'Email', 'Phone', 'Strategy', 'Giveaway', 'Source', 'Status', 'Opt In', 'Entered At', 'Tags'];
+      ? baseHeaders.concat(['Birthday', 'Tags'])
+      : baseHeaders.concat(['Tags']);
     const rows = [headers];
 
     allLeads.forEach(function (l) {
@@ -1614,19 +1685,22 @@
       const matchesStrategy = strategyFilter === 'all' || l.strategy_id === strategyFilter;
       const matchesComp = compFilter === 'all' || l.competition_id === compFilter;
       const matchesSource = sourceFilter === 'all' || l.source === sourceFilter;
+      const matchesClub = clubFilter === 'all' || l.club === clubFilter;
       const matchesStatus = statusFilter === 'all' || l.status === statusFilter;
-      if (!matchesSearch || !matchesStrategy || !matchesComp || !matchesSource || !matchesStatus) return;
+      if (!matchesSearch || !matchesStrategy || !matchesComp || !matchesSource || !matchesClub || !matchesStatus) return;
 
       const base = [
         l.full_name || '',
         l.email || '',
         l.phone || '',
+        l.club || '',
         getStrategyName(l.strategy_id),
         getCompName(l.competition_id),
         l.source || '',
         l.status || '',
         l.opt_in ? 'Yes' : 'No',
-        l.created_at || ''
+        l.created_at || '',
+        l.notes || ''
       ];
       if (isBirthdayPool) base.push(l.birthday || '');
       base.push((l.tags || []).join('; '));
@@ -1791,6 +1865,8 @@
   function renderFeedbackResponses() {
     const search = (document.getElementById('feedbackSearch').value || '').toLowerCase();
     const statusFilter = document.getElementById('feedbackStatusFilter').value;
+    const clubFilterEl = document.getElementById('feedbackClubFilter');
+    const clubFilter = clubFilterEl ? clubFilterEl.value : 'all';
 
     let filtered = allLeads.filter(function (l) {
       return l.source === 'flawless_feedback';
@@ -1802,7 +1878,8 @@
         (l.email || '').toLowerCase().includes(search) ||
         (l.phone || '').toLowerCase().includes(search);
       const matchesStatus = statusFilter === 'all' || l.status === statusFilter;
-      return matchesSearch && matchesStatus;
+      const matchesClub = clubFilter === 'all' || l.club === clubFilter;
+      return matchesSearch && matchesStatus && matchesClub;
     });
 
     const container = document.getElementById('feedbackResponsesTable');
@@ -1816,6 +1893,7 @@
         '<th>Name</th>' +
         '<th>Phone</th>' +
         '<th>Email</th>' +
+        '<th>Club</th>' +
         '<th>Submitted</th>' +
         '<th>Status</th>' +
         '<th>Responses</th>' +
@@ -1835,9 +1913,10 @@
       }
 
       html += '<tr>' +
-        '<td>' + escapeHtml(l.full_name || '-') + '</td>' +
+        '<td><a href="#" onclick="openLeadProfile(\'' + l.id + '\'); return false;" style="font-weight:600;color:var(--brand);">' + escapeHtml(l.full_name || '-') + '</a></td>' +
         '<td>' + renderPhoneLinks(l.phone) + '</td>' +
         '<td>' + escapeHtml(l.email || '-') + '</td>' +
+        '<td>' + escapeHtml(l.club || '-') + '</td>' +
         '<td>' + fmtDateShort(l.created_at) + '</td>' +
         '<td><select onchange="updateLeadStatus(\'' + l.id + '\', this.value)" style="font-size:12px;padding:4px 8px;border-radius:var(--radius);border:1.5px solid var(--line);">' + renderStatusOptions(l.status) + '</select></td>' +
         '<td>' + responseHtml + '</td>' +
@@ -1851,6 +1930,8 @@
   function exportFeedbackResponses() {
     const search = (document.getElementById('feedbackSearch').value || '').toLowerCase();
     const statusFilter = document.getElementById('feedbackStatusFilter').value;
+    const clubFilterEl = document.getElementById('feedbackClubFilter');
+    const clubFilter = clubFilterEl ? clubFilterEl.value : 'all';
 
     let filtered = allLeads.filter(function (l) {
       return l.source === 'flawless_feedback';
@@ -1860,18 +1941,19 @@
         (l.email || '').toLowerCase().includes(search) ||
         (l.phone || '').toLowerCase().includes(search);
       const matchesStatus = statusFilter === 'all' || l.status === statusFilter;
-      return matchesSearch && matchesStatus;
+      const matchesClub = clubFilter === 'all' || l.club === clubFilter;
+      return matchesSearch && matchesStatus && matchesClub;
     });
 
-    const headers = ['Name', 'Phone', 'Email', 'Submitted', 'Status', 'Question', 'Answer'];
+    const headers = ['Name', 'Phone', 'Email', 'Club', 'Submitted', 'Status', 'Question', 'Answer'];
     const rows = [headers];
     filtered.forEach(function (l) {
       const responses = parseFeedbackTags(l.tags);
       if (!responses.length) {
-        rows.push([l.full_name || '', l.phone || '', l.email || '', l.created_at || '', l.status || '', '', '']);
+        rows.push([l.full_name || '', l.phone || '', l.email || '', l.club || '', l.created_at || '', l.status || '', '', '']);
       } else {
         responses.forEach(function (r) {
-          rows.push([l.full_name || '', l.phone || '', l.email || '', l.created_at || '', l.status || '', r.question, r.answer]);
+          rows.push([l.full_name || '', l.phone || '', l.email || '', l.club || '', l.created_at || '', l.status || '', r.question, r.answer]);
         });
       }
     });
@@ -2045,12 +2127,13 @@
     const emailIdx = headers.indexOf('email');
     const mobileIdx = headers.indexOf('mobile');
     const optInIdx = headers.indexOf('opt_in');
+    const clubIdx = headers.indexOf('club');
 
     if (firstNameIdx === -1 || lastNameIdx === -1 || mobileIdx === -1) {
       throw new Error('CSV/Excel must have first_name, last_name and mobile columns.');
     }
 
-    const known = new Set(['first_name', 'last_name', 'email', 'mobile', 'opt_in', 'birthday', 'birthday_on', 'dob', 'date_of_birth', 'birthday_day']);
+    const known = new Set(['first_name', 'last_name', 'email', 'mobile', 'opt_in', 'club', 'birthday', 'birthday_on', 'dob', 'date_of_birth', 'birthday_day']);
     const extraIndexes = headers.map(function (h, i) {
       return known.has(h) ? -1 : i;
     }).filter(function (i) { return i !== -1; });
@@ -2095,6 +2178,7 @@
         email: email || null,
         phone: mobile,
         opt_in: optInIdx === -1 ? true : parseOptIn(row[optInIdx]),
+        club: clubIdx === -1 ? null : String(row[clubIdx] || '').trim() || null,
         tags: tags.length ? tags : null,
         birthday: birthday
       });
@@ -2151,6 +2235,7 @@
       '<thead><tr><th style="text-align:left;padding:6px;border-bottom:1px solid var(--line);">Name</th>' +
       '<th style="text-align:left;padding:6px;border-bottom:1px solid var(--line);">Email</th>' +
       '<th style="text-align:left;padding:6px;border-bottom:1px solid var(--line);">Mobile</th>' +
+      '<th style="text-align:left;padding:6px;border-bottom:1px solid var(--line);">Club</th>' +
       (isBirthdayPool ? '<th style="text-align:left;padding:6px;border-bottom:1px solid var(--line);">Birthday</th>' : '') +
       '<th style="text-align:left;padding:6px;border-bottom:1px solid var(--line);">Extra tags</th></tr></thead><tbody>';
     leads.slice(0, 10).forEach(function (l) {
@@ -2158,11 +2243,12 @@
       html += '<tr><td style="padding:6px;border-bottom:1px solid var(--paper-2);">' + escapeHtml(l.full_name) + '</td>' +
         '<td style="padding:6px;border-bottom:1px solid var(--paper-2);">' + escapeHtml(l.email) + '</td>' +
         '<td style="padding:6px;border-bottom:1px solid var(--paper-2);">' + escapeHtml(l.phone || '-') + '</td>' +
+        '<td style="padding:6px;border-bottom:1px solid var(--paper-2);">' + escapeHtml(l.club || '-') + '</td>' +
         (isBirthdayPool ? '<td style="padding:6px;border-bottom:1px solid var(--paper-2);">' + escapeHtml(formatBirthday(l.birthday)) + '</td>' : '') +
         '<td style="padding:6px;border-bottom:1px solid var(--paper-2);" title="' + escapeHtml(extras) + '">' + escapeHtml(extras.slice(0, 40) + (extras.length > 40 ? '...' : '')) + '</td></tr>';
     });
     if (leads.length > 10) {
-      html += '<tr><td colspan="' + (isBirthdayPool ? 5 : 4) + '" style="padding:6px;color:var(--ink-soft);">... and ' + (leads.length - 10) + ' more</td></tr>';
+      html += '<tr><td colspan="' + (isBirthdayPool ? 6 : 5) + '" style="padding:6px;color:var(--ink-soft);">... and ' + (leads.length - 10) + ' more</td></tr>';
     }
     html += '</tbody></table>';
     container.innerHTML = html;
@@ -2334,6 +2420,9 @@
   window.activateFeedbackStrategy = activateFeedbackStrategy;
   window.renderFeedbackResponses = renderFeedbackResponses;
   window.exportFeedbackResponses = exportFeedbackResponses;
+  window.openLeadProfile = openLeadProfile;
+  window.closeLeadProfile = closeLeadProfile;
+  window.saveLeadProfile = saveLeadProfile;
   window.handleSignOut = handleSignOut;
   window.loadData = loadData;
 

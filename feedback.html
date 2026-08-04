@@ -56,6 +56,13 @@
 
         <div id="fbQuestions"></div>
 
+        <div class="form-row" id="fbClubField" style="display:none;">
+          <label for="fbClub">Which club do you train at?</label>
+          <select id="fbClub" required>
+            <option value="" disabled selected>Select a club...</option>
+          </select>
+        </div>
+
         <div class="check-row">
           <input type="checkbox" id="fbOptin" checked>
           <label for="fbOptin">I agree to be contacted about my feedback and the coaching voucher. I can unsubscribe at any time.</label>
@@ -216,6 +223,19 @@
       setText('fbVoucher', formatCurrency(strategy.voucher_value || 100) + ' voucher');
       setText('fbVoucherDesc', 'Use it toward a 1:1 goal-setting session' + ((strategy.booking_url || strategy.booking_url_2) ? ' when you book through the link after submitting.' : '.'));
       setText('fbEyebrow', 'Quick survey · ' + (strategy.name || 'Member feedback'));
+
+      const clubs = [];
+      if (strategy.booking_url) clubs.push(strategy.booking_label || 'Club 1');
+      if (strategy.booking_url_2) clubs.push(strategy.booking_label_2 || 'Club 2');
+      const clubField = document.getElementById('fbClubField');
+      const clubSelect = document.getElementById('fbClub');
+      if (clubField && clubSelect && clubs.length > 1) {
+        clubField.style.display = 'block';
+        clubSelect.innerHTML = '<option value="" disabled selected>Select a club...</option>' +
+          clubs.map(function (c) { return '<option value="' + escapeHtml(c) + '">' + escapeHtml(c) + '</option>'; }).join('');
+      } else if (clubField) {
+        clubField.style.display = 'none';
+      }
     }
     renderQuestions();
   }
@@ -258,9 +278,15 @@
     const phone = document.getElementById('fbPhone').value.trim();
     const email = document.getElementById('fbEmail').value.trim();
     const optIn = document.getElementById('fbOptin').checked;
+    const clubField = document.getElementById('fbClubField');
+    const club = clubField && clubField.style.display !== 'none' ? document.getElementById('fbClub').value : '';
 
     if (!name || !phone) {
       showMsg(msg, 'Please enter your name and phone number.', 'error');
+      return;
+    }
+    if (clubField && clubField.style.display !== 'none' && !club) {
+      showMsg(msg, 'Please select the club you train at.', 'error');
       return;
     }
 
@@ -295,6 +321,7 @@
         email: email || null,
         phone: phone,
         opt_in: optIn,
+        club: club || null,
         source: 'flawless_feedback',
         pool: 'new_member',
         status: 'entered',
@@ -326,28 +353,29 @@
         bookArea.style.display = 'block';
 
         const { first, last } = splitName(name);
-        if (clubs.length === 1) {
-          clubRow.style.display = 'none';
-          bookNow.href = encodeCalendlyUrl(clubs[0].url, {
+        const clubUrlMap = {};
+        clubs.forEach(function (c) {
+          clubUrlMap[c.label] = encodeCalendlyUrl(c.url, {
             first_name: first,
             last_name: last,
             email: email,
             phone: phone
           });
+        });
+
+        if (clubs.length === 1) {
+          clubRow.style.display = 'none';
+          bookNow.href = clubUrlMap[clubs[0].label];
           bookNow.textContent = 'Book at ' + clubs[0].label;
         } else {
           clubRow.style.display = 'block';
-          clubSelect.innerHTML = '<option value="" disabled selected>Choose a club...</option>' +
+          const chosenClub = club && clubs.find(function (c) { return c.label === club; });
+          clubSelect.innerHTML = '<option value="" disabled ' + (chosenClub ? '' : 'selected') + '>Choose a club...</option>' +
             clubs.map(function (c) {
-              const url = encodeCalendlyUrl(c.url, {
-                first_name: first,
-                last_name: last,
-                email: email,
-                phone: phone
-              });
-              return '<option value="' + escapeHtml(url) + '">' + escapeHtml(c.label) + '</option>';
+              const selected = chosenClub && c.label === chosenClub.label ? ' selected' : '';
+              return '<option value="' + escapeHtml(clubUrlMap[c.label]) + '"' + selected + '>' + escapeHtml(c.label) + '</option>';
             }).join('');
-          bookNow.href = '#';
+          bookNow.href = chosenClub ? clubUrlMap[chosenClub.label] : '#';
           bookNow.textContent = 'Book my consultation';
           clubSelect.onchange = function () {
             bookNow.href = clubSelect.value || '#';

@@ -121,6 +121,8 @@ create table if not exists public.leads (
   pool text not null default 'giveaway' check (pool in ('giveaway', 'new_member', 'non_attendance', 'birthday')),
   last_contact_at timestamptz,
   birthday date,
+  club text,
+  notes text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -159,6 +161,12 @@ create index if not exists idx_leads_birthday on public.leads(birthday);
 
 -- Migration: add updated_at column for lead status updates.
 alter table public.leads add column if not exists updated_at timestamptz not null default now();
+
+-- Migration: add club column for gym/location tracking.
+alter table public.leads add column if not exists club text;
+
+-- Migration: add notes column to leads.
+alter table public.leads add column if not exists notes text;
 
 -- Backfill existing rows to the giveaway pool if they have no pool set.
 update public.leads set pool = 'giveaway' where pool is null or pool = '';
