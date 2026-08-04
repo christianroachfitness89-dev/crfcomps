@@ -2546,11 +2546,13 @@
         email: l.email,
         phone: l.phone,
         opt_in: l.opt_in,
+        club: l.club,
         source: source,
         tags: l.tags,
         birthday: l.birthday,
         status: 'entered',
-        pool: pool
+        pool: pool,
+        updated_at: new Date().toISOString()
       };
     });
 
