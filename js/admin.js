@@ -49,6 +49,22 @@
   const ACTIVE_STATUSES = ['entered', 'called', 'no_answer', 'sms_sent', 'email_sent', 'follow_up', 'callback_requested', 'booked', 'no_show', 'contact_later'];
   const CLOSED_STATUSES = ['converted', 'not_interested', 'not_qualified', 'wrong_number', 'winner', 'runner_up', 'runner_up_2', 'disqualified'];
 
+  // Column metadata for lead pool tables. Order here defines default column order.
+  const LEAD_COLUMN_META = [
+    { key: 'select', label: '', fixed: true, default: true },
+    { key: 'name', label: 'Name', default: true },
+    { key: 'email', label: 'Email', default: true },
+    { key: 'phone', label: 'Phone', default: true },
+    { key: 'club', label: 'Club', default: true },
+    { key: 'strategy', label: 'Strategy', default: false },
+    { key: 'giveaway', label: 'Giveaway', default: false },
+    { key: 'source', label: 'Source', default: false },
+    { key: 'entered', label: 'Entered', default: true },
+    { key: 'birthday', label: 'Birthday', default: true, pools: ['birthday'] },
+    { key: 'status', label: 'Status', default: true },
+    { key: 'actions', label: '', fixed: true, default: true }
+  ];
+
   // ---------- utilities ----------
 
   function showMsg(el, text, type) {
@@ -1021,6 +1037,66 @@
     });
   }
 
+  function getLeadColumnStorageKey(pool) {
+    return 'crfLeadColumns_' + pool;
+  }
+
+  function getDefaultVisibleColumns(pool) {
+    return LEAD_COLUMN_META
+      .filter(function (c) {
+        if (c.fixed) return true;
+        if (c.pools && !c.pools.includes(pool)) return false;
+        return c.default !== false;
+      })
+      .map(function (c) { return c.key; });
+  }
+
+  function getVisibleColumns(pool) {
+    const key = getLeadColumnStorageKey(pool);
+    try {
+      const raw = localStorage.getItem(key);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length) return parsed;
+      }
+    } catch (err) { /* ignore */ }
+    return getDefaultVisibleColumns(pool);
+  }
+
+  function saveVisibleColumns(pool, keys) {
+    try {
+      localStorage.setItem(getLeadColumnStorageKey(pool), JSON.stringify(keys));
+    } catch (err) { /* ignore */ }
+  }
+
+  function getCustomTagKeys() {
+    const keys = new Set();
+    allLeads.forEach(function (l) {
+      (l.tags || []).forEach(function (tag) {
+        const colon = tag.indexOf(':');
+        if (colon > 0) {
+          const key = tag.slice(0, colon).trim();
+          if (key && !LEAD_COLUMN_META.some(function (c) { return c.key === key; })) {
+            keys.add(key);
+          }
+        }
+      });
+    });
+    return Array.from(keys).sort();
+  }
+
+  function getTagValue(lead, key) {
+    const prefix = key.toLowerCase();
+    const tags = lead.tags || [];
+    for (let i = 0; i < tags.length; i++) {
+      const colon = tags[i].indexOf(':');
+      if (colon > 0 && tags[i].slice(0, colon).trim().toLowerCase() === prefix) {
+        return tags[i].slice(colon + 1).trim();
+      }
+    }
+    return '';
+  }
+
   function renderLeadPool(pool) {
     const page = document.getElementById('page-' + pool);
     if (!page) return;
@@ -1069,48 +1145,173 @@
       return;
     }
 
-    const isBirthdayPool = pool === 'birthday';
-    let html = '<table class="data-table">' +
+    const visibleKeys = getVisibleColumns(pool);
+    const customKeys = getCustomTagKeys();
+    const allColumns = LEAD_COLUMN_META.concat(customKeys.map(function (k) {
+      return { key: k, label: k, default: false, custom: true };
+    }));
+    const activeColumns = allColumns.filter(function (c) {
+      if (c.fixed) return true;
+      if (c.pools && !c.pools.includes(pool)) return false;
+      return visibleKeys.includes(c.key);
+    });
+
+    let html = '<table class="data-table lead-table">' +
       '<thead><tr>' +
-        '<th><input type="checkbox" class="select-all-leads" onchange="toggleSelectAllLeads(\'' + pool + '\')"></th>' +
-        '<th>Name</th>' +
-        '<th>Email</th>' +
-        '<th>Phone</th>' +
-        '<th>Club</th>' +
-        '<th>Strategy</th>' +
-        '<th>Giveaway</th>' +
-        '<th>Source</th>' +
-        '<th>Entered</th>' +
-        (isBirthdayPool ? '<th>Birthday</th>' : '') +
-        '<th>Status</th>' +
-        '<th>Actions</th>' +
+      activeColumns.map(function (c) {
+        if (c.key === 'select') {
+          return '<th><input type="checkbox" class="select-all-leads" onchange="toggleSelectAllLeads(\'' + pool + '\')"></th>';
+        }
+        return '<th' + (c.key === 'name' ? ' style="min-width:140px;"' : '') + '>' + escapeHtml(c.label) + '</th>';
+      }).join('') +
       '</tr></thead><tbody>';
 
     filtered.forEach(function (l) {
       html += '<tr>' +
-        '<td><input type="checkbox" class="lead-check lead-check-' + pool + '" value="' + escapeHtml(l.id) + '" onchange="updateSelectAllState(\'' + pool + '\')"></td>' +
-        '<td><a href="#" onclick="openLeadProfile(\'' + l.id + '\'); return false;" style="font-weight:600;color:var(--brand);">' + escapeHtml(l.full_name || '-') + '</a></td>' +
-        '<td>' + escapeHtml(l.email || '') + '</td>' +
-        '<td>' + renderPhoneLinks(l.phone) + '</td>' +
-        '<td>' + escapeHtml(l.club || '-') + '</td>' +
-        '<td>' + escapeHtml(getStrategyName(l.strategy_id)) + '</td>' +
-        '<td>' + escapeHtml(getCompName(l.competition_id)) + '</td>' +
-        '<td>' + escapeHtml(l.source || '-') + '</td>' +
-        '<td>' + fmtDateShort(l.created_at) + '</td>' +
-        (isBirthdayPool ? '<td>' + formatBirthday(l.birthday) + (isBirthdayToday(l.birthday) ? ' <span class="tag tag-hot">Today</span>' : '') + '</td>' : '') +
-        '<td><select onchange="updateLeadStatus(\'' + l.id + '\', this.value)" style="font-size:12px;padding:4px 8px;border-radius:var(--radius);border:1.5px solid var(--line);">' + renderStatusOptions(l.status) + '</select></td>' +
-        '<td class="lead-actions">' +
-          '<button class="admin-btn" onclick="openSmsWithTemplate(\'' + l.id + '\')" style="padding:6px 12px;font-size:11px;margin-right:6px;">Template SMS</button>' +
-          '<button class="admin-btn" onclick="logCall(\'' + l.id + '\')" style="padding:6px 12px;font-size:11px;margin-right:6px;">Log call</button>' +
-          '<button class="admin-btn" onclick="openLogEmail(\'' + l.id + '\')" style="padding:6px 12px;font-size:11px;margin-right:6px;">Log email</button>' +
-          (l.status !== 'converted' ? '<button class="admin-btn" onclick="promoteLeadToClient(\'' + l.id + '\')" style="padding:6px 12px;font-size:11px;margin-right:6px;">Promote to client</button>' : '') +
-          '<button class="admin-btn danger" onclick="deleteLead(\'' + l.id + '\')" style="padding:6px 12px;font-size:11px;">Delete</button>' +
-        '</td>' +
-      '</tr>';
+        activeColumns.map(function (c) {
+          return '<td' + (c.key === 'name' ? ' class="name-cell"' : '') + '>' + renderLeadCell(pool, l, c.key) + '</td>';
+        }).join('') +
+        '</tr>';
     });
 
     html += '</tbody></table>';
     container.innerHTML = html;
+  }
+
+  function renderLeadCell(pool, lead, key) {
+    if (key === 'select') {
+      return '<input type="checkbox" class="lead-check lead-check-' + pool + '" value="' + escapeHtml(lead.id) + '" onchange="updateSelectAllState(\'' + pool + '\')">';
+    }
+    if (key === 'name') {
+      return '<a href="#" onclick="openLeadProfile(\'' + lead.id + '\'); return false;" style="font-weight:600;color:var(--brand);">' + escapeHtml(lead.full_name || '-') + '</a>';
+    }
+    if (key === 'email') return escapeHtml(lead.email || '');
+    if (key === 'phone') return renderPhoneLinks(lead.phone) || '-';
+    if (key === 'club') return escapeHtml(lead.club || '-');
+    if (key === 'strategy') return escapeHtml(getStrategyName(lead.strategy_id));
+    if (key === 'giveaway') return escapeHtml(getCompName(lead.competition_id));
+    if (key === 'source') return escapeHtml(lead.source || '-');
+    if (key === 'entered') return fmtDateShort(lead.created_at);
+    if (key === 'birthday') {
+      return formatBirthday(lead.birthday) + (isBirthdayToday(lead.birthday) ? ' <span class="tag tag-hot">Today</span>' : '');
+    }
+    if (key === 'status') {
+      return '<select class="status-select" onchange="updateLeadStatus(\'' + lead.id + '\', this.value)">' + renderStatusOptions(lead.status) + '</select>';
+    }
+    if (key === 'actions') {
+      const links = [];
+      links.push('<button type="button" class="action-link" onclick="openSmsWithTemplate(\'' + lead.id + '\')">SMS</button>');
+      links.push('<button type="button" class="action-link" onclick="logCall(\'' + lead.id + '\')">Call</button>');
+      links.push('<button type="button" class="action-link" onclick="openLogEmail(\'' + lead.id + '\')">Email</button>');
+      if (lead.status !== 'converted') {
+        links.push('<button type="button" class="action-link" onclick="promoteLeadToClient(\'' + lead.id + '\')">Promote</button>');
+      }
+      links.push('<button type="button" class="action-link danger" onclick="deleteLead(\'' + lead.id + '\')">Del</button>');
+      return '<span class="lead-actions">' + links.join('<span class="action-divider">·</span>') + '</span>';
+    }
+    // Custom tag column
+    return escapeHtml(getTagValue(lead, key) || '-');
+  }
+
+  function renderColumnPicker(pool) {
+    const visibleKeys = getVisibleColumns(pool);
+    const customKeys = getCustomTagKeys();
+
+    const core = LEAD_COLUMN_META.filter(function (c) {
+      return !c.fixed && !c.pools && c.key !== 'strategy' && c.key !== 'giveaway';
+    });
+    const poolInfo = LEAD_COLUMN_META.filter(function (c) {
+      return c.key === 'strategy' || c.key === 'giveaway';
+    });
+    const poolSpecific = LEAD_COLUMN_META.filter(function (c) {
+      return c.pools && c.pools.includes(pool);
+    });
+
+    function item(c) {
+      const checked = c.fixed || visibleKeys.includes(c.key) ? ' checked' : '';
+      const disabled = c.fixed ? ' disabled' : '';
+      return '<div class="column-picker-item" onclick="toggleColumnItem(event, \'' + pool + '\', \'' + c.key + '\')">' +
+        '<input type="checkbox" id="col-' + pool + '-' + c.key + '"' + checked + disabled + ' onchange="updateColumnVisibility(\'' + pool + '\', \'' + c.key + '\', this.checked)">' +
+        '<label for="col-' + pool + '-' + c.key + '">' + escapeHtml(c.label || c.key) + '</label>' +
+        '</div>';
+    }
+
+    function group(title, cols) {
+      if (!cols.length) return '';
+      return '<div class="column-picker-group">' +
+        '<div class="column-picker-title">' + escapeHtml(title) + '</div>' +
+        cols.map(item).join('') +
+        '</div>';
+    }
+
+    let html = '<div class="column-picker-head">' +
+      '<span>Columns</span>' +
+      '<button type="button" class="modal-close" onclick="toggleColumnPicker(\'' + pool + '\')">×</button>' +
+      '</div>' +
+      group('Core', core) +
+      group('Pool info', poolInfo) +
+      group('This pool', poolSpecific);
+
+    if (customKeys.length) {
+      html += group('Spreadsheet fields', customKeys.map(function (k) { return { key: k, label: k, fixed: false }; }));
+    }
+
+    html += '<div class="column-picker-foot">' +
+      '<button type="button" class="admin-btn" onclick="resetColumnVisibility(\'' + pool + '\')">Reset</button>' +
+      '<span style="font-size:12px;color:var(--ink-soft);" id="colCount-' + pool + '">' + visibleKeys.length + ' shown</span>' +
+      '</div>';
+
+    return html;
+  }
+
+  function toggleColumnPicker(pool) {
+    const wrap = document.getElementById('columnPicker-' + pool);
+    if (!wrap) return;
+    const picker = wrap.querySelector('.column-picker');
+    const wasOpen = picker.classList.contains('show');
+    closeAllColumnPickers();
+    if (!wasOpen) {
+      picker.innerHTML = renderColumnPicker(pool);
+      picker.classList.add('show');
+    }
+  }
+
+  function closeAllColumnPickers() {
+    document.querySelectorAll('.column-picker.show').forEach(function (p) { p.classList.remove('show'); });
+  }
+
+  function toggleColumnItem(e, pool, key) {
+    if (e.target.tagName.toLowerCase() === 'input') return;
+    const input = document.getElementById('col-' + pool + '-' + key);
+    if (!input || input.disabled) return;
+    input.checked = !input.checked;
+    updateColumnVisibility(pool, key, input.checked);
+  }
+
+  function updateColumnVisibility(pool, key, checked) {
+    const visibleKeys = getVisibleColumns(pool);
+    const idx = visibleKeys.indexOf(key);
+    if (checked && idx === -1) visibleKeys.push(key);
+    if (!checked && idx > -1) visibleKeys.splice(idx, 1);
+    saveVisibleColumns(pool, visibleKeys);
+    renderLeadPool(pool);
+    const wrap = document.getElementById('columnPicker-' + pool);
+    if (wrap) {
+      const picker = wrap.querySelector('.column-picker');
+      picker.innerHTML = renderColumnPicker(pool);
+      picker.classList.add('show');
+    }
+  }
+
+  function resetColumnVisibility(pool) {
+    localStorage.removeItem(getLeadColumnStorageKey(pool));
+    renderLeadPool(pool);
+    const wrap = document.getElementById('columnPicker-' + pool);
+    if (wrap) {
+      const picker = wrap.querySelector('.column-picker');
+      picker.innerHTML = renderColumnPicker(pool);
+      picker.classList.add('show');
+    }
   }
 
   function renderPhoneLinks(phone) {
@@ -1669,11 +1870,18 @@
     const clubFilter = clubFilterEl ? clubFilterEl.value : 'all';
     const statusFilter = page.querySelector('.pool-status').value;
 
-    const isBirthdayPool = pool === 'birthday';
-    const baseHeaders = ['Name', 'Email', 'Phone', 'Club', 'Strategy', 'Giveaway', 'Source', 'Status', 'Opt In', 'Entered At', 'Notes'];
-    const headers = isBirthdayPool
-      ? baseHeaders.concat(['Birthday', 'Tags'])
-      : baseHeaders.concat(['Tags']);
+    const visibleKeys = getVisibleColumns(pool);
+    const customKeys = getCustomTagKeys();
+    const allColumns = LEAD_COLUMN_META.concat(customKeys.map(function (k) {
+      return { key: k, label: k, default: false, custom: true };
+    }));
+    const activeColumns = allColumns.filter(function (c) {
+      if (c.fixed) return false; // select + actions are UI-only
+      if (c.pools && !c.pools.includes(pool)) return false;
+      return visibleKeys.includes(c.key);
+    });
+
+    const headers = activeColumns.map(function (c) { return c.label; });
     const rows = [headers];
 
     allLeads.forEach(function (l) {
@@ -1689,22 +1897,7 @@
       const matchesStatus = statusFilter === 'all' || l.status === statusFilter;
       if (!matchesSearch || !matchesStrategy || !matchesComp || !matchesSource || !matchesClub || !matchesStatus) return;
 
-      const base = [
-        l.full_name || '',
-        l.email || '',
-        l.phone || '',
-        l.club || '',
-        getStrategyName(l.strategy_id),
-        getCompName(l.competition_id),
-        l.source || '',
-        l.status || '',
-        l.opt_in ? 'Yes' : 'No',
-        l.created_at || '',
-        l.notes || ''
-      ];
-      if (isBirthdayPool) base.push(l.birthday || '');
-      base.push((l.tags || []).join('; '));
-      rows.push(base);
+      rows.push(activeColumns.map(function (c) { return getLeadExportValue(l, c.key); }));
     });
 
     const csv = rows.map(function (r) { return r.map(escapeCsv).join(','); }).join('\n');
@@ -1717,6 +1910,22 @@
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+  }
+
+  function getLeadExportValue(lead, key) {
+    if (key === 'name') return lead.full_name || '';
+    if (key === 'email') return lead.email || '';
+    if (key === 'phone') return lead.phone || '';
+    if (key === 'club') return lead.club || '';
+    if (key === 'strategy') return getStrategyName(lead.strategy_id);
+    if (key === 'giveaway') return getCompName(lead.competition_id);
+    if (key === 'source') return lead.source || '';
+    if (key === 'entered') return lead.created_at || '';
+    if (key === 'birthday') return lead.birthday || '';
+    if (key === 'status') return lead.status || '';
+    if (key === 'opt_in') return lead.opt_in ? 'Yes' : 'No';
+    if (key === 'notes') return lead.notes || '';
+    return getTagValue(lead, key) || '';
   }
 
   // ---------- settings ----------
@@ -2423,8 +2632,19 @@
   window.openLeadProfile = openLeadProfile;
   window.closeLeadProfile = closeLeadProfile;
   window.saveLeadProfile = saveLeadProfile;
+  window.toggleColumnPicker = toggleColumnPicker;
+  window.toggleColumnItem = toggleColumnItem;
+  window.updateColumnVisibility = updateColumnVisibility;
+  window.resetColumnVisibility = resetColumnVisibility;
+  window.closeAllColumnPickers = closeAllColumnPickers;
   window.handleSignOut = handleSignOut;
   window.loadData = loadData;
+
+  document.addEventListener('click', function (e) {
+    if (!e.target.closest('.column-picker-wrap')) {
+      closeAllColumnPickers();
+    }
+  });
 
   init();
 })();
