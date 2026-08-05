@@ -1742,6 +1742,20 @@
     activeSmsQueuePolls[pool] = null;
   }
 
+  async function copySmsQueueId(pool) {
+    const el = document.getElementById('bulkSmsQueueId-' + pool);
+    if (!el || !el.textContent) return;
+    try {
+      await navigator.clipboard.writeText(el.textContent.trim());
+      const btn = document.getElementById('bulkSmsQueueCopy-' + pool);
+      const original = btn.textContent;
+      btn.textContent = 'Copied!';
+      setTimeout(function () { btn.textContent = original; }, 1500);
+    } catch (err) {
+      console.warn('Could not copy queue ID:', err);
+    }
+  }
+
   function getSelectedLeadIds(pool) {
     const ids = [];
     document.querySelectorAll('.lead-check-' + pool + ':checked').forEach(function (cb) {
@@ -2726,6 +2740,7 @@
 
   window.createSmsQueue = createSmsQueue;
   window.cancelSmsQueue = cancelSmsQueue;
+  window.copySmsQueueId = copySmsQueueId;
 
   window.saveSettings = saveSettings;
   window.saveFeedbackSettings = saveFeedbackSettings;

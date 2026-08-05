@@ -2,6 +2,8 @@
 
 This shortcut sends SMS/iMessage messages from a queue you create in the CRF Comps admin panel. It uses your existing Apple Messages account, so there is no per-message cost and no SMS-provider subscription.
 
+> **Note:** Apple no longer allows unsigned `.wflow` files to be imported. The shortcut must be built manually in the Shortcuts app. It takes about 2 minutes and works on iPhone, iPad and Mac.
+
 ## How it works
 
 1. In CRF Comps, open a lead pool (Giveaway, New Member, Non-Attendance or Birthday).
@@ -10,57 +12,76 @@ This shortcut sends SMS/iMessage messages from a queue you create in the CRF Com
 4. Run the **CRF Comps SMS Sender** shortcut on your iPhone or Mac, paste the code, and tap Run.
 5. The shortcut fetches the queue, sends each message automatically, and reports back to CRF Comps so each lead is marked `sms_sent` and logged.
 
-## Install the shortcut
+## Build the shortcut manually
 
-### Option A — import the `.wflow` file (experimental)
+### Step 1 — create the shortcut
 
-Modern Shortcuts uses a signed `.shortcut` format; the old `.wflow` import may or may not work depending on your macOS/iOS version.
+- Open the **Shortcuts** app.
+- Tap/click the **+** to create a new shortcut.
+- Name it **CRF Comps SMS Sender**.
 
-1. Try double-clicking `CRF_Comps_SMS_Sender.wflow` on your Mac.
-2. If Shortcuts refuses it, use **Option B** below to build the shortcut manually — it takes about 2 minutes and is the most reliable method.
+### Step 2 — ask for the queue code
 
-### Option B — build it manually on iPhone/iPad
+- Add action: **Ask for Text**
+- Prompt: `Enter CRF Comps queue code`
+- Tap/click the variable name and rename it to `QueueID`.
 
-1. Create a new shortcut named **CRF Comps SMS Sender**.
-2. Add these actions in order:
+### Step 3 — fetch the queue from CRF Comps
 
-   **Ask for Text**  
-   - Prompt: `Enter CRF Comps queue code`
-   - Save to variable: `QueueID`
+- Add action: **URL**
+  - URL: `https://crfcompsf2f-one.vercel.app/api/sms-queue?id=QueueID`
+  - (The `QueueID` part is the variable from Step 2.)
+- Add action: **Get Contents of URL**
+  - Method: **GET**
+- Add action: **Get Dictionary from Input**
+- Add action: **Get Value for Key**
+  - Key: `items`
+  - Rename the result variable to `Items`.
 
-   **URL**  
+### Step 4 — loop through each message
+
+- Add action: **Repeat with Each**
+  - Choose the `Items` variable.
+
+Inside the repeat loop, add these actions in order:
+
+1. **Get Value for Key**
+   - Key: `phone`
+   - Rename result to `Phone`
+2. **Get Value for Key**
+   - Key: `message`
+   - Rename result to `Message`
+3. **Get Value for Key**
+   - Key: `lead_id`
+   - Rename result to `LeadID`
+4. **Send Message**
+   - Recipients: `Phone`
+   - Message: `Message`
+   - Turn **Show Compose Sheet** OFF so it sends automatically.
+5. **URL**
    - URL: `https://crfcompsf2f-one.vercel.app/api/sms-queue?id=QueueID`
-   - Or use your deployment URL
+6. **Get Contents of URL**
+   - Method: **PATCH**
+   - Request Body: **JSON**
+   - JSON content:
+     ```json
+     {
+       "lead_id": "LeadID",
+       "status": "sent"
+     }
+     ```
+   - Both `LeadID` strings should be the variable, not plain text.
 
-   **Get Contents of URL**  
-   - Method: GET
+### Step 5 — save
 
-   **Get Dictionary from Input**
-
-   **Get Value for Key**  
-   - Key: `items`
-   - Save to variable: `Items`
-
-   **Repeat with Each** (`Items`)
-   - Inside the repeat:
-     - **Get Value for Key** → Key `phone` → variable `Phone`
-     - **Get Value for Key** → Key `message` → variable `Message`
-     - **Get Value for Key** → Key `lead_id` → variable `LeadID`
-     - **Send Message** → Recipients: `Phone`, Message: `Message`
-     - **URL** → `https://crfcompsf2f-one.vercel.app/api/sms-queue?id=QueueID`
-     - **Get Contents of URL** → Method: PATCH, Request Body: JSON  
-       ```json
-       { "lead_id": "LeadID", "status": "sent" }
-       ```
-
-3. Save the shortcut.
+Save the shortcut. You can add it to your home screen or a keyboard shortcut on Mac for faster access.
 
 ## Run it
 
-- On iPhone: open Shortcuts, tap **CRF Comps SMS Sender**, paste the queue code, tap Run.
-- On Mac: run the shortcut from the Shortcuts app or assign a keyboard shortcut.
+- On **iPhone/iPad**: open Shortcuts, tap **CRF Comps SMS Sender**, paste the queue code, tap Run.
+- On **Mac**: run the shortcut from the Shortcuts app, or set a keyboard shortcut in System Settings.
 
-The shortcut stops automatically when every message in the queue is sent or failed. You can stop it early by force-quitting Shortcuts.
+The shortcut finishes automatically when every queued message is sent or failed. You can stop it early by force-quitting Shortcuts.
 
 ## Security
 
@@ -76,3 +97,4 @@ The shortcut stops automatically when every message in the queue is sent or fail
 | Message not marked sent in CRF Comps | Check internet connection; the shortcut needs data/Wi-Fi to call the PATCH endpoint after each send. |
 | Messages open but don't send | On iPhone, make sure iMessage/SMS is enabled. On Mac, SMS forwarding must be on if sending to non-iMessage numbers. |
 | Want to use a different domain | Edit the URL actions in the shortcut to match your production URL. |
+| Mac shows "cannot be opened" | Make sure Shortcuts has permission to run automations. System Settings → Privacy & Security → Automation → Shortcuts. |
