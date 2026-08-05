@@ -1644,6 +1644,104 @@
     }
   }
 
+  // ---------- Apple Shortcuts SMS queue ----------
+
+  const activeSmsQueuePolls = {};
+
+  async function createSmsQueue(pool) {
+    const bodyEl = document.getElementById('bulkSmsBody-' + pool);
+    const scopeEl = document.getElementById('bulkSmsScope-' + pool);
+    const template = bodyEl ? bodyEl.value.trim() : '';
+
+    if (!template) {
+      alert('Please choose a strategy template or type a message first.');
+      return;
+    }
+
+    const scope = scopeEl ? scopeEl.value : 'selected';
+    let ids = scope === 'selected' ? getSelectedLeadIds(pool) : getFilteredLeadIds(pool);
+    ids = ids.filter(function (id) {
+      const lead = allLeads.find(function (x) { return x.id === id; });
+      return lead && lead.phone;
+    });
+
+    if (!ids.length) {
+      alert(scope === 'selected' ? 'No selected leads with phone numbers.' : 'No filtered leads with phone numbers.');
+      return;
+    }
+
+    if (!confirm('Create a Shortcuts queue for ' + ids.length + ' messages?\n\nThe shortcut will send them automatically on your iPhone/Mac.')) return;
+
+    try {
+      const session = await window.auth.getSession();
+      if (!session || !session.access_token) {
+        throw new Error('Not signed in.');
+      }
+
+      const res = await fetch('/api/sms-queue', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + session.access_token
+        },
+        body: JSON.stringify({ lead_ids: ids, template: template })
+      });
+
+      const result = await res.json();
+      if (!res.ok || result.error) throw new Error(result.error || 'Could not create queue');
+
+      const queueId = result.queue_id;
+      document.getElementById('bulkSmsQueue-' + pool).style.display = 'block';
+      document.getElementById('bulkSmsQueueId-' + pool).textContent = queueId;
+      document.getElementById('bulkSmsQueueProgress-' + pool).textContent = 'Waiting for shortcut...';
+      updateBulkSmsStatus(pool, 'Queue ' + queueId + ' created. Open the shortcut and run it.');
+
+      cancelSmsQueue(pool);
+      activeSmsQueuePolls[pool] = { id: queueId, timer: setInterval(function () { pollSmsQueue(pool, queueId); }, 2000) };
+      pollSmsQueue(pool, queueId);
+    } catch (err) {
+      console.error(err);
+      alert('Could not create Shortcuts queue: ' + err.message);
+    }
+  }
+
+  async function pollSmsQueue(pool, queueId) {
+    try {
+      const session = await window.auth.getSession();
+      if (!session || !session.access_token) return;
+      const res = await fetch('/api/sms-queue?id=' + encodeURIComponent(queueId), {
+        headers: { 'Authorization': 'Bearer ' + session.access_token }
+      });
+      const result = await res.json();
+      if (!res.ok || !Array.isArray(result.items)) return;
+
+      const sent = result.items.filter(function (i) { return i.status === 'sent'; }).length;
+      const failed = result.items.filter(function (i) { return i.status === 'failed'; }).length;
+      const pending = result.items.filter(function (i) { return i.status === 'pending'; }).length;
+
+      const progress = document.getElementById('bulkSmsQueueProgress-' + pool);
+      if (progress) {
+        progress.innerHTML = 'Sent: <b>' + sent + '</b> · Failed: <b>' + failed + '</b> · Remaining: <b>' + pending + '</b>';
+      }
+
+      if (pending === 0) {
+        updateBulkSmsStatus(pool, 'Shortcut queue complete. ' + sent + ' sent, ' + failed + ' failed.');
+        cancelSmsQueue(pool);
+        await loadData();
+      }
+    } catch (err) {
+      console.warn('pollSmsQueue error:', err);
+    }
+  }
+
+  function cancelSmsQueue(pool) {
+    const poll = activeSmsQueuePolls[pool];
+    if (poll && poll.timer) {
+      clearInterval(poll.timer);
+    }
+    activeSmsQueuePolls[pool] = null;
+  }
+
   function getSelectedLeadIds(pool) {
     const ids = [];
     document.querySelectorAll('.lead-check-' + pool + ':checked').forEach(function (cb) {
@@ -2625,6 +2723,9 @@
   window.pauseBulkSms = pauseBulkSms;
   window.toggleBirthdayTodayFilter = toggleBirthdayTodayFilter;
   window.messageBirthdaysToday = messageBirthdaysToday;
+
+  window.createSmsQueue = createSmsQueue;
+  window.cancelSmsQueue = cancelSmsQueue;
 
   window.saveSettings = saveSettings;
   window.saveFeedbackSettings = saveFeedbackSettings;

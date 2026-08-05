@@ -317,10 +317,18 @@
           <div class="admin-actions">
             <button class="submit-btn" id="bulkSmsStartBtn-giveaway" onclick="startBulkSms('giveaway')" style="width:auto;padding:12px 22px;">Start Queue</button>
             <button class="admin-btn" id="bulkSmsPauseBtn-giveaway" onclick="pauseBulkSms('giveaway')" style="display:none;">Pause</button>
+            <button class="admin-btn" id="bulkSmsShortcutsBtn-giveaway" onclick="createSmsQueue('giveaway')">Send via Shortcuts</button>
             <button class="admin-btn" onclick="closeBulkSmsPanel('giveaway')">Close</button>
           </div>
           <div class="bulk-sms-status" id="bulkSmsStatus-giveaway">Ready.</div>
           <div class="bulk-sms-log" id="bulkSmsLog-giveaway"></div>
+          <div class="bulk-sms-queue" id="bulkSmsQueue-giveaway" style="display:none;margin-top:12px;padding:12px;background:var(--paper-3);border-radius:var(--radius);border:1px solid var(--line);">
+            <div style="font-weight:600;margin-bottom:8px;">Shortcuts queue ready</div>
+            <div style="font-size:13px;color:var(--ink-soft);margin-bottom:10px;">Open the CRF Comps SMS Sender shortcut on your iPhone or Mac, enter this code, and tap Run.</div>
+            <div class="queue-id" id="bulkSmsQueueId-giveaway" style="font-family:'IBM Plex Mono',monospace;font-size:24px;letter-spacing:0.08em;margin-bottom:10px;"></div>
+            <div id="bulkSmsQueueProgress-giveaway" style="font-size:13px;color:var(--ink-soft);"></div>
+            <button type="button" class="admin-btn" id="bulkSmsQueueCancel-giveaway" onclick="cancelSmsQueue('giveaway')" style="margin-top:10px;">Stop polling</button>
+          </div>
         </div>
       </div>
 
@@ -443,10 +451,18 @@
           <div class="admin-actions">
             <button class="submit-btn" id="bulkSmsStartBtn-new_member" onclick="startBulkSms('new_member')" style="width:auto;padding:12px 22px;">Start Queue</button>
             <button class="admin-btn" id="bulkSmsPauseBtn-new_member" onclick="pauseBulkSms('new_member')" style="display:none;">Pause</button>
+            <button class="admin-btn" id="bulkSmsShortcutsBtn-new_member" onclick="createSmsQueue('new_member')">Send via Shortcuts</button>
             <button class="admin-btn" onclick="closeBulkSmsPanel('new_member')">Close</button>
           </div>
           <div class="bulk-sms-status" id="bulkSmsStatus-new_member">Ready.</div>
           <div class="bulk-sms-log" id="bulkSmsLog-new_member"></div>
+          <div class="bulk-sms-queue" id="bulkSmsQueue-new_member" style="display:none;margin-top:12px;padding:12px;background:var(--paper-3);border-radius:var(--radius);border:1px solid var(--line);">
+            <div style="font-weight:600;margin-bottom:8px;">Shortcuts queue ready</div>
+            <div style="font-size:13px;color:var(--ink-soft);margin-bottom:10px;">Open the CRF Comps SMS Sender shortcut on your iPhone or Mac, enter this code, and tap Run.</div>
+            <div class="queue-id" id="bulkSmsQueueId-new_member" style="font-family:'IBM Plex Mono',monospace;font-size:24px;letter-spacing:0.08em;margin-bottom:10px;"></div>
+            <div id="bulkSmsQueueProgress-new_member" style="font-size:13px;color:var(--ink-soft);"></div>
+            <button type="button" class="admin-btn" id="bulkSmsQueueCancel-new_member" onclick="cancelSmsQueue('new_member')" style="margin-top:10px;">Stop polling</button>
+          </div>
         </div>
       </div>
 
@@ -565,10 +581,18 @@
           <div class="admin-actions">
             <button class="submit-btn" id="bulkSmsStartBtn-non_attendance" onclick="startBulkSms('non_attendance')" style="width:auto;padding:12px 22px;">Start Queue</button>
             <button class="admin-btn" id="bulkSmsPauseBtn-non_attendance" onclick="pauseBulkSms('non_attendance')" style="display:none;">Pause</button>
+            <button class="admin-btn" id="bulkSmsShortcutsBtn-non_attendance" onclick="createSmsQueue('non_attendance')">Send via Shortcuts</button>
             <button class="admin-btn" onclick="closeBulkSmsPanel('non_attendance')">Close</button>
           </div>
           <div class="bulk-sms-status" id="bulkSmsStatus-non_attendance">Ready.</div>
           <div class="bulk-sms-log" id="bulkSmsLog-non_attendance"></div>
+          <div class="bulk-sms-queue" id="bulkSmsQueue-non_attendance" style="display:none;margin-top:12px;padding:12px;background:var(--paper-3);border-radius:var(--radius);border:1px solid var(--line);">
+            <div style="font-weight:600;margin-bottom:8px;">Shortcuts queue ready</div>
+            <div style="font-size:13px;color:var(--ink-soft);margin-bottom:10px;">Open the CRF Comps SMS Sender shortcut on your iPhone or Mac, enter this code, and tap Run.</div>
+            <div class="queue-id" id="bulkSmsQueueId-non_attendance" style="font-family:'IBM Plex Mono',monospace;font-size:24px;letter-spacing:0.08em;margin-bottom:10px;"></div>
+            <div id="bulkSmsQueueProgress-non_attendance" style="font-size:13px;color:var(--ink-soft);"></div>
+            <button type="button" class="admin-btn" id="bulkSmsQueueCancel-non_attendance" onclick="cancelSmsQueue('non_attendance')" style="margin-top:10px;">Stop polling</button>
+          </div>
         </div>
       </div>
 
@@ -707,10 +731,18 @@
           <div class="admin-actions">
             <button class="submit-btn" id="bulkSmsStartBtn-birthday" onclick="startBulkSms('birthday')" style="width:auto;padding:12px 22px;">Start Queue</button>
             <button class="admin-btn" id="bulkSmsPauseBtn-birthday" onclick="pauseBulkSms('birthday')" style="display:none;">Pause</button>
+            <button class="admin-btn" id="bulkSmsShortcutsBtn-birthday" onclick="createSmsQueue('birthday')">Send via Shortcuts</button>
             <button class="admin-btn" onclick="closeBulkSmsPanel('birthday')">Close</button>
           </div>
           <div class="bulk-sms-status" id="bulkSmsStatus-birthday">Ready.</div>
           <div class="bulk-sms-log" id="bulkSmsLog-birthday"></div>
+          <div class="bulk-sms-queue" id="bulkSmsQueue-birthday" style="display:none;margin-top:12px;padding:12px;background:var(--paper-3);border-radius:var(--radius);border:1px solid var(--line);">
+            <div style="font-weight:600;margin-bottom:8px;">Shortcuts queue ready</div>
+            <div style="font-size:13px;color:var(--ink-soft);margin-bottom:10px;">Open the CRF Comps SMS Sender shortcut on your iPhone or Mac, enter this code, and tap Run.</div>
+            <div class="queue-id" id="bulkSmsQueueId-birthday" style="font-family:'IBM Plex Mono',monospace;font-size:24px;letter-spacing:0.08em;margin-bottom:10px;"></div>
+            <div id="bulkSmsQueueProgress-birthday" style="font-size:13px;color:var(--ink-soft);"></div>
+            <button type="button" class="admin-btn" id="bulkSmsQueueCancel-birthday" onclick="cancelSmsQueue('birthday')" style="margin-top:10px;">Stop polling</button>
+          </div>
         </div>
       </div>
 
