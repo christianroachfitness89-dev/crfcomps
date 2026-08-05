@@ -27,11 +27,19 @@ This is the easiest way and avoids Apple Shortcuts entirely. It runs in Terminal
 
 ### First-time setup
 
-1. Download `send-sms-queue.command` from this folder.
-2. Place it on your Desktop or in Documents.
+1. Download `send-sms-queue.zip` from this folder and unzip it.
+2. Place `send-sms-queue.command` on your Desktop or in Documents.
 3. Double-click `send-sms-queue.command`.
 4. macOS may warn you that it was downloaded from the internet. Right-click the file and choose **Open** to allow it.
 5. Terminal opens and asks for a queue code.
+
+If you see “could not be executed because you do not have appropriate access privileges,” the file lost its executable bit during download. Right-click the file in Finder, choose Get Info, and under Sharing & Permissions set the last drop-down to **Read & Write**. Or open Terminal and run:
+
+```bash
+chmod +x ~/Desktop/send-sms-queue.command
+```
+
+Then double-click it again.
 
 ### Run it
 
