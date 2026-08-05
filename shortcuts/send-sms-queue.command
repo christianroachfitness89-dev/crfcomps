@@ -58,11 +58,11 @@ function sendWithMessages(phone, message) {
     const clean = String(phone).replace(/\s/g, '');
     const scriptPath = `/tmp/crf-sms-${Date.now()}-${Math.floor(Math.random() * 10000)}.scpt`;
     const encodedBody = encodeURIComponent(message);
-    const url = `sms://+${clean}?body=${encodedBody}`;
+    const url = `sms://${clean}?body=${encodedBody}`;
     const script = `on run argv
   set phoneNumber to item 1 of argv
   set messageText to item 2 of argv
-  set msgUrl to "sms://+" & phoneNumber & "?body=" & messageText
+  set msgUrl to "sms://" & phoneNumber & "?body=" & messageText
   try
     tell application "Messages"
       if not running then launch
