@@ -128,6 +128,8 @@ async function main() {
 
     process.stdout.write('[' + (i + 1) + '/' + items.length + '] ' + item.name + ' ... ');
     try {
+      // Give Messages a moment to connect/send, especially for first-time chats.
+      await new Promise(r => setTimeout(r, 1500));
       const result = await sendWithMessages(item.phone, item.message);
       if (result.startsWith('error')) throw new Error(result);
 
