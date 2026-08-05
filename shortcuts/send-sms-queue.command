@@ -1,9 +1,10 @@
 #!/bin/zsh
 # CRF Comps — Mac SMS queue sender
-# Double-click this file in Finder. It runs inline Node.js that fetches a queue
-# from CRF Comps and sends each message via the macOS Messages app.
+# Double-click this file in Finder. It writes the Node.js sender to a temp file,
+# runs it, then cleans up. This keeps stdin free for prompts.
 
-node --input-type=module - <<'CRF_COMPS_SENDER_SCRIPT'
+TMP_SCRIPT=$(mktemp /tmp/crf-sms-sender.XXXXXX.js)
+cat > "$TMP_SCRIPT" <<'CRF_COMPS_SENDER_SCRIPT'
 import https from 'https';
 import http from 'http';
 import readline from 'readline';
@@ -152,6 +153,9 @@ main().catch(err => {
   process.exit(1);
 });
 CRF_COMPS_SENDER_SCRIPT
+
+node "$TMP_SCRIPT"
+rm -f "$TMP_SCRIPT"
 
 echo ""
 echo "Press Enter to close..."
