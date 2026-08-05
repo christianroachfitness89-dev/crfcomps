@@ -27,15 +27,15 @@ This is the easiest way and avoids Apple Shortcuts entirely. It runs in Terminal
 
 ### First-time setup
 
-1. Download `send-sms-queue.js` and `send-sms-queue.command` from this folder.
-2. Place them in the same folder (e.g. your Desktop or Documents).
+1. Download `send-sms-queue.command` from this folder.
+2. Place it on your Desktop or in Documents.
 3. Double-click `send-sms-queue.command`.
 4. macOS may warn you that it was downloaded from the internet. Right-click the file and choose **Open** to allow it.
 5. Terminal opens and asks for a queue code.
 
 ### Run it
 
-1. In CRF Comps, click **Send via Shortcuts / Mac Script** and copy the queue code.
+1. In CRF Comps, click **Send via Shortcuts / Mac** and copy the queue code.
 2. Double-click `send-sms-queue.command`.
 3. Paste the queue code and press Enter.
 4. Confirm when it asks `Send N messages now? (y/n)`.
@@ -47,6 +47,7 @@ This is the easiest way and avoids Apple Shortcuts entirely. It runs in Terminal
 |---|---|
 | `command not found: node` | Install Node.js from https://nodejs.org |
 | `Could not fetch queue` | Check your internet connection or queue code. Codes expire after 24 hours. |
+| `Cannot find module` | Re-download the single `send-sms-queue.command` file — it is now self-contained and does not need a separate `.js` file. |
 | Message sends but status isn't updated | The script needs internet to call the PATCH endpoint after sending. Try again. |
 | Script can't send SMS (green bubble) | Enable SMS forwarding on your iPhone: Settings → Messages → Text Message Forwarding → turn on your Mac. |
 | macOS says file is damaged | Right-click → Open, or run `xattr -cr send-sms-queue.command` in Terminal. |
