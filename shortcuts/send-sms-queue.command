@@ -57,16 +57,28 @@ function sendWithMessages(phone, message) {
   return new Promise((resolve, reject) => {
     const clean = String(phone).replace(/\s/g, '');
     const scriptPath = `/tmp/crf-sms-${Date.now()}-${Math.floor(Math.random() * 10000)}.scpt`;
+    const encodedBody = encodeURIComponent(message);
+    const url = `sms://+${clean}?body=${encodedBody}`;
     const script = `on run argv
   set phoneNumber to item 1 of argv
   set messageText to item 2 of argv
+  set msgUrl to "sms://+" & phoneNumber & "?body=" & messageText
   try
     tell application "Messages"
       if not running then launch
-      set targetService to first service
-      set targetBuddy to buddy phoneNumber of targetService
-      send messageText to targetBuddy
+      activate
     end tell
+    delay 1
+    -- Open an SMS conversation directly, bypassing iMessage.
+    open location msgUrl
+    delay 2
+    -- Press Return to send. This requires Accessibility permission for Terminal/Script Editor.
+    tell application "System Events"
+      tell application process "Messages"
+        key code 36
+      end tell
+    end tell
+    delay 1
     return "sent"
   on error errMsg
     return "error: " & errMsg
@@ -75,7 +87,7 @@ end run`;
     try {
       fs.writeFileSync(scriptPath, script, 'utf-8');
       const result = execSync(
-        `osascript ${JSON.stringify(scriptPath)} ${JSON.stringify(clean)} ${JSON.stringify(message)}`,
+        `osascript ${JSON.stringify(scriptPath)} ${JSON.stringify(clean)} ${JSON.stringify(encodedBody)}`,
         { encoding: 'utf-8', timeout: 30000 }
       );
       try { fs.unlinkSync(scriptPath); } catch (e) {}

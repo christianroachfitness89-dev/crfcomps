@@ -41,6 +41,15 @@ chmod +x ~/Desktop/send-sms-queue.command
 
 Then double-click it again.
 
+### Required permissions
+
+This script sends **SMS only** (green bubbles) by opening an SMS compose window and pressing Return. It needs:
+
+- **SMS forwarding** enabled: iPhone Settings → Messages → Text Message Forwarding → turn on your Mac.
+- **Accessibility** permission for the app that runs the script. The first time it runs, macOS will ask: *“Terminal wants to control your computer.”* or *“Script Editor wants to control your computer.”* Click **Allow**.
+  - If the prompt doesn’t appear, go to System Settings → Privacy & Security → Accessibility → Terminal and turn it on.
+  - You may also need to allow **Messages** under Automation: System Settings → Privacy & Security → Automation.
+
 ### Run it
 
 1. In CRF Comps, click **Send via Shortcuts / Mac** and copy the queue code.
