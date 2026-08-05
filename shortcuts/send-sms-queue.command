@@ -154,4 +154,5 @@ main().catch(err => {
 CRF_COMPS_SENDER_SCRIPT
 
 echo ""
-read -p "Press Enter to close..."
+echo "Press Enter to close..."
+read
