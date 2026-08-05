@@ -9,6 +9,7 @@ import https from 'https';
 import http from 'http';
 import readline from 'readline';
 import { execSync } from 'child_process';
+import fs from 'fs';
 
 const API_BASE = process.env.CRF_API_BASE || 'https://crfcompsf2f-one.vercel.app';
 
@@ -55,34 +56,32 @@ function request(method, urlPath, body) {
 function sendWithMessages(phone, message) {
   return new Promise((resolve, reject) => {
     const clean = String(phone).replace(/\s/g, '');
-    const script = `
-      on run argv
-        set phoneNumber to item 1 of argv
-        set messageText to item 2 of argv
-        try
-          tell application "Messages"
-            if not running then launch
-            set targetService to first service
-            try
-              set targetBuddy to buddy phoneNumber of targetService
-            on error
-              set targetBuddy to make new buddy with properties {handle:phoneNumber, service:targetService}
-            end try
-            send messageText to targetBuddy
-          end tell
-          return "sent"
-        on error errMsg
-          return "error: " & errMsg
-        end try
-      end run
-    `;
+    const scriptPath = `/tmp/crf-sms-${Date.now()}-${Math.floor(Math.random() * 10000)}.scpt`;
+    const script = `on run argv
+  set phoneNumber to item 1 of argv
+  set messageText to item 2 of argv
+  try
+    tell application "Messages"
+      if not running then launch
+      set targetService to first service
+      set targetBuddy to buddy phoneNumber of targetService
+      send messageText to targetBuddy
+    end tell
+    return "sent"
+  on error errMsg
+    return "error: " & errMsg
+  end try
+end run`;
     try {
+      fs.writeFileSync(scriptPath, script, 'utf-8');
       const result = execSync(
-        `osascript -e ${JSON.stringify(script)} ${JSON.stringify(clean)} ${JSON.stringify(message)}`,
+        `osascript ${JSON.stringify(scriptPath)} ${JSON.stringify(clean)} ${JSON.stringify(message)}`,
         { encoding: 'utf-8', timeout: 30000 }
       );
+      try { fs.unlinkSync(scriptPath); } catch (e) {}
       resolve(result.trim());
     } catch (err) {
+      try { fs.unlinkSync(scriptPath); } catch (e) {}
       reject(err.stderr || err.message);
     }
   });
