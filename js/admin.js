@@ -1466,7 +1466,7 @@
     }
 
     const { first } = splitName(lead.full_name);
-    const link = window.location.origin + '/presentation.html?lead=' + encodeURIComponent(lead.id);
+    const link = window.location.origin + '/presentation.html?lead=' + encodeURIComponent(lead.id) + '&name=' + encodeURIComponent(first);
     const defaultMessage = 'Hi ' + first + ", here is the Mind & Body Transformation presentation I mentioned: " + link + "\n\nLet me know which option suits you best — Gold or Silver.";
 
     const body = prompt('Edit the presentation SMS before sending:', defaultMessage);
@@ -2135,6 +2135,8 @@
       document.getElementById('setFallbackSub').value = currentSettings.fallback_subheadline || '';
       document.getElementById('setFallbackValue').value = currentSettings.fallback_prize_value || 0;
       document.getElementById('setAdminEmail').value = currentSettings.admin_contact_email || '';
+      document.getElementById('setStripeGoldUrl').value = currentSettings.stripe_gold_url || '';
+      document.getElementById('setStripeSilverUrl').value = currentSettings.stripe_silver_url || '';
       await loadFeedbackSettings();
     } catch (err) {
       console.error(err);
@@ -2389,7 +2391,9 @@
       fallback_headline: document.getElementById('setFallbackHeadline').value.trim(),
       fallback_subheadline: document.getElementById('setFallbackSub').value.trim(),
       fallback_prize_value: isNaN(value) ? 0 : value,
-      admin_contact_email: document.getElementById('setAdminEmail').value.trim() || null
+      admin_contact_email: document.getElementById('setAdminEmail').value.trim() || null,
+      stripe_gold_url: document.getElementById('setStripeGoldUrl').value.trim() || null,
+      stripe_silver_url: document.getElementById('setStripeSilverUrl').value.trim() || null
     };
 
     btn.disabled = true;

@@ -1042,6 +1042,18 @@ footer{padding:40px 0 60px;border-top:1px solid var(--line);}
 .pres-cta-buttons .btn-secondary{background:var(--silver);border-color:var(--silver);color:#fff;}
 .pres-cta-buttons .btn-secondary:hover{background:#6e6e6e;}
 
+.pres-keyboard-hint{
+  display:inline-flex;align-items:center;gap:10px;
+  font-family:'IBM Plex Mono',monospace;font-size:12px;text-transform:uppercase;letter-spacing:0.08em;
+  color:var(--ink-soft);padding:10px 16px;border:1.5px solid var(--line);border-radius:var(--radius);
+  background:var(--paper-3);
+}
+.pres-keyboard-hint svg{animation:bounceDown 1.6s ease-in-out infinite;}
+@keyframes bounceDown{
+  0%,100%{transform:translateY(0);}
+  50%{transform:translateY(4px);}
+}
+
 @media(max-width:900px){
   .pres-grid{grid-template-columns:1fr;}
   .pres-outcomes{grid-template-columns:1fr;}
