@@ -1,535 +1,48 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Mind & Body Transformation</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/main.css">
-  <style>
-    :root{
-      --pres-bg:#0b0c10;
-      --pres-paper:#111318;
-      --pres-paper-2:#15171d;
-      --pres-ink:#f4f5f7;
-      --pres-ink-soft:#9aa0a8;
-      --pres-line:rgba(255,255,255,0.08);
-      --pres-gold:#d4af37;
-      --pres-gold-soft:#b8942b;
-      --pres-gold-glow:rgba(212,175,55,0.18);
-      --pres-silver:#c0c0c0;
-      --pres-silver-soft:#9fa3a8;
-      --pres-silver-glow:rgba(192,192,192,0.15);
-      --pres-accent:#d4af37;
-      --pres-radius:28px;
-    }
-
-    .pres-page{
-      background:var(--pres-bg);
-      color:var(--pres-ink);
-      font-family:'Inter',system-ui,-apple-system,sans-serif;
-      line-height:1.65;
-      overflow-x:hidden;
-    }
-
-    .pres-page::before{
-      content:'';
-      position:fixed;
-      inset:0;
-      background:
-        radial-gradient(circle at 15% 0%, rgba(212,175,55,0.12) 0%, transparent 45%),
-        radial-gradient(circle at 85% 100%, rgba(192,192,192,0.08) 0%, transparent 40%);
-      pointer-events:none;
-      z-index:0;
-    }
-
-    .pres-section{
-      position:relative;
-      z-index:1;
-      min-height:100vh;
-      display:flex;
-      align-items:center;
-      padding:120px 24px;
-      box-sizing:border-box;
-      border-bottom:1px solid var(--pres-line);
-    }
-
-    .pres-section .wrap-narrow,
-    .pres-section .wrap{
-      width:100%;
-      max-width:1100px;
-      margin:0 auto;
-    }
-
-    .pres-eyebrow{
-      display:inline-flex;
-      align-items:center;
-      gap:12px;
-      font-size:12px;
-      font-weight:600;
-      text-transform:uppercase;
-      letter-spacing:0.22em;
-      color:var(--pres-gold);
-      margin-bottom:28px;
-    }
-    .pres-eyebrow::before{
-      content:'';
-      width:36px;
-      height:1px;
-      background:var(--pres-gold);
-    }
-
-    .pres-h1{
-      font-family:'Playfair Display',Georgia,serif;
-      font-size:clamp(44px,6.5vw,84px);
-      font-weight:500;
-      line-height:1.05;
-      letter-spacing:-0.02em;
-      margin:0 0 32px;
-    }
-    .pres-h1 em{
-      color:var(--pres-gold);
-      font-style:italic;
-    }
-
-    .pres-h2{
-      font-family:'Playfair Display',Georgia,serif;
-      font-size:clamp(36px,5vw,64px);
-      font-weight:500;
-      line-height:1.08;
-      letter-spacing:-0.02em;
-      margin:0 0 28px;
-    }
-    .pres-h2 em{
-      color:var(--pres-gold);
-      font-style:italic;
-    }
-
-    .pres-h3{
-      font-family:'Playfair Display',Georgia,serif;
-      font-size:clamp(26px,3vw,40px);
-      font-weight:500;
-      line-height:1.15;
-      margin:0 0 16px;
-    }
-
-    .pres-lead{
-      font-size:clamp(18px,2vw,22px);
-      line-height:1.7;
-      color:var(--pres-ink-soft);
-      max-width:700px;
-      margin:0 0 40px;
-    }
-
-    .pres-card{
-      background:linear-gradient(145deg, rgba(255,255,255,0.045) 0%, rgba(255,255,255,0.015) 100%);
-      border:1px solid var(--pres-line);
-      border-radius:var(--pres-radius);
-      padding:44px 48px;
-      backdrop-filter:blur(14px);
-      -webkit-backdrop-filter:blur(14px);
-      box-shadow:0 28px 80px rgba(0,0,0,0.35);
-    }
-
-    .pres-grid{
-      display:grid;
-      grid-template-columns:repeat(2,1fr);
-      gap:28px;
-    }
-
-    .pres-feature{
-      display:flex;
-      gap:22px;
-      padding:32px;
-      background:rgba(255,255,255,0.03);
-      border:1px solid var(--pres-line);
-      border-radius:24px;
-      transition:transform .35s ease, background .35s ease, border-color .35s ease;
-    }
-    .pres-feature:hover{
-      transform:translateY(-4px);
-      background:rgba(255,255,255,0.055);
-      border-color:rgba(255,255,255,0.16);
-    }
-    .pres-feature-icon{
-      flex-shrink:0;
-      width:56px;
-      height:56px;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      border-radius:16px;
-      background:rgba(212,175,55,0.12);
-      color:var(--pres-gold);
-    }
-    .pres-feature-icon svg{width:26px;height:26px;}
-    .pres-feature h4{
-      font-size:18px;
-      font-weight:600;
-      margin:0 0 8px;
-    }
-    .pres-feature p{
-      font-size:15px;
-      color:var(--pres-ink-soft);
-      margin:0;
-      line-height:1.6;
-    }
-
-    .pres-list{
-      list-style:none;
-      padding:0;
-      margin:0;
-    }
-    .pres-list li{
-      position:relative;
-      padding-left:34px;
-      margin-bottom:18px;
-      font-size:17px;
-      line-height:1.6;
-      color:var(--pres-ink-soft);
-    }
-    .pres-list li::before{
-      content:'';
-      position:absolute;
-      left:0;
-      top:9px;
-      width:8px;
-      height:8px;
-      border-radius:50%;
-      background:var(--pres-gold);
-      box-shadow:0 0 12px var(--pres-gold-glow);
-    }
-    .pres-list li strong{color:var(--pres-ink);}
-
-    .pres-steps{
-      counter-reset:step;
-      display:grid;
-      grid-template-columns:repeat(3,1fr);
-      gap:24px;
-    }
-    .pres-step{
-      position:relative;
-      padding:36px 32px;
-      background:var(--pres-paper-2);
-      border:1px solid var(--pres-line);
-      border-radius:var(--pres-radius);
-    }
-    .pres-step::before{
-      counter-increment:step;
-      content:counter(step,decimal-leading-zero);
-      position:absolute;
-      top:24px;
-      right:28px;
-      font-family:'Playfair Display',serif;
-      font-size:48px;
-      font-weight:600;
-      color:rgba(255,255,255,0.06);
-      line-height:1;
-    }
-    .pres-step h4{
-      font-size:20px;
-      font-weight:600;
-      margin:0 0 12px;
-      padding-top:8px;
-    }
-    .pres-step p{
-      font-size:15px;
-      color:var(--pres-ink-soft);
-      margin:0;
-      line-height:1.65;
-    }
-
-    .pres-outcomes{
-      display:grid;
-      grid-template-columns:repeat(3,1fr);
-      gap:24px;
-    }
-    .pres-outcome{
-      text-align:center;
-      padding:44px 28px;
-      background:var(--pres-paper);
-      border:1px solid var(--pres-line);
-      border-radius:var(--pres-radius);
-      transition:transform .4s ease, border-color .4s ease;
-    }
-    .pres-outcome:hover{
-      transform:translateY(-6px);
-      border-color:rgba(255,255,255,0.16);
-    }
-    .pres-outcome .value{
-      font-family:'Playfair Display',serif;
-      font-size:clamp(40px,4vw,56px);
-      font-weight:600;
-      color:var(--pres-gold);
-      line-height:1;
-      margin-bottom:12px;
-    }
-    .pres-outcome .label{
-      font-size:14px;
-      font-weight:500;
-      letter-spacing:0.05em;
-      text-transform:uppercase;
-      color:var(--pres-ink-soft);
-    }
-
-    .pres-packages{
-      display:grid;
-      grid-template-columns:1fr 1fr;
-      gap:32px;
-      align-items:stretch;
-    }
-    .pres-package{
-      position:relative;
-      padding:48px 42px;
-      border-radius:var(--pres-radius);
-      border:1px solid var(--pres-line);
-      background:var(--pres-paper);
-      overflow:hidden;
-      transition:transform .4s ease, box-shadow .4s ease;
-    }
-    .pres-package:hover{transform:translateY(-8px);}
-    .pres-package.gold{
-      border-color:rgba(212,175,55,0.35);
-      box-shadow:0 32px 90px rgba(0,0,0,0.45), inset 0 0 0 1px rgba(212,175,55,0.25);
-    }
-    .pres-package.gold:hover{box-shadow:0 40px 110px rgba(0,0,0,0.55), 0 0 60px var(--pres-gold-glow), inset 0 0 0 1px rgba(212,175,55,0.4);}
-    .pres-package.silver{
-      border-color:rgba(192,192,192,0.3);
-      box-shadow:0 32px 90px rgba(0,0,0,0.45), inset 0 0 0 1px rgba(192,192,192,0.2);
-    }
-    .pres-package.silver:hover{box-shadow:0 40px 110px rgba(0,0,0,0.55), 0 0 60px var(--pres-silver-glow), inset 0 0 0 1px rgba(192,192,192,0.35);}
-    .pres-package-badge{
-      display:inline-block;
-      font-size:12px;
-      font-weight:700;
-      text-transform:uppercase;
-      letter-spacing:0.2em;
-      padding:8px 16px;
-      border-radius:999px;
-      margin-bottom:24px;
-    }
-    .pres-package.gold .pres-package-badge{background:rgba(212,175,55,0.14);color:var(--pres-gold);}
-    .pres-package.silver .pres-package-badge{background:rgba(192,192,192,0.12);color:var(--pres-silver);}
-    .pres-package h3{
-      font-family:'Playfair Display',serif;
-      font-size:clamp(32px,3.5vw,48px);
-      margin:0 0 12px;
-    }
-    .pres-package .price{
-      font-size:18px;
-      color:var(--pres-ink-soft);
-      margin-bottom:32px;
-    }
-    .pres-package .price strong{
-      font-size:42px;
-      font-weight:600;
-      color:var(--pres-ink);
-    }
-    .pres-package ul{
-      list-style:none;
-      padding:0;
-      margin:0 0 36px;
-    }
-    .pres-package ul li{
-      position:relative;
-      padding-left:30px;
-      margin-bottom:16px;
-      font-size:15px;
-      line-height:1.55;
-      color:var(--pres-ink-soft);
-    }
-    .pres-package ul li::before{
-      content:'';
-      position:absolute;
-      left:0;
-      top:7px;
-      width:6px;
-      height:6px;
-      border-radius:50%;
-    }
-    .pres-package.gold ul li::before{background:var(--pres-gold);}
-    .pres-package.silver ul li::before{background:var(--pres-silver);}
-    .pres-package-btn{
-      width:100%;
-      padding:18px 28px;
-      font-size:15px;
-      font-weight:600;
-      letter-spacing:0.05em;
-      border-radius:16px;
-      border:none;
-      cursor:pointer;
-      transition:transform .25s ease, box-shadow .25s ease;
-    }
-    .pres-package-btn:hover{transform:translateY(-2px);}
-    .pres-package.gold .pres-package-btn{background:var(--pres-gold);color:#0b0c10;}
-    .pres-package.gold .pres-package-btn:hover{box-shadow:0 12px 40px var(--pres-gold-glow);}
-    .pres-package.silver .pres-package-btn{background:var(--pres-silver);color:#0b0c10;}
-    .pres-package.silver .pres-package-btn:hover{box-shadow:0 12px 40px var(--pres-silver-glow);}
-
-    .pres-guarantee{
-      display:flex;
-      gap:36px;
-      align-items:center;
-      padding:48px;
-      background:linear-gradient(135deg, rgba(212,175,55,0.08) 0%, rgba(17,19,24,1) 60%);
-      border:1px solid rgba(212,175,55,0.2);
-      border-radius:var(--pres-radius);
-    }
-    .pres-guarantee-icon{
-      flex-shrink:0;
-      width:90px;
-      height:90px;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      border-radius:50%;
-      background:rgba(212,175,55,0.12);
-      color:var(--pres-gold);
-    }
-    .pres-guarantee-icon svg{width:44px;height:44px;}
-    .pres-guarantee h3{
-      font-family:'Playfair Display',serif;
-      font-size:clamp(28px,3vw,40px);
-      margin:0 0 10px;
-    }
-    .pres-guarantee p{
-      font-size:16px;
-      color:var(--pres-ink-soft);
-      margin:0;
-      line-height:1.65;
-    }
-
-    .pres-final{
-      text-align:center;
-      max-width:800px;
-      margin:0 auto;
-    }
-    .pres-final .pres-h2{margin-bottom:20px;}
-    .pres-final .pres-lead{margin-left:auto;margin-right:auto;}
-    .pres-final-cta{
-      display:inline-flex;
-      align-items:center;
-      gap:14px;
-      padding:22px 44px;
-      background:var(--pres-gold);
-      color:#0b0c10;
-      font-size:17px;
-      font-weight:700;
-      letter-spacing:0.04em;
-      border-radius:16px;
-      text-decoration:none;
-      transition:transform .3s ease, box-shadow .3s ease;
-      cursor:pointer;
-      border:none;
-    }
-    .pres-final-cta:hover{
-      transform:translateY(-3px);
-      box-shadow:0 18px 50px var(--pres-gold-glow);
-    }
-
-    .pres-keyboard-hint{
-      display:inline-flex;
-      align-items:center;
-      gap:12px;
-      font-size:12px;
-      font-weight:500;
-      text-transform:uppercase;
-      letter-spacing:0.15em;
-      color:var(--pres-ink-soft);
-      padding:14px 22px;
-      border:1px solid var(--pres-line);
-      border-radius:999px;
-      background:rgba(255,255,255,0.03);
-      margin-top:48px;
-    }
-    .pres-keyboard-hint svg{animation:bounceDown 2s ease-in-out infinite;color:var(--pres-gold);}
-    @keyframes bounceDown{
-      0%,100%{transform:translateY(0);}
-      50%{transform:translateY(5px);}
-    }
-
-    .pres-progress{
-      position:fixed;
-      right:28px;
-      top:50%;
-      transform:translateY(-50%);
-      display:flex;
-      flex-direction:column;
-      gap:14px;
-      z-index:100;
-    }
-    .pres-dot{
-      width:10px;
-      height:10px;
-      border-radius:50%;
-      background:rgba(255,255,255,0.18);
-      cursor:pointer;
-      transition:background .3s ease, transform .3s ease, box-shadow .3s ease;
-    }
-    .pres-dot:hover{background:rgba(255,255,255,0.45);}
-    .pres-dot.active{
-      background:var(--pres-gold);
-      transform:scale(1.5);
-      box-shadow:0 0 18px var(--pres-gold-glow);
-    }
-
-    .reveal{
-      opacity:0;
-      transform:translateY(32px);
-      transition:opacity .85s cubic-bezier(0.16,1,0.3,1), transform .85s cubic-bezier(0.16,1,0.3,1);
-    }
-    .reveal.visible{
-      opacity:1;
-      transform:translateY(0);
-    }
-
-    .pres-divider{
-      width:60px;
-      height:1px;
-      background:var(--pres-gold);
-      margin:24px 0 32px;
-    }
-    .pres-divider.center{margin-left:auto;margin-right:auto;}
-
-    @media(max-width:900px){
-      .pres-section{padding:90px 20px;}
-      .pres-grid{grid-template-columns:1fr;}
-      .pres-steps{grid-template-columns:1fr;}
-      .pres-outcomes{grid-template-columns:1fr;}
-      .pres-packages{grid-template-columns:1fr;}
-      .pres-guarantee{flex-direction:column;text-align:center;}
-      .pres-card{padding:32px 28px;}
-      .pres-progress{display:none;}
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mind & Body Transformation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/main.css">
 </head>
-<body class="pres-page">
+<body class="presentation-page">
 
-<div class="pres-progress" aria-label="Presentation sections">
-  <div class="pres-dot active" data-section="hero" title="Intro"></div>
-  <div class="pres-dot" data-section="problem" title="The problem"></div>
-  <div class="pres-dot" data-section="system" title="The system"></div>
-  <div class="pres-dot" data-section="how" title="How it works"></div>
-  <div class="pres-dot" data-section="get" title="What you get"></div>
-  <div class="pres-dot" data-section="outcomes" title="Outcomes"></div>
-  <div class="pres-dot" data-section="packages" title="Packages"></div>
-  <div class="pres-dot" data-section="guarantee" title="Guarantee"></div>
-  <div class="pres-dot" data-section="next" title="Next step"></div>
+<header>
+  <div class="nav">
+    <a href="index.html" class="brand"><span class="dot"></span>CRF Comps</a>
+    <nav class="nav-links">
+      <a href="index.html">Home</a>
+      <a href="feedback.html">Feedback</a>
+    </nav>
+  </div>
+</header>
+
+<div class="pres-progress" aria-label="Presentation progress">
+  <button class="pres-dot active" data-section="hero" aria-label="Introduction"></button>
+  <button class="pres-dot" data-section="problem" aria-label="The problem"></button>
+  <button class="pres-dot" data-section="consequence" aria-label="Cost of inaction"></button>
+  <button class="pres-dot" data-section="outcomes" aria-label="Transformation outcomes"></button>
+  <button class="pres-dot" data-section="results" aria-label="Results"></button>
+  <button class="pres-dot" data-section="gold" aria-label="Gold package"></button>
+  <button class="pres-dot" data-section="gold-includes" aria-label="Gold inclusions"></button>
+  <button class="pres-dot" data-section="silver" aria-label="Silver package"></button>
+  <button class="pres-dot" data-section="cta" aria-label="Next step"></button>
 </div>
 
 <!-- 1. HERO -->
-<section class="pres-section" id="hero">
+<section class="pres-section pres-hero" id="hero">
   <div class="wrap-narrow">
-    <div class="pres-eyebrow reveal">Mind & Body Transformation System</div>
-    <h1 class="pres-h1 reveal">A structured coaching program that combines <em>personal training</em>, <em>nutrition</em> & <em>mindset</em>.</h1>
-    <p class="pres-lead reveal" id="heroSub" style="max-width:720px;">
+    <div class="hero-eyebrow reveal">Mind & Body Transformation System</div>
+    <h1 class="reveal">A structured coaching program that combines <em>personal training</em>, <em>nutrition</em> & <em>mindset</em>.</h1>
+    <p class="reveal hero-sub" id="heroSub" style="max-width:640px;font-size:18px;line-height:1.7;">
       This is not another gym membership. It is a complete system designed to move you from stuck, frustrated and inconsistent to strong, lean and in control of your body.
     </p>
     <div class="reveal pres-keyboard-hint">
-      <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/></svg>
-      <span>Press the down arrow to start</span>
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/></svg>
+      <span>Use arrow keys to move through slides</span>
     </div>
   </div>
 </section>
@@ -537,200 +50,200 @@
 <!-- 2. THE PROBLEM -->
 <section class="pres-section" id="problem">
   <div class="wrap-narrow">
-    <div class="pres-eyebrow reveal">The problem</div>
-    <h2 class="pres-h2 reveal">Most fitness plans fail before they ever really begin.</h2>
-    <div class="pres-divider reveal"></div>
-    <p class="pres-lead reveal">
-      You start with motivation, follow a generic program, cut calories too hard and try to white-knuckle your way through. Within weeks the wheels fall off. Progress stalls, willpower runs out and you end up back where you started, convinced the problem is you.
-    </p>
-    <p class="pres-lead reveal" style="margin-bottom:0;">
-      The real problem is not discipline. It is a missing system: clear structure, accountability that actually shows up, nutrition built around your real life and a coach who knows how to keep you moving when motivation disappears.
-    </p>
+    <div class="sec-eyebrow reveal">The Problem</div>
+    <h2 class="reveal">You already know what to do. You just cannot make it stick.</h2>
+    <div class="pres-grid reveal">
+      <div class="pres-card problem-card">
+        <div class="pres-card-num">01</div>
+        <h3>The weekend undo</h3>
+        <p>Monday to Friday you are on track. Then the weekend wipes out the whole week and you start again Monday.</p>
+      </div>
+      <div class="pres-card problem-card">
+        <div class="pres-card-num">02</div>
+        <h3>No real plan</h3>
+        <p>You walk into the gym without a clear program, do what feels right, and hope it works.</p>
+      </div>
+      <div class="pres-card problem-card">
+        <div class="pres-card-num">03</div>
+        <h3>Motivation crashes</h3>
+        <p>Life gets busy, energy drops, and the habits you tried to build fall apart within weeks.</p>
+      </div>
+      <div class="pres-card problem-card">
+        <div class="pres-card-num">04</div>
+        <h3>The scale will not budge</h3>
+        <p>You have cut calories, tried apps and followed trends -yet the body composition never really changes.</p>
+      </div>
+    </div>
+    <div class="reveal pres-stat">
+      <div class="pres-stat-value">95%</div>
+      <div class="pres-stat-label">of people quit within 3 months without structure, support and accountability.</div>
+    </div>
   </div>
 </section>
 
-<!-- 3. THE SYSTEM -->
-<section class="pres-section" id="system">
-  <div class="wrap">
-    <div class="pres-eyebrow reveal">The system</div>
-    <h2 class="pres-h2 reveal" style="text-align:center;">Three pillars. One unified plan.</h2>
-    <div class="pres-divider center reveal"></div>
-    <div class="pres-grid" style="margin-top:24px;">
-      <div class="pres-feature reveal">
-        <div class="pres-feature-icon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.57 14.86L22 13.43 20.57 12 17 15.57 8.43 7 12 3.43 10.57 2 9.14 3.43 7.71 2 5.57 4.14 4.14 2.71 2.71 4.14l1.43 1.43L2 7.71l1.43 1.43L2 10.57 3.43 12 7 8.43 15.57 17 12 20.57 13.43 22 14.86 20.57 16.29 22 18.43 19.86 19.86 21.29 21.29 19.86l-1.43-1.43L22 16.29z"/></svg></div>
-        <div>
-          <h4>Personal Training</h4>
-          <p>Face-to-face strength and conditioning sessions designed around your body, your schedule and your goals. Every rep has a purpose.</p>
-        </div>
+<!-- 3. COST OF INACTION -->
+<section class="pres-section pres-dark" id="consequence">
+  <div class="wrap-narrow">
+    <div class="sec-eyebrow reveal">Cost Of Inaction</div>
+    <h2 class="reveal">If nothing changes, the trend continues.</h2>
+    <div class="pres-list reveal">
+      <div class="pres-list-item">
+        <span class="pres-list-mark">+</span>
+        <span><b>5–10kg gained</b> over the next 12–24 months from repeated start-stop cycles.</span>
       </div>
-      <div class="pres-feature reveal">
-        <div class="pres-feature-icon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M11 9H9V2H7v7H5V2H3v7c0 2.12 1.66 3.84 3.75 3.97V22h2.5v-9.03C11.34 12.84 13 11.12 13 9V2h-2v7zm5-3v8h2.5v8H21V2c-2.76 0-5 2.24-5 4z"/></svg></div>
-        <div>
-          <h4>Nutrition Coaching</h4>
-          <p>No meal plans from a magazine. A real eating strategy tailored to your lifestyle, preferences and the results you want to keep.</p>
-        </div>
+      <div class="pres-list-item">
+        <span class="pres-list-mark">↯</span>
+        <span><b>Lower energy</b> and declining confidence that affects work, relationships and mood.</span>
       </div>
-      <div class="pres-feature reveal">
-        <div class="pres-feature-icon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></div>
-        <div>
-          <h4>Mindset & Accountability</h4>
-          <p>Weekly check-ins, clear targets and direct coaching so you stay consistent long after the initial excitement fades.</p>
-        </div>
-      </div>
-      <div class="pres-feature reveal">
-        <div class="pres-feature-icon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg></div>
-        <div>
-          <h4>Data-Driven Progress</h4>
-          <p>Body composition, performance and habit tracking turned into simple decisions, so every adjustment is based on evidence.</p>
-        </div>
+      <div class="pres-list-item">
+        <span class="pres-list-mark">!</span>
+        <span><b>Higher health risks</b> as weight, blood pressure, blood sugar and inflammation slowly rise.</span>
       </div>
     </div>
   </div>
 </section>
 
-<!-- 4. HOW IT WORKS -->
-<section class="pres-section" id="how">
-  <div class="wrap">
-    <div class="pres-eyebrow reveal">How it works</div>
-    <h2 class="pres-h2 reveal" style="text-align:center;">A clear path from day one.</h2>
-    <div class="pres-divider center reveal"></div>
-    <div class="pres-steps" style="margin-top:24px;">
-      <div class="pres-step reveal">
-        <h4>Assessment</h4>
-        <p>We start with where you really are: movement, nutrition, lifestyle and the habits that have held you back.</p>
-      </div>
-      <div class="pres-step reveal">
-        <h4>Custom Plan</h4>
-        <p>Your training, nutrition and weekly targets are built specifically for your body, schedule and starting point.</p>
-      </div>
-      <div class="pres-step reveal">
-        <h4>Coached Execution</h4>
-        <p>We train together, review every week and adjust the plan so progress keeps coming even when life gets busy.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- 5. WHAT YOU GET -->
-<section class="pres-section" id="get">
-  <div class="wrap">
-    <div class="pres-eyebrow reveal">What you get</div>
-    <h2 class="pres-h2 reveal">Everything needed to transform, not just try harder.</h2>
-    <div class="pres-divider reveal"></div>
-    <div class="pres-card reveal">
-      <ul class="pres-list">
-        <li><strong>Structured personal training sessions</strong> built around your goals, injuries and available time.</li>
-        <li><strong>Nutrition coaching</strong> that fits your real food preferences, family life and work schedule.</li>
-        <li><strong>Weekly check-ins</strong> to review progress, solve sticking points and keep momentum alive.</li>
-        <li><strong>Habit coaching</strong> so the results stick long after the program finishes.</li>
-        <li><strong>Body composition and performance tracking</strong> so decisions are based on data, not guesswork.</li>
-        <li><strong>Direct access to your coach</strong> for questions, adjustments and accountability when it matters.</li>
-      </ul>
-    </div>
-  </div>
-</section>
-
-<!-- 6. OUTCOMES -->
+<!-- 4. TRANSFORMATION OUTCOMES -->
 <section class="pres-section" id="outcomes">
-  <div class="wrap">
-    <div class="pres-eyebrow reveal" style="justify-content:center;">Outcomes</div>
-    <h2 class="pres-h2 reveal" style="text-align:center;">What changes when the system takes over.</h2>
-    <div class="pres-divider center reveal"></div>
-    <div class="pres-outcomes" style="margin-top:24px;">
-      <div class="pres-outcome reveal">
-        <div class="value">Stronger</div>
-        <div class="label">Lean muscle & confidence</div>
+  <div class="wrap-narrow">
+    <div class="sec-eyebrow reveal">The Transformation</div>
+    <h2 class="reveal">What changes when the system takes over.</h2>
+    <div class="pres-outcomes reveal">
+      <div class="pres-outcome">
+        <div class="pres-outcome-num">5–20</div>
+        <div class="pres-outcome-unit">kg lost</div>
+        <p>Through consistent training, nutrition and habits built around your life.</p>
       </div>
-      <div class="pres-outcome reveal">
-        <div class="value">Leaner</div>
-        <div class="label">Visible body composition change</div>
+      <div class="pres-outcome">
+        <div class="pres-outcome-num">↗</div>
+        <div class="pres-outcome-unit">stronger body & mind</div>
+        <p>Strength, endurance, sleep, focus and resilience all improve together.</p>
       </div>
-      <div class="pres-outcome reveal">
-        <div class="value">In Control</div>
-        <div class="label">Consistency without obsession</div>
+      <div class="pres-outcome">
+        <div class="pres-outcome-num">∞</div>
+        <div class="pres-outcome-unit">lasting routine</div>
+        <p>You finish with a routine you can maintain long after the program ends.</p>
       </div>
     </div>
-    <p class="pres-lead reveal" style="text-align:center;margin:48px auto 0;">
-      This is not about becoming someone else. It is about becoming the strongest, leanest, most disciplined version of you.
+  </div>
+</section>
+
+<!-- 5. REAL RESULTS -->
+<section class="pres-section pres-muted" id="results">
+  <div class="wrap-narrow">
+    <div class="sec-eyebrow reveal">Real Results</div>
+    <h2 class="reveal">Proof this works for real people.</h2>
+    <div class="pres-results reveal">
+      <div class="pres-result">
+        <div class="pres-result-num">50+</div>
+        <div class="pres-result-label">clients transformed</div>
+      </div>
+      <div class="pres-result">
+        <div class="pres-result-num">20</div>
+        <div class="pres-result-label">kg maximum weight lost</div>
+      </div>
+      <div class="pres-result">
+        <div class="pres-result-num">0.75</div>
+        <div class="pres-result-label">kg/week average fat loss in case studies</div>
+      </div>
+    </div>
+    <p class="reveal" style="margin-top:44px;font-size:15px;color:var(--ink-soft);line-height:1.7;">
+      These results come from following the full system -training, nutrition and accountability -not from extreme diets or unsustainable training volumes.
     </p>
   </div>
 </section>
 
-<!-- 7. PACKAGES -->
-<section class="pres-section" id="packages">
-  <div class="wrap">
-    <div class="pres-eyebrow reveal" style="justify-content:center;">Investment</div>
-    <h2 class="pres-h2 reveal" style="text-align:center;">Choose the package that fits your pace.</h2>
-    <div class="pres-divider center reveal"></div>
-    <div class="pres-packages" style="margin-top:28px;">
-      <div class="pres-package gold reveal">
-        <span class="pres-package-badge">Gold</span>
-        <h3>The Full Transformation</h3>
-        <div class="price"><strong>£997</strong> / 12 weeks</div>
-        <ul>
-          <li><strong>2 × 45-min</strong> or <strong>3 × 30-min</strong> personal training sessions per week</li>
-          <li><strong>Dual coaching</strong> - your trainer and nutrition coach work together</li>
-          <li><strong>Habit & nutrition coaching</strong> built around your lifestyle</li>
-        </ul>
-        <button type="button" class="pres-package-btn" data-package="gold" onclick="handlePackageClick('gold')">Choose Gold</button>
+<!-- 6. GOLD PACKAGE -->
+<section class="pres-section pres-gold" id="gold">
+  <div class="wrap-narrow">
+    <div class="sec-eyebrow reveal" style="color:var(--gold);">Premium Package</div>
+    <h2 class="reveal">Gold -the full transformation experience.</h2>
+    <div class="pres-package-card gold-card reveal">
+      <div class="pres-package-header">
+        <div class="pres-package-name">Gold</div>
+        <div class="pres-package-price">£997<span>/12 weeks</span></div>
       </div>
-      <div class="pres-package silver reveal">
-        <span class="pres-package-badge">Silver</span>
-        <h3>The Strong Start</h3>
-        <div class="price"><strong>£497</strong> / 12 weeks</div>
-        <ul>
-          <li><strong>1 × 60-min</strong> personal training session per week</li>
-          <li><strong>Nutrition guidance</strong> and weekly check-ins</li>
-          <li><strong>Habit coaching</strong> to build consistency that lasts</li>
-        </ul>
-        <button type="button" class="pres-package-btn" data-package="silver" onclick="handlePackageClick('silver')">Choose Silver</button>
+      <ul class="pres-package-list">
+        <li><b>2 × 45-min</b> or <b>3 × 30-min</b> personal training sessions per week</li>
+        <li><b>Dual coaching</b> -your trainer and nutrition coach work together</li>
+        <li><b>Habit & nutrition coaching</b> built around your lifestyle</li>
+      </ul>
+      <button type="button" class="btn-primary pres-package-btn" data-package="gold" onclick="handlePackageClick('gold')">Choose Gold</button>
+    </div>
+  </div>
+</section>
+
+<!-- 7. GOLD ALSO INCLUDES -->
+<section class="pres-section" id="gold-includes">
+  <div class="wrap-narrow">
+    <div class="sec-eyebrow reveal">Gold Also Includes</div>
+    <h2 class="reveal">Everything you need to keep momentum.</h2>
+    <div class="pres-grid reveal">
+      <div class="pres-card include-card">
+        <div class="pres-card-num">✓</div>
+        <h3>Monthly reviews</h3>
+        <p>Track progress, adjust the plan and remove friction before it becomes a problem.</p>
+      </div>
+      <div class="pres-card include-card">
+        <div class="pres-card-num">✓</div>
+        <h3>4 guest passes</h3>
+        <p>Bring a partner or friend to train with you and build accountability around you.</p>
+      </div>
+      <div class="pres-card include-card">
+        <div class="pres-card-num">✓</div>
+        <h3>Kickstart session</h3>
+        <p>A dedicated start-up session to set goals, baseline measurements and week-one habits.</p>
+      </div>
+      <div class="pres-card include-card">
+        <div class="pres-card-num">✓</div>
+        <h3>Free body scan</h3>
+        <p>Objective data so we can measure real change, not just scale weight.</p>
       </div>
     </div>
   </div>
 </section>
 
-<!-- 8. GUARANTEE -->
-<section class="pres-section" id="guarantee">
-  <div class="wrap">
-    <div class="pres-card reveal" style="padding:0;overflow:hidden;">
-      <div class="pres-guarantee" style="border:none;background:transparent;">
-        <div class="pres-guarantee-icon">
-          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/></svg>
-        </div>
-        <div>
-          <h3>Backed by accountability, not small print.</h3>
-          <p>
-            If you show up, follow the plan and engage with the coaching, you will see measurable progress. If after 30 days you have followed the program and genuinely do not feel you are moving forward, we will work with you at no extra cost until you are. This only works because the people who join are committed to doing the work.
-          </p>
-        </div>
+<!-- 8. SILVER PACKAGE -->
+<section class="pres-section pres-silver" id="silver">
+  <div class="wrap-narrow">
+    <div class="sec-eyebrow reveal" style="color:var(--silver);">Core Package</div>
+    <h2 class="reveal">Silver -strong coaching at a lighter commitment.</h2>
+    <div class="pres-package-card silver-card reveal">
+      <div class="pres-package-header">
+        <div class="pres-package-name">Silver</div>
+        <div class="pres-package-price">£497<span>/12 weeks</span></div>
       </div>
+      <ul class="pres-package-list">
+        <li><b>1 × 60-min</b> personal training session per week</li>
+        <li><b>Nutrition guidance</b> and weekly check-ins</li>
+        <li><b>Habit coaching</b> to build consistency that lasts</li>
+      </ul>
+      <button type="button" class="btn-primary pres-package-btn silver-btn" data-package="silver" onclick="handlePackageClick('silver')">Choose Silver</button>
     </div>
   </div>
 </section>
 
-<!-- 9. NEXT STEP -->
-<section class="pres-section" id="next">
-  <div class="wrap-narrow pres-final">
-    <div class="pres-eyebrow reveal" style="justify-content:center;">Next step</div>
-    <h2 class="pres-h2 reveal">Ready to stop starting over?</h2>
-    <div class="pres-divider center reveal"></div>
-    <p class="pres-lead reveal">
-      Select the package that suits you below and complete the secure checkout. I will be in touch within 24 hours to schedule your assessment and build your first week.
+<!-- 9. CTA -->
+<section class="pres-section pres-cta" id="cta">
+  <div class="wrap-narrow">
+    <h2 class="reveal">The new you starts now.</h2>
+    <p class="reveal" style="font-size:18px;max-width:600px;margin:0 auto 40px;line-height:1.7;">
+      Which option is the best fit for you? Pick a package and complete your secure checkout. Your assessment and first week will be scheduled within 24 hours.
     </p>
-    <div class="reveal" style="margin-top:12px;">
-      <button type="button" class="pres-final-cta" data-package="gold" onclick="handlePackageClick('gold')">
-        <span>Start with Gold</span>
-        <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"/></svg>
-      </button>
+    <div class="reveal pres-cta-buttons">
+      <button type="button" class="btn-primary" data-package="gold" onclick="handlePackageClick('gold')">Choose Gold -£997/12 weeks</button>
+      <button type="button" class="btn-secondary silver-btn" data-package="silver" onclick="handlePackageClick('silver')">Choose Silver -£497/12 weeks</button>
     </div>
-    <p class="pres-lead reveal" style="margin-top:24px;font-size:14px;">
-      Prefer Silver? <a href="#packages" onclick="event.preventDefault(); scrollToSection(6);" style="color:var(--pres-gold);text-decoration:underline;">View packages again</a>
+    <p class="reveal" style="margin-top:32px;font-size:13px;color:var(--paper-2);">
+      Or reply to the message that sent you here and we will help you decide.
     </p>
   </div>
 </section>
 
-<footer class="pres-section" style="min-height:auto;padding:60px 24px;text-align:center;border-bottom:none;">
-  <p style="font-size:14px;color:var(--pres-ink-soft);margin:0;">© Christian's Fitness Coaching. All rights reserved.</p>
+<footer>
+  <div class="wrap">
+    <p class="foot-text">CRF Comps · Mind & Body Transformation. Coaching packages and pricing are subject to availability and terms. This page is part of the CRF Comps platform.</p>
+  </div>
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
@@ -775,13 +288,15 @@
   async function logEvent(event, packageName) {
     if (!leadId) return;
     try {
+      const payload = { lead_id: leadId, event: event };
+      if (packageName) payload.package = packageName;
       await fetch(API_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ lead_id: leadId, event: event, package: packageName || null })
+        body: JSON.stringify(payload)
       });
     } catch (err) {
-      console.warn('Presentation logging failed:', err);
+      console.warn('Could not log presentation event:', err);
     }
   }
 
@@ -797,8 +312,18 @@
 
   window.handlePackageClick = handlePackageClick;
 
-  logEvent('viewed');
+  // Log view on load, debounced so refreshes don't spam.
+  if (leadId) {
+    const viewedKey = 'pres_view_' + leadId;
+    const last = sessionStorage.getItem(viewedKey);
+    const now = Date.now();
+    if (!last || now - parseInt(last, 10) > 60000) {
+      logEvent('viewed');
+      sessionStorage.setItem(viewedKey, String(now));
+    }
+  }
 
+  // Progress indicator + keyboard navigation + reveal animations.
   const sections = document.querySelectorAll('.pres-section');
   const dots = document.querySelectorAll('.pres-dot');
 
@@ -826,9 +351,8 @@
 
   dots.forEach(function (d) {
     d.addEventListener('click', function () {
-      const target = d.dataset.section;
-      const el = document.getElementById(target);
-      if (el) el.scrollIntoView({ behavior: 'smooth' });
+      const target = document.getElementById(d.dataset.section);
+      if (target) target.scrollIntoView({ behavior: 'smooth' });
     });
   });
 
@@ -854,10 +378,9 @@
     entries.forEach(function (entry) {
       if (entry.isIntersecting) {
         entry.target.classList.add('visible');
-        observer.unobserve(entry.target);
       }
     });
-  }, { threshold: 0.12, rootMargin: '0px 0px -80px 0px' });
+  }, { threshold: 0.15 });
 
   document.querySelectorAll('.reveal').forEach(function (el) { observer.observe(el); });
 
