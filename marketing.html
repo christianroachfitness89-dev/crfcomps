@@ -273,6 +273,14 @@
             <option value="runner_up_2">2nd runner-up</option>
             <option value="disqualified">Disqualified</option>
           </select>
+          <select class="pool-presentation" onchange="renderLeadPool('giveaway')">
+            <option value="all">Any presentation</option>
+            <option value="none">Not sent / no activity</option>
+            <option value="viewed">Viewed</option>
+            <option value="interested">Interested (any package)</option>
+            <option value="gold">Interested — Gold</option>
+            <option value="silver">Interested — Silver</option>
+          </select>
         </div>
         <div class="admin-actions">
           <div class="column-picker-wrap" id="columnPicker-giveaway">
@@ -411,6 +419,14 @@
             <option value="contact_later">Contact later</option>
             <option value="disqualified">Disqualified</option>
           </select>
+          <select class="pool-presentation" onchange="renderLeadPool('new_member')">
+            <option value="all">Any presentation</option>
+            <option value="none">Not sent / no activity</option>
+            <option value="viewed">Viewed</option>
+            <option value="interested">Interested (any package)</option>
+            <option value="gold">Interested — Gold</option>
+            <option value="silver">Interested — Silver</option>
+          </select>
         </div>
         <div class="admin-actions">
           <div class="column-picker-wrap" id="columnPicker-new_member">
@@ -543,6 +559,14 @@
             <option value="wrong_number">Wrong number</option>
             <option value="contact_later">Contact later</option>
             <option value="disqualified">Disqualified</option>
+          </select>
+          <select class="pool-presentation" onchange="renderLeadPool('non_attendance')">
+            <option value="all">Any presentation</option>
+            <option value="none">Not sent / no activity</option>
+            <option value="viewed">Viewed</option>
+            <option value="interested">Interested (any package)</option>
+            <option value="gold">Interested — Gold</option>
+            <option value="silver">Interested — Silver</option>
           </select>
         </div>
         <div class="admin-actions">
@@ -694,6 +718,14 @@
             <option value="wrong_number">Wrong number</option>
             <option value="contact_later">Contact later</option>
             <option value="disqualified">Disqualified</option>
+          </select>
+          <select class="pool-presentation" onchange="renderLeadPool('birthday')">
+            <option value="all">Any presentation</option>
+            <option value="none">Not sent / no activity</option>
+            <option value="viewed">Viewed</option>
+            <option value="interested">Interested (any package)</option>
+            <option value="gold">Interested — Gold</option>
+            <option value="silver">Interested — Silver</option>
           </select>
           <button type="button" class="admin-btn " id="birthdayTodayBtn" onclick="toggleBirthdayTodayFilter()">🎂 Birthday today</button>
         </div>

@@ -62,6 +62,7 @@
     { key: 'entered', label: 'Entered', default: true },
     { key: 'birthday', label: 'Birthday', default: true, pools: ['birthday'] },
     { key: 'status', label: 'Status', default: true },
+    { key: 'presentation', label: 'Presentation', default: false },
     { key: 'actions', label: '', fixed: true, default: true }
   ];
 
@@ -384,6 +385,34 @@
   function statusBadge(status) {
     const s = STATUSES.find(function (x) { return x[0] === status; });
     return '<span class="tag ' + (status === 'converted' ? 'tag-active' : CLOSED_STATUSES.includes(status) ? 'tag-archived' : 'tag-draft') + '">' + (s ? s[1] : status) + '</span>';
+  }
+
+
+  function presentationStatusBadge(lead) {
+    const event = lead.presentation_event;
+    const pkg = lead.presentation_package;
+    if (!event) return '<span style="color:var(--ink-soft);">-</span>';
+    if (event === 'interested' && pkg) {
+      const cls = pkg === 'gold' ? 'tag-hot' : 'tag-closed';
+      const label = pkg === 'gold' ? 'Interested · Gold' : 'Interested · Silver';
+      return '<span class="tag ' + cls + '" title="' + fmtDateShort(lead.presentation_at) + '">' + label + '</span>';
+    }
+    if (event === 'interested') {
+      return '<span class="tag tag-warm" title="' + fmtDateShort(lead.presentation_at) + '">Interested</span>';
+    }
+    return '<span class="tag tag-draft" title="' + fmtDateShort(lead.presentation_at) + '">Viewed</span>';
+  }
+
+  function matchPresentationFilter(lead, filter) {
+    if (filter === 'all') return true;
+    const event = lead.presentation_event;
+    const pkg = lead.presentation_package;
+    if (filter === 'none') return !event;
+    if (filter === 'viewed') return event === 'viewed';
+    if (filter === 'interested') return event === 'interested';
+    if (filter === 'gold') return event === 'interested' && pkg === 'gold';
+    if (filter === 'silver') return event === 'interested' && pkg === 'silver';
+    return true;
   }
 
   // ---------- strategies ----------
@@ -1108,6 +1137,8 @@
     const clubFilterEl = page.querySelector('.pool-club');
     const clubFilter = clubFilterEl ? clubFilterEl.value : 'all';
     const statusFilter = page.querySelector('.pool-status').value;
+    const presentationFilterEl = page.querySelector('.pool-presentation');
+    const presentationFilter = presentationFilterEl ? presentationFilterEl.value : 'all';
 
     let filtered = allLeads.filter(function (l) {
       return (l.pool || 'giveaway') === pool;
@@ -1124,7 +1155,8 @@
       const matchesClub = clubFilter === 'all' || l.club === clubFilter;
       const matchesStatus = statusFilter === 'all' || l.status === statusFilter;
       const matchesBirthdayToday = pool !== 'birthday' || !birthdayTodayFilterActive || isBirthdayToday(l.birthday);
-      return matchesSearch && matchesStrategy && matchesComp && matchesSource && matchesClub && matchesStatus && matchesBirthdayToday;
+      const matchesPresentation = matchPresentationFilter(l, presentationFilter);
+      return matchesSearch && matchesStrategy && matchesComp && matchesSource && matchesClub && matchesStatus && matchesBirthdayToday && matchesPresentation;
     });
 
     // Stats
@@ -1198,11 +1230,15 @@
     if (key === 'status') {
       return '<select class="status-select" onchange="updateLeadStatus(\'' + lead.id + '\', this.value)">' + renderStatusOptions(lead.status) + '</select>';
     }
+    if (key === 'presentation') {
+      return presentationStatusBadge(lead);
+    }
     if (key === 'actions') {
       const links = [];
       links.push('<button type="button" class="action-link" onclick="openSmsWithTemplate(\'' + lead.id + '\')">SMS</button>');
       links.push('<button type="button" class="action-link" onclick="logCall(\'' + lead.id + '\')">Call</button>');
       links.push('<button type="button" class="action-link" onclick="openLogEmail(\'' + lead.id + '\')">Email</button>');
+      links.push('<button type="button" class="action-link" onclick="sendPresentation(\'' + lead.id + '\')">Presentation</button>');
       if (lead.status !== 'converted') {
         links.push('<button type="button" class="action-link" onclick="promoteLeadToClient(\'' + lead.id + '\')">Promote</button>');
       }
@@ -1418,6 +1454,41 @@
     }
   }
 
+  async function sendPresentation(id) {
+    const lead = allLeads.find(function (x) { return x.id === id; });
+    if (!lead) {
+      alert('Lead not found.');
+      return { ok: false, reason: 'not_found' };
+    }
+    if (!lead.phone) {
+      alert('This lead has no phone number.');
+      return { ok: false, reason: 'no_phone' };
+    }
+
+    const { first } = splitName(lead.full_name);
+    const link = window.location.origin + '/presentation.html?lead=' + encodeURIComponent(lead.id);
+    const defaultMessage = 'Hi ' + first + ", here is the Mind & Body Transformation presentation I mentioned: " + link + "\n\nLet me know which option suits you best — Gold or Silver.";
+
+    const body = prompt('Edit the presentation SMS before sending:', defaultMessage);
+    if (body === null) return { ok: false, reason: 'cancelled' };
+
+    const clean = String(lead.phone).replace(/\s/g, '');
+    window.location.href = 'sms:' + clean + '?body=' + encodeURIComponent(body || defaultMessage);
+
+    try {
+      const { error } = await client.from('leads').update({ status: 'sms_sent', last_contact_at: new Date().toISOString() }).eq('id', id);
+      if (error) throw error;
+      lead.status = 'sms_sent';
+      lead.last_contact_at = new Date().toISOString();
+      logCommunication({ lead_id: id, type: 'sms', direction: 'outbound', status: 'completed', body: body || defaultMessage });
+      refreshLeadViews();
+      return { ok: true };
+    } catch (err) {
+      console.error('Could not update lead status after presentation SMS:', err);
+      return { ok: false, reason: 'db_error' };
+    }
+  }
+
   async function logCommunication(data) {
     try {
       await client.from('communications').insert({
@@ -1518,6 +1589,8 @@
     const strategyFilter = page.querySelector('.pool-strategy').value;
     const compFilter = page.querySelector('.pool-comp').value;
     const statusFilter = page.querySelector('.pool-status').value;
+    const presentationFilterEl = page.querySelector('.pool-presentation');
+    const presentationFilter = presentationFilterEl ? presentationFilterEl.value : 'all';
 
     return allLeads.filter(function (l) {
       if ((l.pool || 'giveaway') !== pool) return false;
@@ -1528,7 +1601,8 @@
       const matchesStrategy = strategyFilter === 'all' || l.strategy_id === strategyFilter;
       const matchesComp = compFilter === 'all' || l.competition_id === compFilter;
       const matchesStatus = statusFilter === 'all' || l.status === statusFilter;
-      return matchesSearch && matchesStrategy && matchesComp && matchesStatus;
+      const matchesPresentation = matchPresentationFilter(l, presentationFilter);
+      return matchesSearch && matchesStrategy && matchesComp && matchesStatus && matchesPresentation;
     }).map(function (l) { return l.id; });
   }
 
@@ -1981,6 +2055,8 @@
     const clubFilterEl = page.querySelector('.pool-club');
     const clubFilter = clubFilterEl ? clubFilterEl.value : 'all';
     const statusFilter = page.querySelector('.pool-status').value;
+    const presentationFilterEl = page.querySelector('.pool-presentation');
+    const presentationFilter = presentationFilterEl ? presentationFilterEl.value : 'all';
 
     const visibleKeys = getVisibleColumns(pool);
     const customKeys = getCustomTagKeys();
@@ -2007,7 +2083,8 @@
       const matchesSource = sourceFilter === 'all' || l.source === sourceFilter;
       const matchesClub = clubFilter === 'all' || l.club === clubFilter;
       const matchesStatus = statusFilter === 'all' || l.status === statusFilter;
-      if (!matchesSearch || !matchesStrategy || !matchesComp || !matchesSource || !matchesClub || !matchesStatus) return;
+      const matchesPresentation = matchPresentationFilter(l, presentationFilter);
+      if (!matchesSearch || !matchesStrategy || !matchesComp || !matchesSource || !matchesClub || !matchesStatus || !matchesPresentation) return;
 
       rows.push(activeColumns.map(function (c) { return getLeadExportValue(l, c.key); }));
     });
@@ -2037,6 +2114,13 @@
     if (key === 'status') return lead.status || '';
     if (key === 'opt_in') return lead.opt_in ? 'Yes' : 'No';
     if (key === 'notes') return lead.notes || '';
+    if (key === 'presentation') {
+      if (!lead.presentation_event) return '';
+      if (lead.presentation_event === 'interested' && lead.presentation_package) {
+        return 'Interested · ' + lead.presentation_package.charAt(0).toUpperCase() + lead.presentation_package.slice(1);
+      }
+      return lead.presentation_event.charAt(0).toUpperCase() + lead.presentation_event.slice(1);
+    }
     return getTagValue(lead, key) || '';
   }
 
@@ -2716,6 +2800,7 @@
   window.deleteLead = deleteLead;
   window.promoteLeadToClient = promoteLeadToClient;
   window.openSmsWithTemplate = openSmsWithTemplate;
+  window.sendPresentation = sendPresentation;
   window.logCall = logCall;
   window.openLogEmail = openLogEmail;
   window.logCommunication = logCommunication;
