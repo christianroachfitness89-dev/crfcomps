@@ -1460,33 +1460,12 @@
       alert('Lead not found.');
       return { ok: false, reason: 'not_found' };
     }
-    if (!lead.phone) {
-      alert('This lead has no phone number.');
-      return { ok: false, reason: 'no_phone' };
-    }
 
     const { first } = splitName(lead.full_name);
     const link = window.location.origin + '/presentation.html?lead=' + encodeURIComponent(lead.id) + '&name=' + encodeURIComponent(first);
-    const defaultMessage = 'Hi ' + first + ", here is the Mind & Body Transformation presentation I mentioned: " + link + "\n\nLet me know which option suits you best — Gold or Silver.";
 
-    const body = prompt('Edit the presentation SMS before sending:', defaultMessage);
-    if (body === null) return { ok: false, reason: 'cancelled' };
-
-    const clean = String(lead.phone).replace(/\s/g, '');
-    window.location.href = 'sms:' + clean + '?body=' + encodeURIComponent(body || defaultMessage);
-
-    try {
-      const { error } = await client.from('leads').update({ status: 'sms_sent', last_contact_at: new Date().toISOString() }).eq('id', id);
-      if (error) throw error;
-      lead.status = 'sms_sent';
-      lead.last_contact_at = new Date().toISOString();
-      logCommunication({ lead_id: id, type: 'sms', direction: 'outbound', status: 'completed', body: body || defaultMessage });
-      refreshLeadViews();
-      return { ok: true };
-    } catch (err) {
-      console.error('Could not update lead status after presentation SMS:', err);
-      return { ok: false, reason: 'db_error' };
-    }
+    window.open(link, '_blank');
+    return { ok: true };
   }
 
   async function logCommunication(data) {
