@@ -156,7 +156,8 @@
     return '$' + Number(amount).toLocaleString(undefined, { maximumFractionDigits: 0 });
   }
 
-  async function promoteLeadToClient(leadId) {
+  async function promoteLeadToClient(leadId, options) {
+    options = options || {};
     let lead = window.opsData.leads.find(function (l) { return l.id === leadId; });
 
     // Fallback: admin.js keeps its own lead cache (e.g. feedback responses page).
@@ -172,8 +173,9 @@
     }
 
     const existing = window.opsData.clients.find(function (c) { return c.lead_id === leadId; });
+    let clientId;
     if (existing) {
-      if (!confirm('This lead is already linked to a client. Update it instead?')) return null;
+      if (!options.skipConfirm && !confirm('This lead is already linked to a client. Update it instead?')) return null;
       const { error: updateErr } = await client.from('clients').update({
         full_name: lead.full_name,
         email: lead.email,
@@ -183,8 +185,9 @@
         updated_at: new Date().toISOString()
       }).eq('id', existing.id);
       if (updateErr) throw updateErr;
+      clientId = existing.id;
     } else {
-      const { error: insertErr } = await client.from('clients').insert({
+      const { data: inserted, error: insertErr } = await client.from('clients').insert({
         lead_id: leadId,
         full_name: lead.full_name,
         email: lead.email,
@@ -192,8 +195,9 @@
         source: lead.pool || 'lead',
         status: 'prospect',
         notes: 'Converted from lead on ' + new Date().toLocaleDateString()
-      });
+      }).select();
       if (insertErr) throw insertErr;
+      clientId = inserted && inserted[0] ? inserted[0].id : null;
     }
 
     const { error: leadErr } = await client.from('leads').update({
@@ -203,7 +207,38 @@
     if (leadErr) throw leadErr;
 
     await loadData();
-    return true;
+
+    let inviteResult = null;
+    let inviteError = null;
+    if (options.inviteToPortal && clientId) {
+      try {
+        inviteResult = await sendPortalInvite(clientId);
+      } catch (err) {
+        inviteError = err.message || 'Invite failed';
+        console.error('promoteLeadToClient invite error:', err);
+      }
+    }
+
+    return { ok: true, clientId: clientId, inviteResult: inviteResult, inviteError: inviteError };
+  }
+
+  async function sendPortalInvite(clientId) {
+    const { data: sessionData } = await client.auth.getSession();
+    const token = sessionData?.session?.access_token;
+    if (!token) throw new Error('Admin session not found. Please sign in again.');
+
+    const res = await fetch('/api/portal/invite', {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + token,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ client_id: clientId })
+    });
+
+    const result = await res.json().catch(function () { return { error: 'Unknown response' }; });
+    if (!res.ok) throw new Error(result.error || 'Invite failed');
+    return result;
   }
 
   async function fetchStripeDashboardMetrics() {
@@ -335,6 +370,7 @@
     fmtDateShort,
     escapeHtml,
     promoteLeadToClient,
+    sendPortalInvite,
     packageWeeklySessions,
     packageWeeklyMinutes
   };

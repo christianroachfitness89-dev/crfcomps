@@ -169,6 +169,8 @@
     document.getElementById('clientStatus').value = c.status || 'prospect';
     document.getElementById('clientSource').value = c.source || '';
     document.getElementById('clientNotes').value = c.notes || '';
+    const inviteBox = document.getElementById('clientInvitePortal');
+    if (inviteBox) inviteBox.checked = false;
     document.getElementById('modalTitle').textContent = 'Edit client';
     document.getElementById('clientSaveBtn').textContent = 'Update client';
     document.getElementById('clientModal').classList.add('show');
@@ -185,6 +187,9 @@
     btn.disabled = true;
 
     const id = document.getElementById('clientId').value;
+    const inviteBox = document.getElementById('clientInvitePortal');
+    const shouldInvite = inviteBox && inviteBox.checked;
+
     const payload = {
       full_name: document.getElementById('clientName').value.trim(),
       email: document.getElementById('clientEmail').value.trim() || null,
@@ -204,6 +209,14 @@
       }
       if (result.error) throw result.error;
 
+      const saved = result.data ? result.data[0] : null;
+
+      if (shouldInvite && saved && saved.email) {
+        await sendPortalInvite(saved.id);
+      } else if (shouldInvite && saved && !saved.email) {
+        alert('Client saved, but no email was provided so a portal invitation could not be sent.');
+      }
+
       closeModal();
       await refresh();
     } catch (err) {
@@ -211,6 +224,38 @@
       console.error(err);
     } finally {
       btn.disabled = false;
+      if (inviteBox) inviteBox.checked = false;
+    }
+  }
+
+  async function sendPortalInvite(clientId) {
+    try {
+      const { data: sessionData } = await client.auth.getSession();
+      const token = sessionData?.session?.access_token;
+      if (!token) throw new Error('Admin session not found.');
+
+      const res = await fetch('/api/portal/invite', {
+        method: 'POST',
+        headers: {
+          'Authorization': 'Bearer ' + token,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ client_id: clientId })
+      });
+
+      const result = await res.json().catch(function () { return { error: 'Unknown response' }; });
+      if (!res.ok) throw new Error(result.error || 'Invite failed');
+
+      if (result.already_invited) {
+        alert('This client has already been invited to the portal.');
+      } else {
+        alert(result.message || 'Portal invitation sent.');
+      }
+      return result;
+    } catch (err) {
+      console.error(err);
+      alert('Could not send portal invite: ' + err.message);
+      throw err;
     }
   }
 

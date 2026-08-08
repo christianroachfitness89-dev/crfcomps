@@ -190,6 +190,10 @@
         <label for="clientNotes">Notes</label>
         <textarea id="clientNotes" rows="3"></textarea>
       </div>
+      <div class="form-row" style="display:flex;align-items:center;gap:8px;">
+        <input type="checkbox" id="clientInvitePortal" style="width:auto;">
+        <label for="clientInvitePortal" style="margin:0;font-weight:400;">Invite to client portal (sets password via email)</label>
+      </div>
       <div class="form-row" style="display:flex;justify-content:flex-end;gap:10px;margin-bottom:0;">
         <button type="button" class="admin-btn" onclick="crm.closeModal()">Cancel</button>
         <button type="submit" class="submit-btn" id="clientSaveBtn">Save client</button>

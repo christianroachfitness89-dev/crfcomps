@@ -1887,10 +1887,22 @@
     const lead = allLeads.find(function (x) { return x.id === id; });
     if (!lead) return;
     if (!confirm('Promote ' + lead.full_name + ' to a client?\n\nThis will create a client record and mark the lead as converted.')) return;
+
+    const inviteToPortal = !!lead.email && confirm('Also send a client portal invitation to ' + lead.email + '?\n\nThey will receive an email to set their password and access their dashboard.');
+
     try {
-      await window.operations.promoteLeadToClient(id);
+      const result = await window.operations.promoteLeadToClient(id, {
+        skipConfirm: true,
+        inviteToPortal: inviteToPortal
+      });
       await loadData();
-      alert(lead.full_name + ' has been promoted to a client.');
+      let msg = lead.full_name + ' has been promoted to a client.';
+      if (inviteToPortal && result && result.inviteError) {
+        msg += '\n\nPortal invitation could not be sent: ' + result.inviteError;
+      } else if (inviteToPortal && result && result.inviteResult) {
+        msg += '\n\nPortal invitation sent.';
+      }
+      alert(msg);
     } catch (err) {
       alert('Could not promote lead: ' + (err.message || err));
       console.error(err);
