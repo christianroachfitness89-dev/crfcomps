@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CRF Comps · Set Portal Password</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/main.css">
+<link rel="stylesheet" href="css/premium.css">
+<style>
+  .portal-page{min-height:100vh;display:flex;flex-direction:column;}
+  .portal-login-wrap{flex:1;display:flex;align-items:center;justify-content:center;padding:40px 24px;background:var(--paper-2);}
+  .portal-login-card{width:100%;max-width:460px;background:var(--paper-3);border:1px solid var(--line);border-radius:var(--radius);padding:48px;box-shadow:var(--shadow);}
+  .portal-login-card .brand{display:flex;align-items:center;gap:12px;font-family:'Oswald',sans-serif;font-size:22px;font-weight:700;text-transform:uppercase;letter-spacing:0.02em;margin-bottom:32px;justify-content:center;}
+  .portal-login-card .brand .dot{width:12px;height:12px;background:var(--red);border-radius:50%;}
+  .portal-login-card h1{font-size:28px;margin:0 0 8px;text-align:center;}
+  .portal-login-card .subtitle{color:var(--ink-soft);text-align:center;margin-bottom:32px;font-size:15px;}
+  .portal-login-card .form-row{margin-bottom:18px;}
+  .portal-login-card .form-row label{display:block;font-size:13px;font-weight:600;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;}
+  .portal-login-card input{width:100%;padding:14px;border:1px solid var(--line);border-radius:var(--radius);font-family:inherit;font-size:15px;background:#fff;}
+  .portal-login-card input:focus{outline:none;border-color:var(--red);}
+  .portal-login-card .submit-btn{width:100%;padding:16px;font-size:16px;}
+  .portal-login-card .msg{margin-top:20px;padding:12px 16px;border-radius:var(--radius);font-size:14px;display:none;}
+  .portal-login-card .msg.show{display:block;}
+  .portal-login-card .msg.error{background:#f8e8e5;color:var(--red-dark);border:1px solid rgba(199,62,42,.2);}
+  .portal-login-card .msg.success{background:#e8f5e9;color:#2e7d32;border:1px solid rgba(46,125,50,.2);}
+  .portal-footer{text-align:center;padding:24px;font-size:13px;color:var(--ink-soft);background:var(--paper-3);border-top:1px solid var(--line);}
+  @media(max-width:540px){
+    .portal-login-card{padding:32px 24px;}
+  }
+</style>
+</head>
+<body class="portal-page">
+
+<div class="portal-login-wrap">
+  <div class="portal-login-card">
+    <a href="index.html" class="brand"><span class="dot"></span>CRF Comps</a>
+    <h1 id="title">Set your password</h1>
+    <p class="subtitle" id="subtitle">Create a password to access your client portal.</p>
+
+    <form id="onboardForm" onsubmit="handleOnboard(event)" style="display:none;">
+      <div class="form-row">
+        <label for="password">New password</label>
+        <input type="password" id="password" required placeholder="Min. 8 characters" minlength="8" autocomplete="new-password">
+      </div>
+      <div class="form-row">
+        <label for="confirm">Confirm password</label>
+        <input type="password" id="confirm" required placeholder="Re-enter password" minlength="8" autocomplete="new-password">
+      </div>
+      <button type="submit" class="submit-btn" id="submitBtn">Create password</button>
+    </form>
+
+    <div id="formMsg" class="msg"></div>
+
+    <div id="doneActions" style="display:none;text-align:center;margin-top:24px;">
+      <a href="portal.html" class="btn-primary">Go to my portal</a>
+    </div>
+  </div>
+</div>
+
+<footer class="portal-footer">
+  © Christian's Fitness Coaching. All rights reserved.
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="js/supabase-client.js"></script>
+<script src="js/portal-auth.js"></script>
+<script>
+(function () {
+  const form = document.getElementById('onboardForm');
+  const msg = document.getElementById('formMsg');
+  const submitBtn = document.getElementById('submitBtn');
+  const title = document.getElementById('title');
+  const subtitle = document.getElementById('subtitle');
+  const doneActions = document.getElementById('doneActions');
+
+  function showMessage(text, type) {
+    msg.textContent = text;
+    msg.className = 'msg show ' + (type || 'error');
+  }
+
+  // Supabase sends a recovery code in the URL hash (#access_token=... or #code=...).
+  // We need to exchange it for a session so the user can set a new password.
+  async function init() {
+    try {
+      // Try to get session from URL hash (Supabase v2 handles this automatically
+      // when detectSessionInUrl is true, which it is in supabase-client.js).
+      const { data, error } = await window.sb.auth.getSession();
+      if (error) throw error;
+
+      if (!data.session) {
+        // Older Supabase flows use a code parameter.
+        const params = new URLSearchParams(window.location.search);
+        const code = params.get('code');
+        if (code) {
+          const { data: exchangeData, error: exchangeError } = await window.sb.auth.exchangeCodeForSession(code);
+          if (exchangeError) throw exchangeError;
+          if (!exchangeData.session) throw new Error('Could not start password reset session.');
+        } else {
+          throw new Error('This password setup link is invalid or has expired. Please ask your coach to resend the portal invitation.');
+        }
+      }
+
+      form.style.display = 'block';
+    } catch (err) {
+      console.error(err);
+      title.textContent = 'Link invalid';
+      subtitle.textContent = err.message || 'Could not start password setup.';
+      showMessage(err.message, 'error');
+    }
+  }
+
+  async function handleOnboard(e) {
+    e.preventDefault();
+
+    const password = document.getElementById('password').value;
+    const confirm = document.getElementById('confirm').value;
+
+    if (password !== confirm) {
+      showMessage('Passwords do not match.', 'error');
+      return;
+    }
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Saving...';
+
+    try {
+      const { data, error } = await window.sb.auth.updateUser({ password: password });
+      if (error) throw error;
+
+      title.textContent = 'Password set';
+      subtitle.textContent = 'Your portal password has been created.';
+      form.style.display = 'none';
+      showMessage('Success! You can now access your client portal.', 'success');
+      doneActions.style.display = 'block';
+    } catch (err) {
+      console.error(err);
+      showMessage(err.message || 'Could not set password. The link may have expired.', 'error');
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Create password';
+    }
+  }
+
+  window.handleOnboard = handleOnboard;
+
+  init();
+})();
+</script>
+
+</body>
+</html>

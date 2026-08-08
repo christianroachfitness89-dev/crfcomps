@@ -274,6 +274,7 @@
 
     renderNotesList(c.id);
     renderCommunications(c.id);
+    loadPortalSection(c.id);
     document.getElementById('clientDetailModal').classList.add('show');
   }
 
@@ -402,16 +403,19 @@
     e.preventDefault();
     const clientId = document.getElementById('detailClientId').value;
     const text = document.getElementById('detailNoteText').value.trim();
+    const visibleBox = document.getElementById('detailNoteVisible');
     if (!clientId || !text) return;
 
     try {
       const { error } = await client.from('client_notes').insert({
         client_id: clientId,
         note: text,
+        visible_to_client: visibleBox ? !!visibleBox.checked : false,
         created_by: window.opsData.user ? window.opsData.user.id : null
       });
       if (error) throw error;
       document.getElementById('detailNoteText').value = '';
+      if (visibleBox) visibleBox.checked = false;
 
       const { data, error: loadErr } = await client.from('client_notes').select('*').eq('client_id', clientId).order('created_at', { ascending: false });
       if (loadErr) throw loadErr;
@@ -419,6 +423,143 @@
       renderNotesList(clientId);
     } catch (err) {
       alert('Could not add note: ' + err.message);
+      console.error(err);
+    }
+  }
+
+  async function inviteToPortal() {
+    const clientId = document.getElementById('detailClientId').value;
+    if (!clientId) return;
+    const c = window.opsData.clients.find(function (x) { return x.id === clientId; });
+    if (!c) return;
+
+    if (!confirm('Send a portal invitation to ' + c.full_name + ' at ' + (c.email || 'no email') + '?')) return;
+
+    try {
+      const { data: sessionData } = await client.auth.getSession();
+      const token = sessionData?.session?.access_token;
+      if (!token) throw new Error('Admin session not found. Please sign in again.');
+
+      const res = await fetch('/api/portal/invite', {
+        method: 'POST',
+        headers: {
+          'Authorization': 'Bearer ' + token,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ client_id: clientId })
+      });
+
+      const result = await res.json().catch(function () { return { error: 'Unknown response' }; });
+      if (!res.ok) throw new Error(result.error || 'Invite failed');
+
+      alert(result.message || 'Invitation sent.');
+      c.auth_user_id = result.auth_user_id || c.auth_user_id;
+      c.portal_invited_at = new Date().toISOString();
+      loadPortalSection(clientId);
+    } catch (err) {
+      alert('Could not invite client: ' + err.message);
+      console.error(err);
+    }
+  }
+
+  async function loadPortalSection(clientId) {
+    const c = window.opsData.clients.find(function (x) { return x.id === clientId; });
+    const statusEl = document.getElementById('detailPortalStatus');
+    const inviteBtn = document.getElementById('detailInviteBtn');
+    const metricForm = document.getElementById('detailMetricForm');
+    const metricsList = document.getElementById('detailMetricsList');
+
+    if (!c) return;
+
+    if (c.auth_user_id) {
+      statusEl.innerHTML =
+        '<div class="cd-icon"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></div>' +
+        '<div class="cd-content"><span class="label">Portal</span>Invited · last login ' + (c.portal_last_login ? ops.fmtDateShort(c.portal_last_login) : 'never') + '</div>';
+      inviteBtn.style.display = 'none';
+      metricForm.style.display = 'block';
+    } else {
+      statusEl.innerHTML =
+        '<div class="cd-icon"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2V7zm0 8h2v2h-2v-2z"/></svg></div>' +
+        '<div class="cd-content"><span class="label">Portal</span>Not yet invited</div>';
+      inviteBtn.style.display = 'inline-block';
+      metricForm.style.display = 'none';
+    }
+
+    try {
+      const [{ data: metrics, error: mErr }, { data: photos, error: pErr }] = await Promise.all([
+        client.from('client_metrics').select('*').eq('client_id', clientId).order('measured_at', { ascending: false }).limit(20),
+        client.from('client_photos').select('*').eq('client_id', clientId).order('taken_at', { ascending: false }).limit(8)
+      ]);
+      if (mErr) throw mErr;
+      if (pErr) throw pErr;
+
+      let html = '';
+      if (!metrics || !metrics.length) {
+        html += '<div class="client-notes-empty">No progress metrics yet.</div>';
+      } else {
+        html += '<table class="data-table" style="font-size:13px;"><thead><tr><th>Date</th><th>Weight</th><th>Body fat</th><th>Muscle</th><th>Waist</th></tr></thead><tbody>' +
+          metrics.map(function (m) {
+            return '<tr>' +
+              '<td>' + ops.fmtDateShort(m.measured_at) + '</td>' +
+              '<td>' + formatMetric(m.weight_kg, 'kg') + '</td>' +
+              '<td>' + formatMetric(m.body_fat_pct, '%') + '</td>' +
+              '<td>' + formatMetric(m.muscle_mass_pct, '%') + '</td>' +
+              '<td>' + formatMetric(m.waist_cm, 'cm') + '</td>' +
+            '</tr>';
+          }).join('') +
+          '</tbody></table>';
+      }
+
+      if (photos && photos.length) {
+        html += '<div style="margin-top:16px;">' +
+          photos.map(function (p) {
+            return '<img src="' + ops.escapeHtml(p.photo_url) + '" style="width:80px;height:80px;object-fit:cover;border-radius:4px;margin-right:8px;cursor:pointer;" onclick="window.open(\'' + ops.escapeHtml(p.photo_url) + '\',\'_blank\')" title="' + ops.escapeHtml(p.label || 'photo') + ' · ' + ops.fmtDateShort(p.taken_at) + '" alt="" loading="lazy">';
+          }).join('') +
+          '</div>';
+      }
+
+      metricsList.innerHTML = html;
+      document.getElementById('detailMetricDate').valueAsDate = new Date();
+    } catch (err) {
+      console.error(err);
+      metricsList.innerHTML = '<div class="client-notes-empty">Could not load metrics.</div>';
+    }
+  }
+
+  function formatMetric(v, unit) {
+    if (v === null || v === undefined) return '-';
+    return Number(v).toFixed(1) + unit;
+  }
+
+  async function addMetric(e) {
+    e.preventDefault();
+    const clientId = document.getElementById('detailClientId').value;
+    if (!clientId) return;
+
+    const weight = document.getElementById('detailMetricWeight').value;
+    const bodyFat = document.getElementById('detailMetricBodyFat').value;
+    const waist = document.getElementById('detailMetricWaist').value;
+
+    if (!weight && !bodyFat && !waist) {
+      alert('Enter at least one metric value.');
+      return;
+    }
+
+    try {
+      const { error } = await client.from('client_metrics').insert({
+        client_id: clientId,
+        measured_at: document.getElementById('detailMetricDate').value,
+        weight_kg: weight ? Number(weight) : null,
+        body_fat_pct: bodyFat ? Number(bodyFat) : null,
+        waist_cm: waist ? Number(waist) : null,
+        created_by: window.opsData.user ? window.opsData.user.id : null
+      });
+      if (error) throw error;
+      document.getElementById('detailMetricForm').reset();
+      document.getElementById('detailMetricDate').valueAsDate = new Date();
+      loadPortalSection(clientId);
+    } catch (err) {
+      alert('Could not add metric: ' + err.message);
       console.error(err);
     }
   }
@@ -441,6 +582,9 @@
     closeDetailModal,
     addNote,
     assignPackage,
-    removePackage
+    removePackage,
+    inviteToPortal,
+    addMetric,
+    loadPortalSection
   };
 })();

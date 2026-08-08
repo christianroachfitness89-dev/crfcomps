@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CRF Comps · Client Portal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/main.css">
+<link rel="stylesheet" href="css/premium.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+  :root{--portal-sidebar:#0b0c10;--portal-sidebar-text:#a4a7b0;}
+  .portal-app{min-height:100vh;display:flex;}
+  .portal-sidebar{width:260px;background:var(--portal-sidebar);color:#fff;position:fixed;inset:0 auto 0 0;overflow-y:auto;padding:32px 20px;display:flex;flex-direction:column;z-index:10;}
+  .portal-sidebar .brand{display:flex;align-items:center;gap:12px;font-family:'Oswald',sans-serif;font-size:20px;font-weight:700;text-transform:uppercase;letter-spacing:0.02em;margin-bottom:40px;color:#fff;}
+  .portal-sidebar .brand .dot{width:10px;height:10px;background:var(--red);border-radius:50%;}
+  .portal-sidebar nav{flex:1;}
+  .portal-sidebar nav a{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:var(--radius);color:var(--portal-sidebar-text);font-size:14px;font-weight:500;transition:.15s;}
+  .portal-sidebar nav a:hover{background:rgba(255,255,255,.06);color:#fff;}
+  .portal-sidebar nav a.active{background:rgba(255,255,255,.08);color:#fff;}
+  .portal-sidebar nav a svg{flex-shrink:0;}
+  .portal-sidebar .logout{padding:12px 14px;color:#ff6b6b;font-weight:600;cursor:pointer;border-radius:var(--radius);transition:.15s;display:flex;align-items:center;gap:12px;font-size:14px;}
+  .portal-sidebar .logout:hover{background:rgba(255,107,107,.1);}
+  .portal-main{flex:1;margin-left:260px;background:var(--paper-2);min-height:100vh;}
+  .portal-header{background:var(--paper-3);border-bottom:1px solid var(--line);padding:18px 32px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:5;}
+  .portal-header h1{font-size:22px;margin:0;}
+  .portal-header .client-meta{display:flex;align-items:center;gap:16px;}
+  .portal-header .avatar{width:38px;height:38px;border-radius:50%;background:var(--red);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;}
+  .portal-body{padding:32px;max-width:1400px;}
+  .section-title{font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--ink-soft);margin:0 0 16px;}
+  .portal-grid{display:grid;grid-template-columns:repeat(12,1fr);gap:24px;}
+  .portal-card{background:var(--paper-3);border:1px solid var(--line);border-radius:var(--radius);padding:24px;box-shadow:var(--shadow);}
+  .portal-card h3{margin:0 0 8px;font-size:18px;}
+  .portal-card .muted{color:var(--ink-soft);font-size:14px;}
+  .portal-card .big-stat{font-family:'Oswald',sans-serif;font-size:38px;font-weight:700;line-height:1;}
+  .portal-card .stat-label{font-size:13px;color:var(--ink-soft);margin-top:8px;text-transform:uppercase;letter-spacing:0.05em;}
+
+  .next-session{display:flex;gap:20px;align-items:flex-start;}
+  .next-session .date-box{text-align:center;background:var(--paper-2);border:1px solid var(--line);border-radius:var(--radius);padding:14px 18px;min-width:70px;}
+  .next-session .date-box .day{font-family:'Oswald',sans-serif;font-size:34px;font-weight:700;}
+  .next-session .date-box .month{font-size:13px;text-transform:uppercase;letter-spacing:0.08em;color:var(--ink-soft);}
+  .next-session .info{flex:1;}
+  .next-session .info .time{font-size:14px;color:var(--ink-soft);}
+  .tag{display:inline-block;padding:5px 10px;border-radius:50px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;background:var(--paper-2);color:var(--ink-soft);border:1px solid var(--line);}
+  .tag.green{background:#e8f5e9;color:#2e7d32;border-color:rgba(46,125,50,.2);}
+
+  .data-table{width:100%;border-collapse:collapse;font-size:14px;}
+  .data-table th{text-align:left;padding:12px 10px;border-bottom:1px solid var(--line);color:var(--ink-soft);font-weight:600;text-transform:uppercase;letter-spacing:0.05em;font-size:12px;}
+  .data-table td{padding:12px 10px;border-bottom:1px solid var(--line);vertical-align:top;}
+  .data-table tr:last-child td{border-bottom:none;}
+
+  .photo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:16px;}
+  .photo-thumb{aspect-ratio:3/4;border-radius:var(--radius);background-size:cover;background-position:center;background-color:var(--paper-2);border:1px solid var(--line);}
+  .photo-meta{font-size:12px;color:var(--ink-soft);margin-top:6px;}
+
+  .chart-wrap{position:relative;height:260px;}
+  .metrics-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:14px;margin-top:16px;}
+  .metrics-form .form-row{display:flex;flex-direction:column;}
+  .metrics-form label{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:5px;color:var(--ink-soft);}
+  .metrics-form input{padding:10px;border:1px solid var(--line);border-radius:var(--radius);font-family:inherit;}
+
+  .empty-state{text-align:center;padding:40px 24px;color:var(--ink-soft);}
+  .empty-state svg{margin-bottom:12px;}
+
+  .mobile-menu{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--paper-3);border-top:1px solid var(--line);z-index:20;justify-content:space-around;padding:8px 0;}
+  .mobile-menu a{flex:1;text-align:center;font-size:12px;color:var(--ink-soft);padding:6px;}
+  .mobile-menu a.active{color:var(--red);}
+
+  @media(max-width:980px){
+    .portal-sidebar{display:none;}
+    .portal-main{margin-left:0;padding-bottom:70px;}
+    .mobile-menu{display:flex;}
+  }
+  @media(max-width:720px){
+    .portal-body{padding:20px;}
+    .portal-header{padding:16px 20px;}
+    .portal-header h1{font-size:18px;}
+    .portal-grid{grid-template-columns:1fr;}
+  }
+</style>
+</head>
+<body class="portal-app">
+
+<aside class="portal-sidebar">
+  <a href="index.html" class="brand"><span class="dot"></span>CRF Comps</a>
+  <nav>
+    <a href="#dashboard" class="active" data-section="dashboard" onclick="switchSection('dashboard',event)">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+      Dashboard
+    </a>
+    <a href="#progress" data-section="progress" onclick="switchSection('progress',event)">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>
+      Progress
+    </a>
+    <a href="#sessions" data-section="sessions" onclick="switchSection('sessions',event)">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+      Sessions
+    </a>
+    <a href="#forms" data-section="forms" onclick="switchSection('forms',event)">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+      Forms
+    </a>
+    <a href="#billing" data-section="billing" onclick="switchSection('billing',event)">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
+      Billing
+    </a>
+  </nav>
+  <div class="logout" onclick="logout()">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+    Sign out
+  </div>
+</aside>
+
+<main class="portal-main">
+  <header class="portal-header">
+    <h1 id="greeting">Loading…</h1>
+    <div class="client-meta">
+      <span id="clientPackage" class="tag">-</span>
+      <div id="avatar" class="avatar">-</div>
+    </div>
+  </header>
+
+  <div class="portal-body">
+
+    <!-- Dashboard -->
+    <section id="dashboard" class="portal-section">
+      <div class="portal-grid">
+        <div class="portal-card" style="grid-column:span 4;">
+          <h3>Next session</h3>
+          <div id="nextSession"><p class="muted">Loading…</p></div>
+        </div>
+        <div class="portal-card" style="grid-column:span 4;">
+          <h3>This month</h3>
+          <div class="big-stat" id="sessionsCount">-</div>
+          <div class="stat-label">Sessions completed</div>
+        </div>
+        <div class="portal-card" style="grid-column:span 4;">
+          <h3>Latest weight</h3>
+          <div class="big-stat" id="latestWeight">-</div>
+          <div class="stat-label">kg · tracked by you and your coach</div>
+        </div>
+
+        <div class="portal-card" style="grid-column:span 8;">
+          <h3>Progress overview</h3>
+          <div class="chart-wrap"><canvas id="progressChart"></canvas></div>
+        </div>
+        <div class="portal-card" style="grid-column:span 4;">
+          <h3>Latest measurements</h3>
+          <div id="latestMeasurements"><p class="muted">No measurements yet.</p></div>
+        </div>
+
+        <div class="portal-card" style="grid-column:span 12;">
+          <h3>Recent attendance</h3>
+          <div id="attendanceList"><p class="muted">Loading…</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Progress -->
+    <section id="progress" class="portal-section" style="display:none;">
+      <div class="portal-grid">
+        <div class="portal-card" style="grid-column:span 12;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+            <h3 style="margin:0;">Weight trend</h3>
+            <span class="muted">kg over time</span>
+          </div>
+          <div class="chart-wrap" style="height:300px;"><canvas id="weightChart"></canvas></div>
+        </div>
+
+        <div class="portal-card" style="grid-column:span 6;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+            <h3 style="margin:0;">Body fat</h3>
+            <span class="muted">%</span>
+          </div>
+          <div class="chart-wrap" style="height:240px;"><canvas id="bodyFatChart"></canvas></div>
+        </div>
+        <div class="portal-card" style="grid-column:span 6;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+            <h3 style="margin:0;">Muscle mass</h3>
+            <span class="muted">%</span>
+          </div>
+          <div class="chart-wrap" style="height:240px;"><canvas id="muscleChart"></canvas></div>
+        </div>
+
+        <div class="portal-card" style="grid-column:span 12;">
+          <h3 style="margin-bottom:16px;">Progress photos</h3>
+          <div id="photoGallery"><div class="empty-state">No photos uploaded yet.</div></div>
+        </div>
+
+        <div class="portal-card" style="grid-column:span 12;">
+          <h3 style="margin-bottom:16px;">Add today's metrics</h3>
+          <form id="metricsForm" class="metrics-form" onsubmit="addMetric(event)">
+            <div class="form-row">
+              <label for="mWeight">Weight (kg)</label>
+              <input type="number" id="mWeight" step="0.1" placeholder="0.0">
+            </div>
+            <div class="form-row">
+              <label for="mBodyFat">Body fat %</label>
+              <input type="number" id="mBodyFat" step="0.1" placeholder="0.0">
+            </div>
+            <div class="form-row">
+              <label for="mMuscle">Muscle mass %</label>
+              <input type="number" id="mMuscle" step="0.1" placeholder="0.0">
+            </div>
+            <div class="form-row">
+              <label for="mWaist">Waist (cm)</label>
+              <input type="number" id="mWaist" step="0.1" placeholder="0.0">
+            </div>
+            <div class="form-row">
+              <label for="mDate">Date</label>
+              <input type="date" id="mDate" required>
+            </div>
+            <div class="form-row" style="justify-content:flex-end;display:flex;">
+              <button type="submit" class="btn-primary" id="metricBtn">Save entry</button>
+            </div>
+          </form>
+          <div id="metricMsg" style="margin-top:12px;"></div>
+        </div>
+
+        <div class="portal-card" style="grid-column:span 12;">
+          <h3 style="margin-bottom:16px;">All measurements</h3>
+          <div id="allMeasurements"><p class="muted">Loading…</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Sessions -->
+    <section id="sessions" class="portal-section" style="display:none;">
+      <div class="portal-card">
+        <h3 style="margin-bottom:16px;">Upcoming sessions</h3>
+        <div id="upcomingSessions"><p class="muted">Loading…</p></div>
+      </div>
+      <div class="portal-card" style="margin-top:24px;">
+        <h3 style="margin-bottom:16px;">Past sessions</h3>
+        <div id="pastSessions"><p class="muted">Loading…</p></div>
+      </div>
+    </section>
+
+    <!-- Forms -->
+    <section id="forms" class="portal-section" style="display:none;">
+      <div class="portal-grid">
+        <div class="portal-card" style="grid-column:span 12;">
+          <h3 style="margin-bottom:16px;">My forms & contracts</h3>
+          <div id="formsList"><p class="muted">Loading…</p></div>
+        </div>
+        <div class="portal-card" style="grid-column:span 12;">
+          <h3 style="margin-bottom:16px;">Notes from your coach</h3>
+          <div id="notesList"><p class="muted">Loading…</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Billing -->
+    <section id="billing" class="portal-section" style="display:none;">
+      <div class="portal-grid">
+        <div class="portal-card" style="grid-column:span 6;">
+          <h3>Invoices</h3>
+          <div id="invoicesList"><p class="muted">Loading…</p></div>
+        </div>
+        <div class="portal-card" style="grid-column:span 6;">
+          <h3>Payments</h3>
+          <div id="paymentsList"><p class="muted">Loading…</p></div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</main>
+
+<nav class="mobile-menu">
+  <a href="#dashboard" data-section="dashboard" class="active" onclick="switchSection('dashboard',event)">Dashboard</a>
+  <a href="#progress" data-section="progress" onclick="switchSection('progress',event)">Progress</a>
+  <a href="#sessions" data-section="sessions" onclick="switchSection('sessions',event)">Sessions</a>
+  <a href="#forms" data-section="forms" onclick="switchSection('forms',event)">Forms</a>
+  <a href="#billing" data-section="billing" onclick="switchSection('billing',event)">Billing</a>
+</nav>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="js/supabase-client.js"></script>
+<script src="js/portal-auth.js"></script>
+<script src="js/portal.js"></script>
+
+</body>
+</html>

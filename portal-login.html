@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CRF Comps · Client Portal Login</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/main.css">
+<link rel="stylesheet" href="css/premium.css">
+<style>
+  .portal-page{min-height:100vh;display:flex;flex-direction:column;}
+  .portal-login-wrap{flex:1;display:flex;align-items:center;justify-content:center;padding:40px 24px;background:var(--paper-2);}
+  .portal-login-card{width:100%;max-width:460px;background:var(--paper-3);border:1px solid var(--line);border-radius:var(--radius);padding:48px;box-shadow:var(--shadow);}
+  .portal-login-card .brand{display:flex;align-items:center;gap:12px;font-family:'Oswald',sans-serif;font-size:22px;font-weight:700;text-transform:uppercase;letter-spacing:0.02em;margin-bottom:32px;justify-content:center;}
+  .portal-login-card .brand .dot{width:12px;height:12px;background:var(--red);border-radius:50%;}
+  .portal-login-card h1{font-size:28px;margin:0 0 8px;text-align:center;}
+  .portal-login-card .subtitle{color:var(--ink-soft);text-align:center;margin-bottom:32px;font-size:15px;}
+  .portal-login-card .form-row{margin-bottom:18px;}
+  .portal-login-card .form-row label{display:block;font-size:13px;font-weight:600;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;}
+  .portal-login-card input{width:100%;padding:14px;border:1px solid var(--line);border-radius:var(--radius);font-family:inherit;font-size:15px;background:#fff;}
+  .portal-login-card input:focus{outline:none;border-color:var(--red);}
+  .portal-login-card .submit-btn{width:100%;padding:16px;font-size:16px;}
+  .portal-login-card .alt-actions{display:flex;justify-content:space-between;align-items:center;margin-top:20px;font-size:14px;}
+  .portal-login-card .alt-actions a{color:var(--red-dark);text-decoration:underline;}
+  .portal-login-card .msg{margin-top:20px;padding:12px 16px;border-radius:var(--radius);font-size:14px;display:none;}
+  .portal-login-card .msg.show{display:block;}
+  .portal-login-card .msg.error{background:#f8e8e5;color:var(--red-dark);border:1px solid rgba(199,62,42,.2);}
+  .portal-login-card .msg.success{background:#e8f5e9;color:#2e7d32;border:1px solid rgba(46,125,50,.2);}
+  .portal-footer{text-align:center;padding:24px;font-size:13px;color:var(--ink-soft);background:var(--paper-3);border-top:1px solid var(--line);}
+  @media(max-width:540px){
+    .portal-login-card{padding:32px 24px;}
+  }
+</style>
+</head>
+<body class="portal-page">
+
+<div class="portal-login-wrap">
+  <div class="portal-login-card">
+    <a href="index.html" class="brand"><span class="dot"></span>CRF Comps</a>
+    <h1>Client Portal</h1>
+    <p class="subtitle">Sign in to view your sessions, progress and account.</p>
+
+    <form id="loginForm" onsubmit="handleLogin(event)">
+      <div class="form-row">
+        <label for="email">Email</label>
+        <input type="email" id="email" required placeholder="you@example.com" autocomplete="email">
+      </div>
+      <div class="form-row">
+        <label for="password">Password</label>
+        <input type="password" id="password" required placeholder="Your password" autocomplete="current-password" minlength="6">
+      </div>
+      <button type="submit" class="submit-btn" id="submitBtn">Sign In</button>
+    </form>
+
+    <div class="alt-actions">
+      <a href="#" onclick="showReset(event)">Forgot password?</a>
+      <a href="index.html">Back to site</a>
+    </div>
+
+    <div id="formMsg" class="msg"></div>
+  </div>
+</div>
+
+<footer class="portal-footer">
+  © Christian's Fitness Coaching. All rights reserved.
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="js/supabase-client.js"></script>
+<script src="js/portal-auth.js"></script>
+<script>
+(function () {
+  const form = document.getElementById('loginForm');
+  const msg = document.getElementById('formMsg');
+  const submitBtn = document.getElementById('submitBtn');
+
+  function showMessage(text, type) {
+    msg.textContent = text;
+    msg.className = 'msg show ' + (type || 'error');
+  }
+
+  function clearMessage() {
+    msg.className = 'msg';
+    msg.textContent = '';
+  }
+
+  async function handleLogin(e) {
+    e.preventDefault();
+    clearMessage();
+
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Signing in...';
+
+    try {
+      const { data, error } = await window.sb.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+
+      if (!data.session) {
+        throw new Error('No session returned. Please try again.');
+      }
+
+      // Verify this is a linked client account by hitting the portal profile endpoint.
+      const res = await fetch('/api/portal/profile', {
+        headers: { 'Authorization': 'Bearer ' + data.session.access_token }
+      });
+
+      if (!res.ok) {
+        const result = await res.json().catch(function () { return {}; });
+        await window.sb.auth.signOut();
+        throw new Error(result.error || 'This account is not linked to a client profile.');
+      }
+
+      window.location.href = 'portal.html';
+    } catch (err) {
+      console.error(err);
+      showMessage(err.message || 'Could not sign in. Please check your email and password.', 'error');
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Sign In';
+    }
+  }
+
+  async function showReset(e) {
+    e.preventDefault();
+    clearMessage();
+
+    const email = document.getElementById('email').value.trim();
+    if (!email) {
+      showMessage('Please enter your email address above first.', 'error');
+      return;
+    }
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Sending reset...';
+
+    try {
+      const { error } = await window.sb.auth.resetPasswordForEmail(email, {
+        redirectTo: window.location.origin + '/portal-onboard.html'
+      });
+      if (error) throw error;
+      showMessage('Password reset email sent. Check your inbox.', 'success');
+    } catch (err) {
+      showMessage(err.message || 'Could not send reset email.', 'error');
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Sign In';
+    }
+  }
+
+  window.handleLogin = handleLogin;
+  window.showReset = showReset;
+
+  // If already signed in and linked, redirect straight to the dashboard.
+  window.sb.auth.getSession().then(function (_ref) {
+    var session = (_ref || {}).data || {};
+    session = session.session;
+    if (session) {
+      fetch('/api/portal/profile', { headers: { 'Authorization': 'Bearer ' + session.access_token } })
+        .then(function (res) {
+          if (res.ok) window.location.href = 'portal.html';
+        });
+    }
+  });
+})();
+</script>
+
+</body>
+</html>
