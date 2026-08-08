@@ -64,8 +64,10 @@ module.exports = allowCors(async function (req, res) {
     });
   }
 
-  const origin = req.headers.origin || 'https://' + req.headers.host || '';
+  const origin = (req.headers.origin || 'https://' + (req.headers.host || '') || '').replace(/\/$/, '');
   const redirectTo = origin + '/portal-onboard.html';
+
+  console.log('portal/invite redirectTo:', redirectTo, 'for client:', clientId);
 
   const { data: inviteData, error: inviteError } = await supabase.auth.admin.inviteUserByEmail(client.email, {
     redirectTo: redirectTo,
